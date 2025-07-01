@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Productos | BarberíaApp{% endblock %}
+{% block content %}
+<h1 class="mb-4">Productos</h1>
+<p class="lead text-center mb-4">Consulta y compra cualquiera de estos productos en nuestro local</p>
+{% if user.is_authenticated and user.is_staff %}
+  <div class="mb-3 text-end">
+    <a href="{% url 'producto-create' %}" class="btn btn-primary">Agregar Producto</a>
+  </div>
+{% endif %}
+<div class="row">
+    {% for producto in productos %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="ratio ratio-4x3" style="overflow:hidden;">
+                {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" class="card-img-top object-fit-cover" alt="{{ producto.nombre }}" style="width:100%;height:100%;object-fit:cover;object-position:center;">
+                {% else %}
+                <img src="/media/Default/noimage.png" class="card-img-top object-fit-cover" alt="{{ producto.nombre }}" style="width:100%;height:100%;object-fit:cover;object-position:center;">
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ producto.nombre }}</h5>
+                <p class="card-text">Precio: ${{ producto.precio }}</p>
+                {% if user.is_authenticated and user.is_staff %}
+                <div class="mt-2 d-flex gap-2">
+                  <a href="{% url 'producto-update' producto.id %}" class="btn btn-outline-primary btn-sm">Editar</a>
+                  <a href="{% url 'producto-delete' producto.id %}" class="btn btn-outline-danger btn-sm">Eliminar</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-muted">No hay productos registrados.</div>
+    {% endfor %}
+</div>
+{% endblock %}

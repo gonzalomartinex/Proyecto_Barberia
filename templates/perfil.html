@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Mi Perfil | BarberíaApp{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Mi Perfil</h2>
+    <div class="card">
+        <div class="card-body">
+            <p><strong>Nombre:</strong> {{ user.nombre }} {{ user.apellido }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Teléfono:</strong> {{ user.telefono }}</p>
+            <p><strong>Fecha de nacimiento:</strong> {{ user.fecha_nacimiento }}</p>
+            <p><strong>Fecha de registro:</strong> {{ user.fecha_registro }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

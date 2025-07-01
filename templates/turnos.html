@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Reservar Turno | BarberíaApp{% endblock %}
+{% block content %}
+<h1 class="mb-4">Reservar Turno</h1>
+<form method="get" class="row g-3 mb-4">
+    <div class="col-md-4">
+        <label for="barbero" class="form-label">Barbero</label>
+        <select name="barbero" id="barbero" class="form-select">
+            <option value="">Todos</option>
+            {% for b in barberos %}
+            <option value="{{ b.id }}" {% if b.id|stringformat:'s' == request.GET.barbero %}selected{% endif %}>{{ b.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label for="semana" class="form-label">Semana</label>
+        <input type="week" name="semana" id="semana" class="form-control" value="{{ semana_actual }}">
+    </div>
+    <div class="col-md-4 align-self-end">
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+    </div>
+</form>
+<div class="table-responsive">
+    <table class="table table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Día</th>
+                <th>Hora</th>
+                <th>Barbero</th>
+                <th>Servicio</th>
+                <th>Estado</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for turno in turnos %}
+            <tr>
+                <td>{{ turno.fecha_hora|date:"l d/m" }}</td>
+                <td>{{ turno.fecha_hora|time:"H:i" }}</td>
+                <td>{{ turno.barbero.nombre }}</td>
+                <td>{{ turno.servicio.nombre }}</td>
+                <td>
+                    {% if turno.estado == 'disponible' %}
+                        <span class="badge bg-success">Disponible</span>
+                    {% elif turno.estado == 'ocupado' %}
+                        <span class="badge bg-warning text-dark">Ocupado</span>
+                    {% elif turno.estado == 'cancelado' %}
+                        <span class="badge bg-danger">Cancelado</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Completado</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if turno.estado == 'disponible' %}
+                    <a href="{% url 'reservar-turno' turno.id %}" class="btn btn-sm btn-primary">Reservar</a>
+                    {% else %}
+                    <button class="btn btn-sm btn-secondary" disabled>No disponible</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center">No hay turnos disponibles para la selección.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

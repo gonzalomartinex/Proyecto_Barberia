@@ -1,0 +1,23 @@
+from django.urls import path
+from . import views
+from .views import (
+    RegistroServiciosListCreateView, RegistroServiciosRetrieveUpdateDestroyView,
+    estadisticas_servicios_mas_pedidos, estadisticas_ingresos_por_barbero, estadisticas_cantidad_turnos
+)
+
+urlpatterns = [
+    # Endpoints de administración y reportes
+    path('registros-servicios/', RegistroServiciosListCreateView.as_view(), name='registroservicios-list-create'),
+    path('registros-servicios/<int:pk>/', RegistroServiciosRetrieveUpdateDestroyView.as_view(), name='registroservicios-detail'),
+
+    # Endpoints de estadísticas
+    path('estadisticas/servicios-mas-pedidos/', estadisticas_servicios_mas_pedidos, name='estadisticas-servicios-mas-pedidos'),
+    path('estadisticas/ingresos-por-barbero/', estadisticas_ingresos_por_barbero, name='estadisticas-ingresos-por-barbero'),
+    path('estadisticas/cantidad-turnos/', estadisticas_cantidad_turnos, name='estadisticas-cantidad-turnos'),
+
+    # Ruta para la administración de turnos
+    path('turnos/', views.administracion_turnos, name='administracion-turnos'),
+    path('agregar-turnos/', views.agregar_turnos, name='agregar-turnos'),
+    path('turnos/cancelar/', views.cancelar_turno_admin, name='cancelar-turno-admin'),
+    path('turnos/cambiar-estado/', views.cambiar_estado_turno_admin, name='cambiar-estado-turno-admin'),
+]

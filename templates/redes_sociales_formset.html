@@ -1,0 +1,73 @@
+<div id="redes-formset">
+  {{ formset.management_form }}
+  {% for form in formset %}
+    <div class="input-group mb-2 redes-item">
+      <input type="url" name="{{ form.url.name }}" class="form-control" placeholder="URL de la red social" value="{{ form.url.value|default:'' }}">
+      <input type="text" name="{{ form.nombre.name }}" class="form-control" placeholder="Nombre (opcional)" value="{{ form.nombre.value|default:'' }}">
+      {% if form.DELETE %}
+        <input type="checkbox" name="{{ form.DELETE.name }}" style="display:none;">
+      {% endif %}
+      {% if not forloop.first %}
+        <button type="button" class="btn btn-danger btn-remove-red">&minus;</button>
+      {% endif %}
+    </div>
+    {% for field in form.visible_fields %}
+      {% for error in field.errors %}
+        <div class="text-danger small">{{ error }}</div>
+      {% endfor %}
+    {% endfor %}
+  {% endfor %}
+  {% if formset.management_form %}
+    <button type="button" class="btn btn-outline-primary w-100" id="btn-add-red">+ Agregar otra red social</button>
+  {% endif %}
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const formsetDiv = document.getElementById('redes-formset');
+  const addBtn = document.getElementById('btn-add-red');
+  if (addBtn) {
+    addBtn.onclick = function() {
+      const items = formsetDiv.querySelectorAll('.redes-item');
+      const last = items[items.length-1];
+      const clone = last.cloneNode(true);
+      // Limpiar valores
+      clone.querySelectorAll('input[type="url"],input[type="text"]').forEach(inp => inp.value = '');
+      // Cambiar nombres y actualizar el TOTAL_FORMS
+      const totalForms = formsetDiv.querySelector('input[name$="-TOTAL_FORMS"]');
+      let idx = parseInt(totalForms.value);
+      clone.querySelectorAll('input').forEach(inp => {
+        inp.name = inp.name.replace(/-(\d+)-/, `-${idx}-`);
+        inp.id = inp.id ? inp.id.replace(/-(\d+)-/, `-${idx}-`) : '';
+        // Si es DELETE, desmarcar
+        if (inp.type === 'checkbox' && inp.name.endsWith('DELETE')) inp.checked = false;
+      });
+      totalForms.value = idx + 1;
+      // Mostrar botón de eliminar
+      if (!clone.querySelector('.btn-remove-red')) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-danger btn-remove-red';
+        btn.innerHTML = '&minus;';
+        btn.onclick = function() { clone.remove(); };
+        clone.appendChild(btn);
+      }
+      formsetDiv.insertBefore(clone, addBtn);
+      // Activar botón de eliminar en el nuevo
+      clone.querySelector('.btn-remove-red').onclick = function() { clone.remove(); };
+    };
+  }
+  // Activar botón de eliminar en los existentes
+  formsetDiv.querySelectorAll('.btn-remove-red').forEach(btn => {
+    btn.onclick = function() {
+      const item = btn.closest('.redes-item');
+      const del = item.querySelector('input[type="checkbox"][name$="DELETE"]');
+      if (del) {
+        del.checked = true;
+        item.style.display = 'none';
+      } else {
+        item.remove();
+      }
+    };
+  });
+});
+</script>

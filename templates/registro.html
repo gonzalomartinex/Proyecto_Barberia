@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Registro de usuario | BarberíaApp{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-5">
+    <div class="card shadow">
+      <div class="card-body">
+        <h3 class="mb-4 text-center">Registro de usuario</h3>
+        <form method="post">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+          <div class="mb-3">
+            <label for="id_email" class="form-label">Correo electrónico</label>
+            <input type="email" name="email" id="id_email" class="form-control" value="{{ form.email.value|default:'' }}" required>
+          </div>
+          <div class="mb-3">
+            <label for="id_nombre" class="form-label">Nombre</label>
+            <input type="text" name="nombre" id="id_nombre" class="form-control" value="{{ form.nombre.value|default:'' }}" required>
+          </div>
+          <div class="mb-3">
+            <label for="id_apellido" class="form-label">Apellido</label>
+            <input type="text" name="apellido" id="id_apellido" class="form-control" value="{{ form.apellido.value|default:'' }}" required>
+          </div>
+          <div class="mb-3">
+            <label for="id_fecha_nacimiento" class="form-label">Fecha de nacimiento</label>
+            <input type="date" name="fecha_nacimiento" id="id_fecha_nacimiento" class="form-control" value="{{ form.fecha_nacimiento.value|default:'' }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Teléfono</label>
+            <div class="input-group">
+              <input type="text" name="codigo_pais" id="id_codigo_pais" class="form-control" style="max-width: 80px; min-width: 60px;" value="{{ form.codigo_pais.value|default:'+54' }}" placeholder="+54">
+              <input type="text" name="telefono_numero" id="id_telefono_numero" class="form-control" placeholder="3519998888" autocomplete="off">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="id_password1" class="form-label">Contraseña</label>
+            <input type="password" name="password1" id="id_password1" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label for="id_password2" class="form-label">Repetir contraseña</label>
+            <input type="password" name="password2" id="id_password2" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <small class="text-danger">Recuerda que un usuario nuevo permanece deshabilitado hasta que te presentes en la barbería</small>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Registrarse</button>
+        </form>
+        <div class="mt-3 text-center">
+          <a href="/login/">¿Ya tienes usuario? Inicia sesión</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

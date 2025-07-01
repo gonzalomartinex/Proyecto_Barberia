@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Editar Barbero | BarberíaApp{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6">
+    <div class="card shadow">
+      <div class="card-body">
+        <h3 class="mb-4 text-center">Editar barbero</h3>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+          {{ form.as_p }}
+          <button type="submit" class="btn btn-primary w-100">Guardar cambios</button>
+        </form>
+        <a href="{% url 'barbero-perfil' barbero.id %}" class="btn btn-link mt-3 w-100">Volver al perfil</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

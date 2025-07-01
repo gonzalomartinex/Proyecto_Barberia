@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Iniciar sesión | BarberíaApp{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-4">
+    <div class="alert alert-info text-center mb-4">
+      Si todavía <strong>NO tenés un usuario</strong>, podés registrar uno nuevo aunque este permanecerá <strong>deshabilitado</strong>. Reservá turno por <a href="https://wa.me/" target="_blank">WHATSAPP</a> y cuando te presentes en la barbería nosotros te <strong>HABILITAMOS</strong> tu usuario para que puedas reservar turnos de manera más sencilla a partir de entonces.
+    </div>
+    <div class="card shadow">
+      <div class="card-body">
+        <h3 class="mb-4 text-center">Iniciar sesión</h3>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+          <div class="mb-3">
+            <label for="id_username" class="form-label">Correo electrónico</label>
+            <input type="text" name="username" autofocus required class="form-control" id="id_username" placeholder="usuario@correo.com">
+          </div>
+          <div class="mb-3">
+            <label for="id_password" class="form-label">Contraseña</label>
+            <input type="password" name="password" required class="form-control" id="id_password" placeholder="Contraseña">
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a>
+            <a href="{% url 'registro' %}">Registrarse</a>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Eliminar Barbero | BarberíaApp{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6">
+    <div class="card shadow border-danger">
+      <div class="card-body">
+        <h3 class="mb-4 text-center text-danger">Eliminar barbero</h3>
+        <p class="text-center">¿Estás seguro que deseas eliminar a <strong>{{ barbero.nombre }}</strong>? Esta acción no se puede deshacer.</p>
+        {% if barbero.foto %}
+          <div class="text-center mb-3">
+            <img src="{{ barbero.foto.url }}" class="img-fluid rounded" style="max-height:120px;">
+          </div>
+        {% endif %}
+        <form method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger w-100">Eliminar definitivamente</button>
+        </form>
+        <a href="{% url 'barbero-perfil' barbero.id %}" class="btn btn-link mt-3 w-100">Cancelar</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

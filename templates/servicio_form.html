@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Servicio | BarberíaApp{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h2>{% if object %}Editar Servicio{% else %}Agregar Servicio{% endif %}</h2>
+  <form method="post" enctype="multipart/form-data" class="p-4 rounded shadow-sm bg-white" style="max-width: 500px; margin: auto;">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="mb-3">
+        <label for="{{ field.id_for_label }}" class="form-label fw-bold">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}
+          <div class="form-text">{{ field.help_text }}</div>
+        {% endif %}
+        {% for error in field.errors %}
+          <div class="text-danger small">{{ error }}</div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+    <div class="d-flex gap-2 justify-content-end">
+      <button type="submit" class="btn btn-primary">Guardar</button>
+      <a href="{% url 'servicio-lista' %}" class="btn btn-secondary">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

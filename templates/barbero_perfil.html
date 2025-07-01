@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Perfil de {{ barbero.nombre }} | BarberíaApp{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        {% if barbero.foto %}
+        <img src="{{ barbero.foto.url }}" class="img-fluid rounded mb-3" alt="{{ barbero.nombre }}">
+        {% else %}
+        <img src="https://via.placeholder.com/400x400?text=Barbero" class="img-fluid rounded mb-3" alt="{{ barbero.nombre }}">
+        {% endif %}
+        <ul class="list-group">
+            <li class="list-group-item"><strong>Nombre:</strong> {{ barbero.nombre }}</li>
+            {% if user.is_authenticated and user.is_staff %}
+                <li class="list-group-item"><strong>Fecha de nacimiento:</strong> {{ barbero.fecha_nacimiento }}</li>
+                <li class="list-group-item"><strong>Teléfono:</strong> {{ barbero.telefono }}</li>
+                <li class="list-group-item"><strong>DNI:</strong> {{ barbero.dni }}</li>
+            {% endif %}
+        </ul>
+        {% with redes=barbero.redes_sociales.all|dictsort:"orden" %}
+        {% if redes %}
+        <div class="text-center mt-3">
+            <h5 class="mb-2" style="font-weight:600;">Redes:</h5>
+            <ul class="list-unstyled">
+                {% for red in redes %}
+                <li class="mb-1">
+                    <a href="{{ red.url }}" target="_blank" rel="noopener" class="link-primary">
+                        {{ red.nombre|default:red.url }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        {% endwith %}
+        {% if user.is_authenticated and user.is_staff %}
+        <a href="{% url 'gestionar-redes-barbero' barbero.id %}" class="btn btn-info w-100 mt-3">Gestionar redes sociales</a>
+        <a href="{% url 'editar-barbero' barbero.id %}" class="btn btn-warning w-100 mt-3">Editar información</a>
+        <a href="{% url 'eliminar-barbero' barbero.id %}" class="btn btn-danger w-100 mt-2">Eliminar barbero</a>
+        <a href="{% url 'cargar-trabajo-barbero' barbero.id %}" class="btn btn-success w-100 mt-2">Cargar imagen de trabajo</a>
+        {% endif %}
+    </div>
+    <div class="col-md-8">
+        <h2>{{ barbero.nombre }}</h2>
+        <div style="max-width: 800px;">
+          <p style="word-break: break-word; white-space: pre-line; overflow-wrap: break-word;">{{ barbero.bio }}</p>
+        </div>
+        <h4>Galería de trabajos</h4>
+        <div class="row g-3">
+            {% for trabajo in barbero.trabajos.all %}
+            <div class="col-6 col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="ratio ratio-4x3 position-relative" style="overflow:hidden;cursor:pointer;">
+                        {% if user.is_authenticated and user.is_staff %}
+                        <a href="{{ trabajo.imagen.url }}" target="_blank" data-bs-toggle="modal" data-bs-target="#modalImagen{{ trabajo.id }}">
+                            <img src="{{ trabajo.imagen.url }}" class="card-img-top object-fit-cover" alt="Trabajo de {{ barbero.nombre }}" style="width:100%;height:100%;object-fit:cover;object-position:center;">
+                        </a>
+                        <!-- Modal -->
+                        <div class="modal fade" id="modalImagen{{ trabajo.id }}" tabindex="-1" aria-labelledby="modalLabel{{ trabajo.id }}" aria-hidden="true">
+                          <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                              <div class="modal-body p-0">
+                                <img src="{{ trabajo.imagen.url }}" class="w-100" style="object-fit:contain;max-height:70vh;">
+                              </div>
+                              <div class="modal-footer justify-content-between">
+                                <a href="{{ trabajo.imagen.url }}" target="_blank" class="btn btn-outline-secondary">Ver tamaño completo</a>
+                                <form method="post" action="{% url 'eliminar-trabajo-barbero' trabajo.id %}" onsubmit="return confirm('¿Seguro que deseas eliminar esta imagen?');">
+                                  {% csrf_token %}
+                                  <button type="submit" class="btn btn-danger">Eliminar</button>
+                                </form>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        {% else %}
+                        <img src="{{ trabajo.imagen.url }}" class="card-img-top object-fit-cover" alt="Trabajo de {{ barbero.nombre }}" style="width:100%;height:100%;object-fit:cover;object-position:center;">
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-muted">No hay trabajos cargados aún.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Registrar Barbero | BarberíaApp{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6">
+    <div class="card shadow">
+      <div class="card-body">
+        <h3 class="mb-4 text-center">Registrar nuevo barbero</h3>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+          {{ form.as_p }}
+          <button type="submit" class="btn btn-primary w-100">Registrar</button>
+        </form>
+        <a href="{% url 'barberos-list' %}" class="btn btn-link mt-3 w-100">Volver al listado</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

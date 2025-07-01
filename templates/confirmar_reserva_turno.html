@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Confirmar Reserva | BarberíaApp{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Confirmar Reserva de Turno</h2>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Resumen del Turno</h5>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Día:</strong> {{ turno.fecha_hora|date:"l d/m/Y" }}</li>
+                <li class="list-group-item"><strong>Hora:</strong> {{ turno.fecha_hora|time:"H:i" }}</li>
+                <li class="list-group-item"><strong>Barbero:</strong> {{ turno.barbero.nombre }}</li>
+            </ul>
+        </div>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="servicio" class="form-label">Selecciona el servicio</label>
+            <select name="servicio" id="servicio" class="form-select" required>
+                {% for servicio in servicios %}
+                <option value="{{ servicio.id }}" {% if turno.servicio.id == servicio.id %}selected{% endif %}>{{ servicio.nombre }} - ${{ servicio.precio }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success">Confirmar Reserva</button>
+        <a href="{% url 'turnos-agenda' %}" class="btn btn-secondary ms-2">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

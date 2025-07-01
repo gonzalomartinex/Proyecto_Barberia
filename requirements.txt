@@ -1,0 +1,8 @@
+django
+djangorestframework
+djangorestframework-simplejwt
+mysqlclient
+python-dotenv
+django-environ
+openpyxl
+xhtml2pdf

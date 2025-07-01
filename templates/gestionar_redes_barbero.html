@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}Gestionar redes sociales de {{ barbero.nombre }} | BarberíaApp{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">Redes sociales de {{ barbero.nombre }}</h2>
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Agregar nueva red social</h5>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="row g-2 align-items-end">
+          <div class="col-md-5">
+            <label for="id_url" class="form-label">URL</label>
+            {{ form.url }}
+          </div>
+          <div class="col-md-5">
+            <label for="id_nombre" class="form-label">Nombre (opcional)</label>
+            {{ form.nombre }}
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-success w-100">Agregar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Redes sociales actuales</h5>
+      {% if redes %}
+      <form method="post" id="ordenar-redes-form">
+        {% csrf_token %}
+        <table class="table align-middle" id="tabla-redes">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Link</th>
+              <th>Eliminar</th>
+              <th>Ordenar</th>
+            </tr>
+          </thead>
+          <tbody id="redes-tbody">
+            {% for red in redes %}
+            <tr data-id="{{ red.id }}">
+              <td>{{ red.nombre|default:'-' }}</td>
+              <td><a href="{{ red.url }}" target="_blank">{{ red.url }}</a></td>
+              <td>
+                <form method="post" style="display:inline;">
+                  {% csrf_token %}
+                  <input type="hidden" name="eliminar_red" value="{{ red.id }}">
+                  <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar esta red social?');">Eliminar</button>
+                </form>
+              </td>
+              <td class="text-end">
+                <span class="btn btn-light btn-sm handle" title="Arrastrar para reordenar" style="cursor:grab;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5 12.5a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1h-10a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1h-10a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1h-10a.5.5 0 0 1-.5-.5z"/></svg>
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <input type="hidden" name="nuevo_orden" id="nuevo_orden">
+        <button type="submit" class="btn btn-primary mt-2" id="btn-guardar-orden" style="display:none;">Guardar orden</button>
+      </form>
+      {% else %}
+      <div class="text-muted">No hay redes sociales registradas.</div>
+      {% endif %}
+    </div>
+  </div>
+  <a href="{% url 'barbero-perfil' barbero.id %}" class="btn btn-link mt-4">Volver al perfil</a>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<script>
+if (document.getElementById('redes-tbody')) {
+  const tbody = document.getElementById('redes-tbody');
+  const btnGuardar = document.getElementById('btn-guardar-orden');
+  const inputOrden = document.getElementById('nuevo_orden');
+  let ordenModificado = false;
+  const sortable = new Sortable(tbody, {
+    handle: '.handle',
+    animation: 150,
+    onEnd: function () {
+      ordenModificado = true;
+      btnGuardar.style.display = 'inline-block';
+      // Actualizar el input oculto con el nuevo orden de IDs
+      const ids = Array.from(tbody.querySelectorAll('tr')).map(tr => tr.getAttribute('data-id'));
+      inputOrden.value = ids.join(',');
+    }
+  });
+  // Si el admin hace submit para guardar el orden, se envía el input oculto con el nuevo orden
+}
+</script>
+{% endblock %}

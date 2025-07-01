@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}Reservar Turno | BarberíaApp{% endblock %}
+{% block content %}
+<div id="reserva-form-app"></div>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/locale/es.js"></script>
+<script>
+// Este script implementa el flujo de reserva paso a paso
+const servicios = JSON.parse('{{ servicios_json|escapejs }}');
+const turnosPorDia = JSON.parse('{{ turnos_json|escapejs }}');
+const barberos = JSON.parse('{{ barberos_json|escapejs }}');
+const hoy = dayjs();
+let paso = 1;
+let servicioSeleccionado = null;
+let semanaOffset = 0;
+let diaSeleccionado = null;
+let turnoSeleccionado = null;
+let barberoSeleccionado = null;
+
+function renderServicios() {
+    return `<div class='mb-4'><h3>¿Qué servicio deseas?</h3><div class='row g-3'>` +
+        servicios.map(s => `
+        <div class='col-md-4'>
+            <button class='btn btn-outline-primary w-100 py-3 mb-2' onclick='seleccionarServicio(${s.id})'>
+                <strong>${s.nombre}</strong><br><span class='text-muted'>$${s.precio}</span>
+            </button>
+        </div>`).join('') + '</div></div>';
+}
+
+function renderDiasSemana() {
+    let dias = [];
+    let inicio = hoy.add(semanaOffset, 'week').startOf('week').add(1, 'day'); // Lunes
+    for (let i = 0; i < 7; i++) {
+        let d = inicio.add(i, 'day');
+        dias.push(d);
+    }
+    return `<div class='d-flex align-items-center justify-content-between mb-3'>
+        <button class='btn btn-link' onclick='cambiarSemana(-1)'>&lt;</button>
+        <div class='flex-grow-1 d-flex justify-content-center gap-2'>` +
+        dias.map(d => {
+            // Deshabilitar domingos (0) y lunes (1), y días pasados
+            const esDomingo = d.day() === 0;
+            const esLunes = d.day() === 1;
+            const esPasado = d.isBefore(hoy, 'day');
+            const disabled = esDomingo || esLunes || esPasado;
+            return `<button class='btn btn-${diaSeleccionado && d.isSame(diaSeleccionado, 'day') ? 'primary' : 'outline-primary'}${disabled ? ' disabled text-muted' : ''}' ` +
+                (disabled ? 'disabled ' : '') +
+                `onclick='${disabled ? '' : `seleccionarDia(\"${d.format('YYYY-MM-DD')}\")`}' type='button'>${d.locale('es').format('ddd D')}</button>`;
+        }).join('') +
+        `</div><button class='btn btn-link' onclick='cambiarSemana(1)'>&gt;</button></div>`;
+}
+
+function renderTurnosDia() {
+    if (!diaSeleccionado) return '';
+    let turnos = turnosPorDia[diaSeleccionado] || [];
+    if (!turnos.length) return '<div class="alert alert-info">No hay turnos disponibles para este día.</div>';
+    // Agrupar por franja horaria
+    let franjas = {manana: [], tarde: [], noche: []};
+    turnos.forEach(t => {
+        let h = parseInt(t.hora.split(':')[0]);
+        if (h < 12) franjas.manana.push(t);
+        else if (h < 18) franjas.tarde.push(t);
+        else franjas.noche.push(t);
+    });
+    function renderFranja(nombre, lista) {
+        if (!lista.length) return '';
+        return `<div class='mb-2'><div class='fw-bold border-bottom mb-2'>${nombre}</div><div class='d-flex flex-wrap gap-2'>` +
+            lista.map(t => `<button class='btn btn-outline-success' style='min-width:110px' onclick='seleccionarTurno(${t.id})'>${t.hora}</button>`).join('') +
+            '</div></div>';
+    }
+    return renderFranja('Mañana', franjas.manana) + renderFranja('Tarde', franjas.tarde) + renderFranja('Noche', franjas.noche);
+}
+
+function renderBarberosDisponibles() {
+    if (!turnoSeleccionado) return '';
+    let turno = (turnosPorDia[diaSeleccionado] || []).find(t => t.id === turnoSeleccionado);
+    let disponibles = barberos.filter(b => turno && b.id === turno.barbero_id);
+    if (!disponibles.length) return '<div class="alert alert-warning">No hay barberos disponibles para este turno.</div>';
+    return `<div class='mb-4'><h4>¿Qué barbero prefieres?</h4><div class='row g-3'>` +
+        disponibles.map(b => `
+        <div class='col-md-4'>
+            <button class='btn btn-outline-info w-100 py-3 mb-2' onclick='seleccionarBarbero(${b.id})'>
+                <strong>${b.nombre}</strong>
+            </button>
+        </div>`).join('') + '</div></div>';
+}
+
+function renderResumen() {
+    if (!servicioSeleccionado || !diaSeleccionado || !turnoSeleccionado || !barberoSeleccionado) return '';
+    let servicio = servicios.find(s => s.id === servicioSeleccionado);
+    let turno = (turnosPorDia[diaSeleccionado] || []).find(t => t.id === turnoSeleccionado);
+    let barbero = barberos.find(b => b.id === barberoSeleccionado);
+    return `<div class='card mt-4'><div class='card-body'>
+        <h5 class='card-title'>Confirmar Reserva</h5>
+        <ul class='list-group list-group-flush mb-3'>
+            <li class='list-group-item'><strong>Servicio:</strong> ${servicio.nombre}</li>
+            <li class='list-group-item'><strong>Día:</strong> ${dayjs(diaSeleccionado).locale('es').format('dddd D [de] MMMM')}</li>
+            <li class='list-group-item'><strong>Hora:</strong> ${turno.hora}</li>
+            <li class='list-group-item'><strong>Barbero:</strong> ${barbero.nombre}</li>
+        </ul>
+        <form method='post'>
+            {% csrf_token %}
+            <input type='hidden' name='servicio' value='${servicio.id}'>
+            <input type='hidden' name='turno_id' value='${turno.id}'>
+            <input type='hidden' name='barbero_id' value='${barbero.id}'>
+            <button type='submit' class='btn btn-success'>Confirmar Reserva</button>
+        </form>
+    </div></div>`;
+}
+
+function renderPaso() {
+    let html = '';
+    if (paso === 1) html = renderServicios();
+    else if (paso === 2) html = renderDiasSemana();
+    else if (paso === 3) html = renderDiasSemana() + renderTurnosDia();
+    else if (paso === 4) html = renderBarberosDisponibles();
+    else if (paso === 5) html = renderResumen();
+    document.getElementById('reserva-form-app').innerHTML = html;
+}
+
+window.seleccionarServicio = function(id) {
+    servicioSeleccionado = id;
+    paso = 2;
+    renderPaso();
+};
+window.cambiarSemana = function(offset) {
+    semanaOffset += offset;
+    renderPaso();
+};
+window.seleccionarDia = function(fecha) {
+    diaSeleccionado = fecha;
+    paso = 3;
+    renderPaso();
+};
+window.seleccionarTurno = function(id) {
+    turnoSeleccionado = id;
+    paso = 4;
+    renderPaso();
+};
+window.seleccionarBarbero = function(id) {
+    barberoSeleccionado = id;
+    paso = 5;
+    renderPaso();
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    renderPaso();
+});
+</script>
+{% endblock %}

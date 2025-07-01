@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Inicio | BarberíaApp{% endblock %}
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col-md-6">
+        <h1 class="display-4">Bienvenido a BarberíaApp</h1>
+        <p class="lead">Tu barbería de confianza. Reserva tu turno, conoce a nuestros barberos y descubre los mejores servicios y productos.</p>
+        <a href="/turnos/" class="btn btn-primary btn-lg">Reservar Turno</a>
+    </div>
+    <div class="col-md-6">
+        <div id="carouselInicio" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                {% for img in carousel_images %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                    <div class="ratio ratio-4x3" style="overflow:hidden;">
+                        <img src="{{ img }}" class="d-block w-100 rounded object-fit-cover" alt="Imagen carrusel {{ forloop.counter }}" style="width:100%;height:100%;object-fit:cover;object-position:center;">
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselInicio" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Anterior</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselInicio" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Siguiente</span>
+            </button>
+        </div>
+    </div>
+</div>
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Servicios Destacados</h5>
+                <p class="card-text">Cortes, afeitados, perfilados y más. Conocé todos nuestros servicios.</p>
+                <a href="/servicios/" class="btn btn-outline-primary">Ver Servicios</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Nuestros Barberos</h5>
+                <p class="card-text">Conocé a nuestro staff, su experiencia y trabajos destacados.</p>
+                <a href="/barberos/" class="btn btn-outline-primary">Ver Barberos</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Productos</h5>
+                <p class="card-text">Descubrí los productos que usamos y recomendamos en la barbería.</p>
+                <a href="/productos/" class="btn btn-outline-primary">Ver Productos</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
