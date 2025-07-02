@@ -52,20 +52,27 @@ function renderDiasSemana() {
 
 function renderTurnosDia() {
     if (!diaSeleccionado) return '';
-    let turnos = turnosPorDia[diaSeleccionado] || [];
-    if (!turnos.length) return '<div class="alert alert-info">No hay turnos disponibles para este día.</div>';
+    let turnosDia = turnosPorDia[diaSeleccionado] || {};
+    let horas = Object.keys(turnosDia).sort();
+    // Filtrar solo horas que tengan al menos un turno disponible (al menos un barbero)
+    horas = horas.filter(hora => {
+        const turnos = turnosDia[hora] || [];
+        // Solo mostrar el botón si hay al menos un turno disponible para cualquier barbero
+        return turnos.length > 0;
+    });
+    if (!horas.length) return '<div class="alert alert-info">No hay turnos disponibles para este día.</div>';
     // Agrupar por franja horaria
     let franjas = {manana: [], tarde: [], noche: []};
-    turnos.forEach(t => {
-        let h = parseInt(t.hora.split(':')[0]);
-        if (h < 12) franjas.manana.push(t);
-        else if (h < 18) franjas.tarde.push(t);
-        else franjas.noche.push(t);
+    horas.forEach(hora => {
+        let h = parseInt(hora.split(':')[0]);
+        if (h < 12) franjas.manana.push(hora);
+        else if (h < 18) franjas.tarde.push(hora);
+        else franjas.noche.push(hora);
     });
     function renderFranja(nombre, lista) {
         if (!lista.length) return '';
         return `<div class='mb-2'><div class='fw-bold border-bottom mb-2'>${nombre}</div><div class='d-flex flex-wrap gap-2'>` +
-            lista.map(t => `<button class='btn btn-outline-success' style='min-width:110px' onclick='seleccionarTurno(${t.id})'>${t.hora}</button>`).join('') +
+            lista.map(hora => `<button class='btn btn-outline-success' style='min-width:110px' onclick='seleccionarTurno("${hora}")'>${hora}</button>`).join('') +
             '</div></div>';
     }
     return renderFranja('Mañana', franjas.manana) + renderFranja('Tarde', franjas.tarde) + renderFranja('Noche', franjas.noche);
@@ -73,11 +80,12 @@ function renderTurnosDia() {
 
 function renderBarberosDisponibles() {
     if (!turnoSeleccionado) return '';
-    let turno = (turnosPorDia[diaSeleccionado] || []).find(t => t.id === turnoSeleccionado);
-    let disponibles = barberos.filter(b => turno && b.id === turno.barbero_id);
-    if (!disponibles.length) return '<div class="alert alert-warning">No hay barberos disponibles para este turno.</div>';
+    let turnosDia = turnosPorDia[diaSeleccionado] || {};
+    let barberosDisponibles = (turnosDia[turnoSeleccionado] || []).map(t => t.barbero_id);
+    let barberosInfo = barberos.filter(b => barberosDisponibles.includes(b.id));
+    if (!barberosInfo.length) return '<div class="alert alert-warning">No hay barberos disponibles para este turno.</div>';
     return `<div class='mb-4'><h4>¿Qué barbero prefieres?</h4><div class='row g-3'>` +
-        disponibles.map(b => `
+        barberosInfo.map(b => `
         <div class='col-md-4'>
             <button class='btn btn-outline-info w-100 py-3 mb-2' onclick='seleccionarBarbero(${b.id})'>
                 <strong>${b.nombre}</strong>
@@ -88,20 +96,20 @@ function renderBarberosDisponibles() {
 function renderResumen() {
     if (!servicioSeleccionado || !diaSeleccionado || !turnoSeleccionado || !barberoSeleccionado) return '';
     let servicio = servicios.find(s => s.id === servicioSeleccionado);
-    let turno = (turnosPorDia[diaSeleccionado] || []).find(t => t.id === turnoSeleccionado);
+    let turno = (turnosPorDia[diaSeleccionado][turnoSeleccionado] || []).find(t => t.barbero_id === barberoSeleccionado);
     let barbero = barberos.find(b => b.id === barberoSeleccionado);
     return `<div class='card mt-4'><div class='card-body'>
         <h5 class='card-title'>Confirmar Reserva</h5>
         <ul class='list-group list-group-flush mb-3'>
             <li class='list-group-item'><strong>Servicio:</strong> ${servicio.nombre}</li>
             <li class='list-group-item'><strong>Día:</strong> ${dayjs(diaSeleccionado).locale('es').format('dddd D [de] MMMM')}</li>
-            <li class='list-group-item'><strong>Hora:</strong> ${turno.hora}</li>
+            <li class='list-group-item'><strong>Hora:</strong> ${turnoSeleccionado}</li>
             <li class='list-group-item'><strong>Barbero:</strong> ${barbero.nombre}</li>
         </ul>
         <form method='post'>
             {% csrf_token %}
             <input type='hidden' name='servicio' value='${servicio.id}'>
-            <input type='hidden' name='turno_id' value='${turno.id}'>
+            <input type='hidden' name='turno_id' value='${turno ? turno.id : ''}'>
             <input type='hidden' name='barbero_id' value='${barbero.id}'>
             <button type='submit' class='btn btn-success'>Confirmar Reserva</button>
         </form>
@@ -132,8 +140,8 @@ window.seleccionarDia = function(fecha) {
     paso = 3;
     renderPaso();
 };
-window.seleccionarTurno = function(id) {
-    turnoSeleccionado = id;
+window.seleccionarTurno = function(hora) {
+    turnoSeleccionado = hora;
     paso = 4;
     renderPaso();
 };

@@ -115,17 +115,20 @@ def reservar_turno_form(request):
     barberos = list(Barbero.objects.all().values('id', 'nombre'))
     # Obtener todos los turnos disponibles próximos (solo los disponibles)
     turnos = Turno.objects.filter(estado='disponible').select_related('servicio', 'barbero')
-    # Agrupar turnos por día
+    # Agrupar turnos por día y hora local
     turnos_por_dia = {}
     for t in turnos:
-        fecha = t.fecha_hora.date().isoformat()
+        fecha_local = localtime(t.fecha_hora)
+        fecha = fecha_local.date().isoformat()
+        hora = fecha_local.strftime('%H:%M')
         if fecha not in turnos_por_dia:
-            turnos_por_dia[fecha] = []
-        turnos_por_dia[fecha].append({
+            turnos_por_dia[fecha] = {}
+        if hora not in turnos_por_dia[fecha]:
+            turnos_por_dia[fecha][hora] = []
+        turnos_por_dia[fecha][hora].append({
             'id': t.id,
-            'hora': t.fecha_hora.strftime('%H:%M'),
-            'servicio_id': t.servicio.id,
             'barbero_id': t.barbero.id,
+            'servicio_id': t.servicio.id,
         })
     if request.method == 'POST':
         servicio_id = request.POST.get('servicio')
@@ -135,7 +138,7 @@ def reservar_turno_form(request):
             messages.error(request, 'Debes seleccionar servicio, turno y barbero.')
             return redirect('reservar-turno-form')
         turno = get_object_or_404(Turno, id=turno_id, estado='disponible', barbero_id=barbero_id)
-        fecha_turno = turno.fecha_hora.date()
+        fecha_turno = localtime(turno.fecha_hora).date()
         ya_tiene = Turno.objects.filter(
             cliente=request.user,
             fecha_hora__date=fecha_turno,

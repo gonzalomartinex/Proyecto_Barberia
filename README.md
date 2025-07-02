@@ -104,6 +104,18 @@ Abre tu navegador y entra a:
 
 ---
 
+## Advertencia sobre el entorno virtual (venv)
+
+- **Nunca copies la carpeta `venv` entre computadoras ni la subas al repositorio.**
+- Cada usuario debe crear su propio entorno virtual localmente con:
+  ```bash
+  python3 -m venv venv
+  source venv/bin/activate
+  ```
+- Si tienes problemas con rutas o errores de "not found" al ejecutar pip o python dentro de venv, elimina la carpeta `venv` y créala de nuevo como se indica arriba.
+
+---
+
 **Requisitos mínimos:**
 - Python 3.8 o superior
 - MySQL 5.7 o superior
