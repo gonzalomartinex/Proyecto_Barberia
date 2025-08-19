@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Inicio | BarberíaApp{% endblock %}
+{% block title %}Inicio | Cortes Con Historia{% endblock %}
 {% block content %}
 <div class="row align-items-center mb-4">
-    <div class="col-md-6">
-        <h1 class="display-4">Bienvenido a BarberíaApp</h1>
-        <p class="lead">Tu barbería de confianza. Reserva tu turno, conoce a nuestros barberos y descubre los mejores servicios y productos.</p>
+    <div class="col-md-6 d-flex flex-column justify-content-center align-items-center text-center">
+        <h1 class="display-4 mb-3 fw-bold" style="letter-spacing:1px;">Bienvenido a</h1>
+        <h2 class="mb-4" style="font-size:3.2rem;color:#FFD700;font-weight:900;letter-spacing:2px;display:inline-block;">Cortes Con Historia</h2>
+        <p class="lead mb-4">Tu barbería de confianza. Reserva tu turno, conoce a nuestros barberos y descubre los mejores servicios y productos. También atendemos por orden de llegada.</p>
         <a href="/turnos/" class="btn btn-primary btn-lg">Reservar Turno</a>
     </div>
     <div class="col-md-6">
@@ -27,6 +28,11 @@
                 <span class="visually-hidden">Siguiente</span>
             </button>
         </div>
+        {% if user.is_authenticated and user.is_superuser %}
+        <div class="mb-4 text-end">
+            <a href="{% url 'editar-carrusel' %}" class="btn btn-warning">Administrar Carrusel</a>
+        </div>
+        {% endif %}
     </div>
 </div>
 <div class="row mt-5">
@@ -52,7 +58,7 @@
         <div class="card h-100">
             <div class="card-body">
                 <h5 class="card-title">Productos</h5>
-                <p class="card-text">Descubrí los productos que usamos y recomendamos en la barbería.</p>
+                <p class="card-text">Descubrí los productos que usamos y recomendamos en Cortes Con Historia.</p>
                 <a href="/productos/" class="btn btn-outline-primary">Ver Productos</a>
             </div>
         </div>

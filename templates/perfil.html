@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Mi Perfil | BarberíaApp{% endblock %}
+{% block title %}Mi Perfil | Cortes Con Historia{% endblock %}
 {% block content %}
 <div class="container mt-5">
     <h2 class="mb-4">Mi Perfil</h2>
@@ -10,6 +10,10 @@
             <p><strong>Teléfono:</strong> {{ user.telefono }}</p>
             <p><strong>Fecha de nacimiento:</strong> {{ user.fecha_nacimiento }}</p>
             <p><strong>Fecha de registro:</strong> {{ user.fecha_registro }}</p>
+            <div class="mt-4 d-flex gap-3">
+                <a href="{% url 'editar-perfil' %}" class="btn btn-warning">Editar datos</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline-danger">Cerrar sesión</a>
+            </div>
         </div>
     </div>
 </div>

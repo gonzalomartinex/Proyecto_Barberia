@@ -1,4 +1,4 @@
-# Proyecto Barbería
+# Cortes Con Historia
 
 ## Guía completa para levantar el proyecto desde cero
 

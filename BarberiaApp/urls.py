@@ -29,11 +29,19 @@ from django.conf.urls.static import static
 from productos.models import Producto
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from BarberiaApp.views import index
+from BarberiaApp.views import index, editar_carrusel
+from django.contrib.auth import logout
+from django.shortcuts import redirect
 
 def productos_list(request):
     productos = Producto.objects.all()
     return render(request, 'productos.html', {'productos': productos})
+
+def custom_logout(request):
+    from django.contrib import messages
+    logout(request)
+    messages.success(request, 'Sesión cerrada correctamente.')
+    return redirect('/')
 
 urlpatterns = [
     path('', index, name='inicio'),
@@ -50,7 +58,7 @@ urlpatterns = [
     path('turnos/agenda/', turnos_agenda, name='turnos-agenda'),
     path('turnos/reservar/<int:turno_id>/', reservar_turno, name='reservar-turno'),
     path('login/', LoginView.as_view(template_name='login.html'), name='login'),
-    path('logout/', LogoutView.as_view(next_page='/'), name='logout'),
+    path('logout/', custom_logout, name='logout'),
     path('password_reset/', auth_views.PasswordResetView.as_view(template_name='registration/password_reset_form.html'), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='registration/password_reset_confirm.html'), name='password_reset_confirm'),
@@ -64,6 +72,7 @@ urlpatterns = [
     path('usuarios/', include('usuarios.urls')),  # Asegura inclusión de rutas de usuarios
     path('productos/', productos_list, name='productos-list'),
     path('administracion/', include('administracion.urls')),  # Asegura inclusión de rutas de administración
+    path('carrusel/editar/', editar_carrusel, name='editar-carrusel'),
 ]
 
 if settings.DEBUG:

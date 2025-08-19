@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Editar Perfil | Cortes Con Historia{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Editar Perfil</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombre" name="nombre" value="{{ user.nombre }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="apellido" class="form-label">Apellido</label>
+            <input type="text" class="form-control" id="apellido" name="apellido" value="{{ user.apellido }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="telefono" class="form-label">Teléfono</label>
+            <input type="text" class="form-control" id="telefono" name="telefono" value="{{ user.telefono }}">
+        </div>
+        <div class="mb-3">
+            <label for="fecha_nacimiento" class="form-label">Fecha de nacimiento</label>
+            <input type="text" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ user.fecha_nacimiento|date:'d/m/Y' }}" readonly>
+        </div>
+        <button type="submit" class="btn btn-success">Guardar cambios</button>
+        <a href="{% url 'perfil_usuario' %}" class="btn btn-secondary ms-2">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

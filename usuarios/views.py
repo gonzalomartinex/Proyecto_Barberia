@@ -51,7 +51,7 @@ def barbero_perfil(request, pk):
 
 @login_required
 def perfil_usuario(request):
-    return render(request, 'perfil.html')
+    return render(request, 'perfil.html', {'user': request.user})
 
 class RegistroForm(forms.ModelForm):
     password1 = forms.CharField(label='Contraseña', widget=forms.PasswordInput)
@@ -197,3 +197,17 @@ def gestionar_redes_barbero(request, barbero_id):
         form = RedSocialForm()
     redes = barbero.redes_sociales.order_by('orden', 'id')
     return render(request, 'gestionar_redes_barbero.html', {'barbero': barbero, 'form': form, 'redes': redes})
+
+@login_required
+def editar_perfil_usuario(request):
+    user = request.user
+    if request.method == 'POST':
+        user.nombre = request.POST.get('nombre', user.nombre)
+        user.apellido = request.POST.get('apellido', user.apellido)
+        user.email = request.POST.get('email', user.email)
+        user.telefono = request.POST.get('telefono', user.telefono)
+        # La fecha de nacimiento solo se puede cambiar desde el admin site
+        user.save()
+        messages.success(request, 'Datos actualizados correctamente.')
+        return redirect('perfil_usuario')
+    return render(request, 'editar_perfil.html', {'user': user})

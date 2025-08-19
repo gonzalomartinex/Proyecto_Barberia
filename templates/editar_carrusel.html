@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Editar Carrusel | Cortes Con Historia{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Administrar Carrusel de Imágenes</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row mb-4">
+            {% for img in images %}
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <img src="{{ img.imagen.url }}" class="card-img-top" style="height:180px;object-fit:cover;">
+                    <div class="card-body d-flex flex-column align-items-center">
+                        <div class="mb-2 d-flex gap-2">
+                            <button name="move_left" value="{{ img.id }}" class="btn btn-outline-secondary btn-sm" {% if forloop.first %}disabled{% endif %} title="Mover a la izquierda">
+                                &#8592;
+                            </button>
+                            <button name="move_right" value="{{ img.id }}" class="btn btn-outline-secondary btn-sm" {% if forloop.last %}disabled{% endif %} title="Mover a la derecha">
+                                &#8594;
+                            </button>
+                        </div>
+                        <button name="delete" value="{{ img.id }}" class="btn btn-danger btn-sm mt-2">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </form>
+    <hr>
+    <h4>Agregar nueva imagen</h4>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" name="add" class="btn btn-success">Agregar</button>
+    </form>
+</div>
+{% endblock %}
