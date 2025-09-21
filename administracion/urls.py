@@ -20,4 +20,7 @@ urlpatterns = [
     path('agregar-turnos/', views.agregar_turnos, name='agregar-turnos'),
     path('turnos/cancelar/', views.cancelar_turno_admin, name='cancelar-turno-admin'),
     path('turnos/cambiar-estado/', views.cambiar_estado_turno_admin, name='cambiar-estado-turno-admin'),
+    path('turnos/archivar/', views.archivar_turnos_vista, name='archivar-turnos'),
+    path('turnos/archivos/', views.listar_archivos_excel, name='listar-archivos-excel'),
+    path('turnos/descargar/<str:nombre_archivo>/', views.descargar_archivo_excel, name='descargar-archivo-excel'),
 ]

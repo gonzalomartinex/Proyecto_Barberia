@@ -106,24 +106,37 @@
         .bg-primary:hover {
             background-color: #e6be00 !important;
         }
+        
+        /* Estilo para los enlaces del footer */
+        footer a.text-secondary:hover {
+            color: #FFD700 !important;
+            text-decoration: underline !important;
+        }
+        
+        /* Estilo específico para el enlace de WhatsApp */
+        footer .footer-whatsapp-link:hover {
+            color: #25d366 !important; /* Color verde de WhatsApp */
+            text-decoration: underline !important;
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
     <nav class="custom-navbar">
         <a class="navbar-brand" href="/">
-            <img src="/media/logo/logo.png" alt="Logo Cortes Con Historia" style="height:40px;vertical-align:middle;">
+            <img src="/media/logo/logoblanco.png" alt="Logo Cortes Con Historia" style="height:40px;vertical-align:middle;">
         </a>
         <div class="navbar-menu">
             <button onclick="location.href='/'">Inicio</button>
-            <button onclick="location.href='/servicios/'">Servicios</button>
-            <button onclick="location.href='/barberos/'">Barberos</button>
             <button onclick="location.href='/turnos/'">Reservar Turno</button>
             <button onclick="location.href='/productos/'">Productos</button>
+            <button onclick="location.href='/barberos/'">Barberos</button>
+            <button onclick="location.href='/cursos/'">Cursos</button>
+            {% if user.is_authenticated %}
             <button onclick="location.href='/perfil/'">Mi Perfil</button>
-            <button onclick="location.href='/admin/'">Admin</button>
-            {% if user.is_authenticated and user.is_staff %}
             <button onclick="location.href='/administracion/turnos/'">Administrar Turnos</button>
+            {% else %}
+            <button onclick="location.href='/login/'">Iniciar Sesión</button>
             {% endif %}
         </div>
     </nav>
@@ -157,9 +170,25 @@
                 <span class="fw-bold">Cortes Con Historia</span> &copy; {{ now|date:'Y' }}. Todos los derechos reservados.
             </div>
             <div class="small text-secondary">
-                <span class="me-3"><i class="bi bi-geo-alt"></i> Av. Principal 123, Ciudad</span>
-                <span class="me-3"><i class="bi bi-telephone"></i> +54 11 1234-5678</span>
-                <span><i class="bi bi-envelope"></i> contacto@barberiaapp.com</span>
+                <span class="me-3">
+                    <i class="bi bi-geo-alt"></i> 
+                    <a href="https://maps.app.goo.gl/roBNb5djYSFqPbnc8" 
+                       target="_blank" 
+                       class="text-secondary text-decoration-none"
+                       title="Ver ubicación en Google Maps">
+                        Ruta E55, C. Carlos Pellegrini &, X5151 La Calera, Córdoba
+                    </a>
+                </span>
+                <span class="me-3">
+                    <i class="bi bi-telephone"></i> 
+                    <a href="https://api.whatsapp.com/send?phone=543543571635&text=Hola.!%20quisiera%20solicitar%20un%20turno.&fbclid=PAT01DUAM9TR5leHRuA2FlbQIxMAABp2HGvSCMqXozMZhTmalrMaL_TqfMJmEK3TMVed6s8-MaqnHQqqFwJ0px4T_G_aem_OEV6dWmEXE-a3OI5SwYnrA"
+                       target="_blank" 
+                       class="text-secondary text-decoration-none footer-whatsapp-link"
+                       title="Contactar por WhatsApp">
+                        +54 9 3543 57-1635
+                    </a>
+                </span>
+                <span><i class="bi bi-envelope"></i> estacionbarber1973@gmail.com</span>
             </div>
         </div>
     </footer>

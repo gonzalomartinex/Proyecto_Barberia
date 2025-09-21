@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Administración de Turnos | BarberíaApp{% endblock %}
+{% block title %}Administración de Turnos | Cortes Con Historia{% endblock %}
 {% block content %}
 <h1 class="mb-4">Administración de Turnos</h1>
 <div class="card mb-4">
@@ -42,10 +42,17 @@
     </form>
   </div>
 </div>
-<div class="mb-4 text-end">
-  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarTurnos">
-    <i class="bi bi-plus-circle"></i> Agregar Turnos
-  </button>
+<div class="mb-4 d-flex justify-content-between">
+  <div>
+    <a href="{% url 'archivar-turnos' %}" class="btn btn-warning">
+      <i class="bi bi-archive"></i> Archivar Turnos Antiguos
+    </a>
+  </div>
+  <div>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarTurnos">
+      <i class="bi bi-plus-circle"></i> Agregar Turnos
+    </button>
+  </div>
 </div>
 <!-- Modal Agregar Turnos -->
 <div class="modal fade" id="modalAgregarTurnos" tabindex="-1" aria-labelledby="modalAgregarTurnosLabel" aria-hidden="true">
@@ -102,7 +109,13 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Crear Turnos</button>
+          <button type="submit" class="btn btn-primary" id="btn-crear-turnos">
+            <span class="btn-text">Crear Turnos</span>
+            <span class="btn-loading d-none">
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Creando...
+            </span>
+          </button>
         </div>
       </form>
     </div>
@@ -163,6 +176,15 @@
   background-color: #145a32 !important;
   color: #fff !important;
   border-color: #145a32 !important;
+}
+
+#btn-crear-turnos:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-loading {
+  pointer-events: none;
 }
 </style>
 {% endblock %}
@@ -283,6 +305,53 @@ btnMenos.addEventListener('click', function() {
 // Inicializar preview al abrir modal
 if (inputCantidad && inputHora && inputDuracion) {
   setTimeout(actualizarPreviewTurnos, 300);
+}
+
+// Prevenir dobles clics en el formulario de crear turnos
+const formAgregarTurnos = document.getElementById('form-agregar-turnos');
+const btnCrearTurnos = document.getElementById('btn-crear-turnos');
+let formularioEnviado = false;
+let ultimoEnvio = 0;
+
+if (formAgregarTurnos && btnCrearTurnos) {
+  formAgregarTurnos.addEventListener('submit', function(e) {
+    const ahora = Date.now();
+    
+    // Prevenir envío múltiple
+    if (formularioEnviado || (ahora - ultimoEnvio < 2000)) {
+      e.preventDefault();
+      return false;
+    }
+    
+    // Marcar como enviado
+    formularioEnviado = true;
+    ultimoEnvio = ahora;
+    
+    // Cambiar apariencia del botón
+    btnCrearTurnos.disabled = true;
+    btnCrearTurnos.querySelector('.btn-text').classList.add('d-none');
+    btnCrearTurnos.querySelector('.btn-loading').classList.remove('d-none');
+    
+    // Resetear después de un tiempo (por si hay error)
+    setTimeout(() => {
+      resetearBotonCrear();
+    }, 10000);
+  });
+  
+  function resetearBotonCrear() {
+    formularioEnviado = false;
+    btnCrearTurnos.disabled = false;
+    btnCrearTurnos.querySelector('.btn-text').classList.remove('d-none');
+    btnCrearTurnos.querySelector('.btn-loading').classList.add('d-none');
+  }
+  
+  // Resetear cuando se cierre el modal
+  const modal = document.getElementById('modalAgregarTurnos');
+  if (modal) {
+    modal.addEventListener('hidden.bs.modal', function() {
+      resetearBotonCrear();
+    });
+  }
 }
 </script>
 {% endblock %}

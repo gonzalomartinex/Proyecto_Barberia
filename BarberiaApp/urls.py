@@ -19,7 +19,7 @@ from django.urls import path, include
 from rest_framework import routers
 from django.views.generic import TemplateView
 from usuarios.views import barberos_list, barbero_perfil, cargar_trabajo_barbero, eliminar_trabajo_barbero, registrar_barbero, editar_barbero, eliminar_barbero
-from turnos.views import turnos_agenda, reservar_turno, reservar_turno_form
+from turnos.views import reservar_turno, reservar_turno_form
 from django.contrib.auth.views import LoginView, LogoutView
 from usuarios.views import perfil_usuario
 from django.contrib.auth import views as auth_views
@@ -55,7 +55,6 @@ urlpatterns = [
     path('barberos/<int:pk>/', barbero_perfil, name='barbero-perfil'),
     path('turnos/', reservar_turno_form, name='turnos-reserva-form'),
     path('perfil/', perfil_usuario, name='perfil-usuario'),
-    path('turnos/agenda/', turnos_agenda, name='turnos-agenda'),
     path('turnos/reservar/<int:turno_id>/', reservar_turno, name='reservar-turno'),
     path('login/', LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', custom_logout, name='logout'),
@@ -73,6 +72,7 @@ urlpatterns = [
     path('productos/', productos_list, name='productos-list'),
     path('administracion/', include('administracion.urls')),  # Asegura inclusión de rutas de administración
     path('carrusel/editar/', editar_carrusel, name='editar-carrusel'),
+    path('cursos/', include('cursos.urls')),
 ]
 
 if settings.DEBUG:

@@ -1,52 +1,57 @@
 import os
+import random
 from django.conf import settings
-from django.shortcuts import render
-from pathlib import Path
-from .models import CarouselImage
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import user_passes_test
-from .forms import CarouselImageForm
-from django.shortcuts import redirect
+from django.contrib import messages
+from pathlib import Path
 
 def index(request):
-    carousel_images = CarouselImage.objects.order_by('orden')
-    return render(request, 'index.html', {'carousel_images': [img.imagen.url for img in carousel_images]})
+    # Carpeta raíz de imágenes
+    image_dirs = [
+        Path(settings.MEDIA_ROOT) / 'barberos/fotos',
+        Path(settings.MEDIA_ROOT) / 'barberos/trabajos',
+        Path(settings.MEDIA_ROOT) / 'productos/imagenes',
+        Path(settings.MEDIA_ROOT) / 'servicios/imagenes',
+    ]
+    all_images = []
+    for dir_path in image_dirs:
+        if dir_path.exists():
+            for fname in os.listdir(dir_path):
+                if fname.lower().endswith(('.png', '.jpg', '.jpeg', '.webp', '.gif')):
+                    rel_path = dir_path.relative_to(settings.MEDIA_ROOT) / fname
+                    all_images.append(str(rel_path))
+    random_images = random.sample(all_images, min(5, len(all_images))) if all_images else []
+    random_images = [f'/media/{img}' for img in random_images]
+    return render(request, 'index.html', {'carousel_images': random_images})
 
 @user_passes_test(lambda u: u.is_superuser)
 def editar_carrusel(request):
-    images = list(CarouselImage.objects.order_by('orden'))
+    """Vista para editar las imágenes del carrusel"""
     if request.method == 'POST':
-        if 'add' in request.POST:
-            form = CarouselImageForm(request.POST, request.FILES)
-            if form.is_valid():
-                # Asignar orden al final
-                last_order = images[-1].orden + 1 if images else 0
-                new_img = form.save(commit=False)
-                new_img.orden = last_order
-                new_img.save()
-                return redirect('editar-carrusel')
-        elif 'delete' in request.POST:
-            img_id = int(request.POST.get('delete'))
-            CarouselImage.objects.filter(id=img_id).delete()
-            # Reordenar después de eliminar
-            imgs = CarouselImage.objects.order_by('orden')
-            for idx, img in enumerate(imgs):
-                img.orden = idx
-                img.save()
-            return redirect('editar-carrusel')
-        elif 'move_left' in request.POST or 'move_right' in request.POST:
-            img_id = int(request.POST.get('move_left') or request.POST.get('move_right'))
-            idx = next((i for i, img in enumerate(images) if img.id == img_id), None)
-            if idx is not None:
-                if 'move_left' in request.POST and idx > 0:
-                    images[idx].orden, images[idx-1].orden = images[idx-1].orden, images[idx].orden
-                    images[idx].save()
-                    images[idx-1].save()
-                elif 'move_right' in request.POST and idx < len(images)-1:
-                    images[idx].orden, images[idx+1].orden = images[idx+1].orden, images[idx].orden
-                    images[idx].save()
-                    images[idx+1].save()
-            return redirect('editar-carrusel')
-    else:
-        form = CarouselImageForm()
-    images = CarouselImage.objects.order_by('orden')
-    return render(request, 'editar_carrusel.html', {'images': images, 'form': form})
+        # Procesar la subida de nuevas imágenes
+        uploaded_files = request.FILES.getlist('nuevas_imagenes')
+        carousel_dir = Path(settings.MEDIA_ROOT) / 'carousel'
+        carousel_dir.mkdir(exist_ok=True)
+        
+        for uploaded_file in uploaded_files:
+            if uploaded_file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.webp', '.gif')):
+                file_path = carousel_dir / uploaded_file.name
+                with open(file_path, 'wb+') as destination:
+                    for chunk in uploaded_file.chunks():
+                        destination.write(chunk)
+        
+        if uploaded_files:
+            messages.success(request, f'Se subieron {len(uploaded_files)} imágenes correctamente.')
+        
+        return redirect('editar-carrusel')
+    
+    # Obtener imágenes actuales del carrusel
+    carousel_dir = Path(settings.MEDIA_ROOT) / 'carousel'
+    carousel_images = []
+    if carousel_dir.exists():
+        for fname in os.listdir(carousel_dir):
+            if fname.lower().endswith(('.png', '.jpg', '.jpeg', '.webp', '.gif')):
+                carousel_images.append(f'/media/carousel/{fname}')
+    
+    return render(request, 'editar_carrusel.html', {'carousel_images': carousel_images})

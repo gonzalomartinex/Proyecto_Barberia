@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'administracion',
     'productos',
     'BarberiaApp',
+    'cursos',
 ]
 
 MIDDLEWARE = [

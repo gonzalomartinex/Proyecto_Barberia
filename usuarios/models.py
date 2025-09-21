@@ -30,6 +30,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     es_administrador = models.BooleanField(default=False)
     foto_perfil = models.ImageField(upload_to='usuarios/perfiles/', blank=True, null=True)
     is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)  # Necesario para Django auth
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['nombre', 'apellido', 'telefono', 'fecha_nacimiento']
     objects = UsuarioManager()

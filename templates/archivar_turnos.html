@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+{% block title %}Archivar Turnos | Cortes Con Historia{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-archive text-warning"></i> Archivar Turnos Expirados
+            </h1>
+            
+            <div class="alert alert-info">
+                <h5><i class="bi bi-info-circle"></i> ¿Qué hace esta función?</h5>
+                <ul>
+                    <li>Busca turnos anteriores a la fecha límite especificada</li>
+                    <li>Los guarda en un archivo Excel con todos los detalles</li>
+                    <li>Los elimina de la base de datos para mantenerla limpia</li>
+                    <li>Los archivos se guardan en <code>/media/archivos_turnos/</code></li>
+                </ul>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-warning text-dark">
+                            <h5><i class="bi bi-calendar-x"></i> Turnos Expirados</h5>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="text-center mb-3" id="contador-turnos">{{ turnos_expirados_count }}</h3>
+                            <p class="text-center text-muted" id="fecha-limite-texto">
+                                Turnos anteriores al <span id="fecha-limite">{{ fecha_limite|date:"d/m/Y H:i" }}</span>
+                            </p>
+                            
+                            {% if turnos_sample %}
+                            <h6>Ejemplos de turnos a archivar:</h6>
+                            <div id="tabla-ejemplos-container">
+                                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Fecha</th>
+                                                <th>Barbero</th>
+                                                <th>Cliente</th>
+                                                <th>Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for turno in turnos_sample %}
+                                            <tr>
+                                                <td>{{ turno.fecha_hora|date:"d/m/Y H:i" }}</td>
+                                                <td>{{ turno.barbero.nombre|default:"Sin barbero" }}</td>
+                                                <td>
+                                                    {% if turno.cliente %}
+                                                        {{ turno.cliente.nombre }} {{ turno.cliente.apellido }}
+                                                    {% else %}
+                                                        Sin cliente
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-secondary">{{ turno.estado }}</span>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div id="tabla-ejemplos-container">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i> No hay turnos que coincidan con los criterios seleccionados.
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5><i class="bi bi-play-circle"></i> Ejecutar Archivado</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if turnos_expirados_count > 0 %}
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="dias" class="form-label">Días de antiguedad para archivar:</label>
+                                    <input type="number" class="form-control" id="dias" name="dias" 
+                                           value="{{ dias_por_defecto }}" min="1" max="365" onchange="actualizarContador()">
+                                    <div class="form-text">
+                                        Turnos anteriores a estos días serán archivados
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Estados de turno a archivar:</label>
+                                    {% for estado in todos_los_estados %}
+                                    <div class="form-check">
+                                        <input class="form-check-input estado-checkbox" type="checkbox" 
+                                               name="estados" value="{{ estado }}" id="estado_{{ estado }}"
+                                               {% if estado in estados_seleccionados %}checked{% endif %}
+                                               onchange="actualizarContador()">
+                                        <label class="form-check-label" for="estado_{{ estado }}">
+                                            {% if estado == 'completado' %}Completados
+                                            {% elif estado == 'ocupado' %}Ocupados (reservados)
+                                            {% elif estado == 'cancelado' %}Cancelados
+                                            {% elif estado == 'disponible' %}Disponibles (sin reservar)
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                    <div class="form-text">
+                                        Selecciona qué tipos de turno deseas archivar
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <strong>¡Atención!</strong> Esta acción:
+                                    <ul>
+                                        <li>Eliminará los turnos seleccionados de la base de datos</li>
+                                        <li>Los guardará permanentemente en Excel</li>
+                                        <li>No se puede deshacer</li>
+                                    </ul>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-success w-100" id="btn-archivar">
+                                    <i class="bi bi-archive"></i> <span id="texto-boton">Archivar Turnos Seleccionados</span>
+                                </button>
+                            </form>
+                            {% else %}
+                            <!-- Formulario siempre visible, incluso cuando no hay turnos -->
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="dias" class="form-label">Días de antiguedad para archivar:</label>
+                                    <input type="number" class="form-control" id="dias" name="dias" 
+                                           value="{{ dias_por_defecto }}" min="1" max="365" onchange="actualizarContador()">
+                                    <div class="form-text">
+                                        Turnos anteriores a estos días serán archivados
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Estados de turno a archivar:</label>
+                                    {% for estado in todos_los_estados %}
+                                    <div class="form-check">
+                                        <input class="form-check-input estado-checkbox" type="checkbox" 
+                                               name="estados" value="{{ estado }}" id="estado_{{ estado }}"
+                                               {% if estado in estados_seleccionados %}checked{% endif %}
+                                               onchange="actualizarContador()">
+                                        <label class="form-check-label" for="estado_{{ estado }}">
+                                            {% if estado == 'completado' %}Completados
+                                            {% elif estado == 'ocupado' %}Ocupados (reservados)
+                                            {% elif estado == 'cancelado' %}Cancelados
+                                            {% elif estado == 'disponible' %}Disponibles (sin reservar)
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                    <div class="form-text">
+                                        Selecciona qué tipos de turno deseas archivar
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-success" id="alerta-estado">
+                                    <i class="bi bi-check-circle"></i>
+                                    <strong id="mensaje-estado">¡Todo limpio!</strong><br>
+                                    <span id="detalle-estado">No hay turnos que coincidan con los criterios actuales.</span>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-success w-100" id="btn-archivar" disabled>
+                                    <i class="bi bi-archive"></i> <span id="texto-boton">No hay turnos para archivar</span>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-3">
+                        <div class="card-header bg-info text-white">
+                            <h6><i class="bi bi-lightbulb"></i> Recomendaciones</h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="mb-0">
+                                <li>Ejecuta esta función periódicamente</li>
+                                <li>Selecciona solo los estados que necesites archivar</li>
+                                <li>Los archivos se guardan automáticamente</li>
+                                <li>Puedes cambiar los días según tus necesidades</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'administracion-turnos' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver a Administración
+                    </a>
+                    <a href="{% url 'listar-archivos-excel' %}" class="btn btn-gold">
+                        <i class="bi bi-file-earmark-excel"></i> Ver Archivos Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function actualizarContador() {
+    const dias = document.getElementById('dias').value || 30;
+    const estadosCheckboxes = document.querySelectorAll('.estado-checkbox:checked');
+    const estados = Array.from(estadosCheckboxes).map(cb => cb.value);
+    
+    // Calcular nueva fecha límite
+    const ahora = new Date();
+    const fechaLimite = new Date(ahora.getTime() - (dias * 24 * 60 * 60 * 1000));
+    
+    // Formatear fecha
+    const opciones = { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    };
+    const fechaFormateada = fechaLimite.toLocaleDateString('es-ES', opciones);
+    
+    // Actualizar texto de fecha
+    document.getElementById('fecha-limite').textContent = fechaFormateada;
+    
+    if (estados.length === 0) {
+        // No hay estados seleccionados
+        document.getElementById('contador-turnos').textContent = '0';
+        actualizarUI(0, 'No hay estados seleccionados', 'Selecciona al menos un tipo de turno para archivar.');
+        return;
+    }
+    
+    // Hacer petición AJAX para obtener conteo actualizado
+    const params = new URLSearchParams();
+    params.append('dias', dias);
+    estados.forEach(estado => params.append('estados', estado));
+    
+    fetch(`?${params.toString()}`)
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const nuevoConteo = parseInt(doc.getElementById('contador-turnos').textContent) || 0;
+            
+            // Actualizar contador
+            document.getElementById('contador-turnos').textContent = nuevoConteo;
+            
+            // Actualizar UI según el conteo
+            if (nuevoConteo > 0) {
+                actualizarUI(nuevoConteo, null, null);
+            } else {
+                actualizarUI(0, '¡Todo limpio!', 'No hay turnos que coincidan con los criterios seleccionados.');
+            }
+            
+            // Actualizar tabla de ejemplos completa
+            const nuevaTablaContainer = doc.getElementById('tabla-ejemplos-container');
+            const tablaActualContainer = document.getElementById('tabla-ejemplos-container');
+            if (nuevaTablaContainer && tablaActualContainer) {
+                tablaActualContainer.innerHTML = nuevaTablaContainer.innerHTML;
+            }
+        })
+        .catch(error => {
+            console.log('Error al actualizar contador:', error);
+        });
+}
+
+function actualizarUI(conteo, mensaje, detalle) {
+    const btnArchivar = document.getElementById('btn-archivar');
+    const textoBoton = document.getElementById('texto-boton');
+    const alerta = document.getElementById('alerta-estado');
+    const mensajeEstado = document.getElementById('mensaje-estado');
+    const detalleEstado = document.getElementById('detalle-estado');
+    
+    if (conteo > 0) {
+        // Hay turnos para archivar
+        btnArchivar.disabled = false;
+        btnArchivar.className = 'btn btn-success w-100';
+        textoBoton.textContent = `Archivar ${conteo} Turnos`;
+        
+        if (alerta) {
+            alerta.className = 'alert alert-warning';
+            alerta.innerHTML = `
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>¡Atención!</strong> Esta acción:
+                <ul>
+                    <li>Eliminará ${conteo} turnos de la base de datos</li>
+                    <li>Los guardará permanentemente en Excel</li>
+                    <li>No se puede deshacer</li>
+                </ul>
+            `;
+        }
+    } else {
+        // No hay turnos para archivar
+        btnArchivar.disabled = true;
+        btnArchivar.className = 'btn btn-secondary w-100';
+        textoBoton.textContent = 'No hay turnos para archivar';
+        
+        if (alerta && mensajeEstado && detalleEstado) {
+            alerta.className = 'alert alert-info';
+            mensajeEstado.textContent = mensaje || '¡Todo limpio!';
+            detalleEstado.textContent = detalle || 'No hay turnos que coincidan con los criterios seleccionados.';
+        }
+    }
+}
+
+// Actualizar al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    actualizarContador();
+});
+</script>
+{% endblock %}

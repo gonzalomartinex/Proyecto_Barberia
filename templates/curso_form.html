@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }} | Cortes Con Historia{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2>{{ titulo }}</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-8">
+                <div class="mb-3">
+                    <label for="{{ form.titulo.id_for_label }}" class="form-label">Título</label>
+                    {{ form.titulo }}
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.dia.id_for_label }}" class="form-label">Día</label>
+                            {{ form.dia }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.hora.id_for_label }}" class="form-label">Hora</label>
+                            {{ form.hora }}
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="{{ form.descripcion.id_for_label }}" class="form-label">Descripción</label>
+                    {{ form.descripcion }}
+                </div>
+                <div class="mb-3">
+                    <label for="{{ form.imagen.id_for_label }}" class="form-label">Imagen</label>
+                    {{ form.imagen }}
+                </div>
+                <button type="submit" class="btn btn-success">Guardar</button>
+                <a href="{% url 'cursos-list' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -38,11 +38,17 @@ function renderDiasSemana() {
         <button class='btn btn-link' onclick='cambiarSemana(-1)'>&lt;</button>
         <div class='flex-grow-1 d-flex justify-content-center gap-2'>` +
         dias.map(d => {
-            // Deshabilitar domingos (0) y lunes (1), y días pasados
+            // Verificar si hay turnos disponibles para este día
+            const fechaDia = d.format('YYYY-MM-DD');
+            const turnosDelDia = turnosPorDia[fechaDia] || {};
+            const hayTurnos = Object.keys(turnosDelDia).length > 0;
+            
+            // Deshabilitar domingos (0) y lunes (1) solo si NO hay turnos, y días pasados
             const esDomingo = d.day() === 0;
             const esLunes = d.day() === 1;
             const esPasado = d.isBefore(hoy, 'day');
-            const disabled = esDomingo || esLunes || esPasado;
+            const disabled = esPasado || ((esDomingo || esLunes) && !hayTurnos);
+            
             return `<button class='btn btn-${diaSeleccionado && d.isSame(diaSeleccionado, 'day') ? 'primary' : 'outline-primary'}${disabled ? ' disabled text-muted' : ''}' ` +
                 (disabled ? 'disabled ' : '') +
                 `onclick='${disabled ? '' : `seleccionarDia(\"${d.format('YYYY-MM-DD')}\")`}' type='button'>${d.locale('es').format('ddd D')}</button>`;
