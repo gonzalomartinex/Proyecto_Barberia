@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Cortes Con Historia{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         html, body {
             height: 100%;
@@ -57,9 +59,14 @@
         }
         .navbar-separator {
             width: 100%;
-            height: 48px;
+            height: 60px;
             background: transparent;
         }
+        
+        .main-content {
+            margin-top: 1.5rem;
+        }
+        
         .toast-container {
             position: fixed;
             top: 1rem;
@@ -134,7 +141,9 @@
             <button onclick="location.href='/cursos/'">Cursos</button>
             {% if user.is_authenticated %}
             <button onclick="location.href='/perfil/'">Mi Perfil</button>
-            <button onclick="location.href='/administracion/turnos/'">Administrar Turnos</button>
+            {% if user.is_superuser %}
+            <button onclick="location.href='/admin-panel/'">Gestión Admin</button>
+            {% endif %}
             {% else %}
             <button onclick="location.href='/login/'">Iniciar Sesión</button>
             {% endif %}

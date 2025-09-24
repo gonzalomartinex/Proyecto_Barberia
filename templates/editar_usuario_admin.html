@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% block title %}Editar Usuario | Cortes Con Historia{% endblock %}
+
+{% block extra_head %}
+<style>
+.usuario-info-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.foto-usuario-grande {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border: 3px solid #ffd700;
+    border-radius: 50%;
+}
+
+.estado-habilitado {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.estado-deshabilitado {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.form-section {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.form-section h5 {
+    color: #333;
+    border-bottom: 2px solid #ffd700;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.alert-warning {
+    border-left: 4px solid #ffc107;
+}
+
+.contador-faltas-input {
+    max-width: 100px;
+}
+
+.btn-peligro {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.btn-peligro:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-user-edit"></i> Editar Usuario</h1>
+        <a href="{% url 'gestionar-usuarios' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a Gestionar Usuarios
+        </a>
+    </div>
+
+    <!-- Información actual del usuario -->
+    <div class="usuario-info-card">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center">
+                <img src="{{ usuario_editar.get_foto_perfil_url }}" 
+                     alt="Foto de {{ usuario_editar.nombre }}" 
+                     class="foto-usuario-grande mb-3">
+                <p class="text-muted">Foto actual</p>
+            </div>
+            <div class="col-md-9">
+                <h3>{{ usuario_editar.nombre }} {{ usuario_editar.apellido }}</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Email:</strong> {{ usuario_editar.email }}</p>
+                        <p><strong>Teléfono:</strong> {{ usuario_editar.telefono|default:"Sin teléfono" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Estado actual:</strong> 
+                            <span class="{% if usuario_editar.estado %}estado-habilitado{% else %}estado-deshabilitado{% endif %}">
+                                {% if usuario_editar.estado %}
+                                    <i class="fas fa-check-circle"></i> Habilitado
+                                {% else %}
+                                    <i class="fas fa-times-circle"></i> Deshabilitado
+                                {% endif %}
+                            </span>
+                        </p>
+                        <p><strong>Faltas:</strong> 
+                            <span class="badge {% if usuario_editar.contador_faltas == 0 %}bg-success{% elif usuario_editar.contador_faltas <= 2 %}bg-warning{% else %}bg-danger{% endif %}">
+                                {{ usuario_editar.contador_faltas }} falta{{ usuario_editar.contador_faltas|pluralize }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Fecha de nacimiento:</strong> {{ usuario_editar.fecha_nacimiento|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Registrado:</strong> {{ usuario_editar.fecha_registro|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario de edición -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Datos personales -->
+        <div class="form-section">
+            <h5><i class="fas fa-user"></i> Datos Personales</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="nombre" class="form-label">Nombre *</label>
+                    <input type="text" class="form-control" id="nombre" name="nombre" 
+                           value="{{ usuario_editar.nombre }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="apellido" class="form-label">Apellido *</label>
+                    <input type="text" class="form-control" id="apellido" name="apellido" 
+                           value="{{ usuario_editar.apellido }}" required>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="email" class="form-label">Email *</label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           value="{{ usuario_editar.email }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="telefono" class="form-label">Teléfono</label>
+                    <input type="text" class="form-control" id="telefono" name="telefono" 
+                           value="{{ usuario_editar.telefono }}" placeholder="Opcional">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="foto_perfil" class="form-label">
+                    <i class="fas fa-camera"></i> Nueva foto de perfil
+                </label>
+                <input type="file" class="form-control" id="foto_perfil" name="foto_perfil" 
+                       accept="image/*">
+                <div class="form-text">Deja vacío para mantener la foto actual. Formatos: JPG, PNG, WEBP, GIF</div>
+            </div>
+        </div>
+
+        <!-- Estado y gestión -->
+        <div class="form-section">
+            <h5><i class="fas fa-cogs"></i> Estado y Gestión</h5>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="estado" class="form-label">Estado del usuario *</label>
+                    <select class="form-select" id="estado" name="estado" required>
+                        <option value="habilitado" {% if usuario_editar.estado %}selected{% endif %}>
+                            <i class="fas fa-check-circle"></i> Habilitado
+                        </option>
+                        <option value="deshabilitado" {% if not usuario_editar.estado %}selected{% endif %}>
+                            <i class="fas fa-times-circle"></i> Deshabilitado
+                        </option>
+                    </select>
+                    <div class="form-text">
+                        Los usuarios deshabilitados no pueden realizar reservas ni acceder al sistema.
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="contador_faltas" class="form-label">Contador de faltas</label>
+                    <input type="number" class="form-control contador-faltas-input" 
+                           id="contador_faltas" name="contador_faltas" 
+                           value="{{ usuario_editar.contador_faltas }}" min="0" max="10">
+                    <div class="form-text">
+                        Al llegar a 3 faltas, el usuario se deshabilita automáticamente.
+                    </div>
+                </div>
+            </div>
+
+            {% if usuario_editar.contador_faltas >= 2 %}
+            <div class="alert alert-warning">
+                <h6><i class="fas fa-exclamation-triangle"></i> Atención</h6>
+                <p class="mb-0">
+                    Este usuario tiene {{ usuario_editar.contador_faltas }} falta{{ usuario_editar.contador_faltas|pluralize }}.
+                    {% if usuario_editar.contador_faltas >= 3 %}
+                        <strong>El usuario está deshabilitado automáticamente por exceder el límite de faltas.</strong>
+                    {% else %}
+                        Si alcanza 3 faltas, será deshabilitado automáticamente.
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Información adicional -->
+        <div class="form-section">
+            <h5><i class="fas fa-info-circle"></i> Información del Sistema</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Fecha de nacimiento:</strong> {{ usuario_editar.fecha_nacimiento|date:"d/m/Y" }}</p>
+                    <small class="text-muted">La fecha de nacimiento no se puede modificar desde aquí.</small>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Usuario registrado:</strong> {{ usuario_editar.fecha_registro|date:"d/m/Y H:i" }}</p>
+                    <small class="text-muted">Fecha de primera registración en el sistema.</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="d-flex justify-content-between">
+            <div>
+                <button type="submit" class="btn btn-success btn-lg me-2">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+                <a href="{% url 'gestionar-usuarios' %}" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+            </div>
+            <div>
+                {% if usuario_editar.contador_faltas > 0 %}
+                <button type="button" class="btn btn-outline-warning" onclick="resetearFaltas()">
+                    <i class="fas fa-undo"></i> Resetear Faltas
+                </button>
+                {% endif %}
+                {% if not usuario_editar.estado %}
+                <button type="button" class="btn btn-outline-success" onclick="habilitarUsuario()">
+                    <i class="fas fa-user-check"></i> Habilitar Usuario
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+function resetearFaltas() {
+    document.getElementById('contador_faltas').value = '0';
+    document.getElementById('estado').value = 'habilitado';
+}
+
+function habilitarUsuario() {
+    document.getElementById('estado').value = 'habilitado';
+    document.getElementById('contador_faltas').value = '0';
+}
+</script>
+{% endblock %}

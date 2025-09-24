@@ -8,6 +8,10 @@ def cursos_list(request):
     cursos = Curso.objects.all()
     return render(request, 'cursos.html', {'cursos': cursos})
 
+def detalle_curso(request, pk):
+    curso = get_object_or_404(Curso, pk=pk)
+    return render(request, 'detalle_curso.html', {'curso': curso})
+
 @user_passes_test(lambda u: u.is_superuser)
 def crear_curso(request):
     if request.method == 'POST':

@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% block title %}Gestionar Usuarios | Cortes Con Historia{% endblock %}
+
+{% block extra_head %}
+<style>
+.usuario-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e0e0e0;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.usuario-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-color: #ffd700;
+    text-decoration: none;
+    color: inherit;
+}
+
+a.usuario-card:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.foto-usuario {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border: 2px solid #ffd700;
+    border-radius: 50%;
+}
+
+.estado-activo {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.estado-inactivo {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.contador-faltas {
+    font-size: 0.9rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 20px;
+}
+
+.faltas-ok {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.faltas-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.faltas-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.stats-card {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+    color: #222;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.stats-label {
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.filtros-section {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-users"></i> Gestionar Usuarios</h1>
+        <a href="{% url 'admin-panel' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a Gestión Admin
+        </a>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stats-card">
+                <p class="stats-number">{{ total_usuarios }}</p>
+                <p class="stats-label">Total Usuarios</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <p class="stats-number">{{ usuarios_activos }}</p>
+                <p class="stats-label">Usuarios Habilitados</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <p class="stats-number">{{ usuarios_con_faltas }}</p>
+                <p class="stats-label">Con Faltas</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtros-section">
+        <h5><i class="fas fa-filter"></i> Filtros de búsqueda</h5>
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="nombre" class="form-label">Nombre o Apellido</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" 
+                       value="{{ filtros.nombre }}" placeholder="Buscar por nombre...">
+            </div>
+            <div class="col-md-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" 
+                       value="{{ filtros.email }}" placeholder="usuario@email.com">
+            </div>
+            <div class="col-md-2">
+                <label for="telefono" class="form-label">Teléfono</label>
+                <input type="text" class="form-control" id="telefono" name="telefono" 
+                       value="{{ filtros.telefono }}" placeholder="351-123-4567">
+            </div>
+            <div class="col-md-2">
+                <label for="estado" class="form-label">Estado</label>
+                <select class="form-select" id="estado" name="estado">
+                    <option value="">Todos</option>
+                    <option value="activo" {% if filtros.estado == 'activo' %}selected{% endif %}>Habilitados</option>
+                    <option value="inactivo" {% if filtros.estado == 'inactivo' %}selected{% endif %}>Deshabilitados</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="faltas" class="form-label">Mín. Faltas</label>
+                <input type="number" class="form-control" id="faltas" name="faltas" 
+                       value="{{ filtros.faltas }}" placeholder="0" min="0">
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+                <a href="{% url 'gestionar-usuarios' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times"></i> Limpiar filtros
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Lista de usuarios -->
+    <div class="row">
+        <div class="col-12 mb-3">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> 
+                <strong>Tip:</strong> Haz clic en cualquier tarjeta de usuario para editar su información, estado y faltas.
+            </div>
+        </div>
+        {% if usuarios %}
+            {% for usuario in usuarios %}
+            <div class="col-lg-6 col-xl-4 mb-3">
+                <a href="{% url 'editar-usuario-admin' usuario.id %}" class="card usuario-card h-100" style="text-decoration: none; color: inherit;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <div class="me-3">
+                                <img src="{{ usuario.get_foto_perfil_url }}" 
+                                     alt="Foto de {{ usuario.nombre }}" 
+                                     class="foto-usuario">
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-1">
+                                    {{ usuario.nombre }} {{ usuario.apellido }}
+                                </h6>
+                                <p class="card-text small mb-1">
+                                    <i class="fas fa-envelope"></i> {{ usuario.email }}
+                                </p>
+                                <p class="card-text small mb-1">
+                                    <i class="fas fa-phone"></i> {{ usuario.telefono|default:"Sin teléfono" }}
+                                </p>
+                                <p class="card-text small mb-1">
+                                    <i class="fas fa-birthday-cake"></i> {{ usuario.fecha_nacimiento|date:"d/m/Y" }}
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <span class="{% if usuario.estado %}estado-activo{% else %}estado-inactivo{% endif %}">
+                                        {% if usuario.estado %}
+                                            <i class="fas fa-check-circle"></i> Habilitado
+                                        {% else %}
+                                            <i class="fas fa-times-circle"></i> Deshabilitado
+                                        {% endif %}
+                                    </span>
+                                    <span class="contador-faltas 
+                                        {% if usuario.contador_faltas == 0 %}faltas-ok
+                                        {% elif usuario.contador_faltas <= 2 %}faltas-warning
+                                        {% else %}faltas-danger{% endif %}">
+                                        {{ usuario.contador_faltas }} falta{{ usuario.contador_faltas|pluralize }}
+                                    </span>
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar"></i> 
+                                        Registrado: {{ usuario.fecha_registro|date:"d/m/Y" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    <h4><i class="fas fa-info-circle"></i> No se encontraron usuarios</h4>
+                    <p>No hay usuarios que coincidan con los filtros aplicados.</p>
+                    <a href="{% url 'gestionar-usuarios' %}" class="btn btn-primary">
+                        Ver todos los usuarios
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if usuarios %}
+    <div class="mt-4">
+        <div class="alert alert-light">
+            <h6><i class="fas fa-info-circle"></i> Información</h6>
+            <p class="mb-0">
+                Mostrando {{ usuarios|length }} usuario{{ usuarios|length|pluralize }} de {{ total_usuarios }} total{{ total_usuarios|pluralize }}.
+                {% if usuarios_con_faltas > 0 %}
+                <strong>Nota:</strong> {{ usuarios_con_faltas }} usuario{{ usuarios_con_faltas|pluralize }} tiene{{ usuarios_con_faltas|pluralize:"n" }} faltas registradas.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-submit del formulario cuando cambian los filtros select
+    document.querySelectorAll('select[name="estado"]').forEach(function(select) {
+        select.addEventListener('change', function() {
+            // Opcional: Auto-submit del formulario
+            // this.form.submit();
+        });
+    });
+</script>
+{% endblock %}

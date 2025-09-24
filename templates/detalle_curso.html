@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}{{ curso.titulo }} | Cortes Con Historia{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-lg">
+                {% if curso.imagen %}
+                    <img src="{{ curso.imagen.url }}" class="card-img-top" style="height: 400px; object-fit: cover;" alt="{{ curso.titulo }}">
+                {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 400px;">
+                        <i class="fas fa-graduation-cap fa-5x text-muted"></i>
+                    </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h1 class="card-title text-primary">{{ curso.titulo }}</h1>
+                        <hr class="w-25 mx-auto" style="border: 2px solid #ffd700;">
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="info-box p-3 bg-light rounded">
+                                <h5 class="text-primary"><i class="fas fa-calendar-alt"></i> Fecha del Curso</h5>
+                                <p class="mb-0 h6">{{ curso.dia_formateado }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-box p-3 bg-light rounded">
+                                <h5 class="text-primary"><i class="fas fa-clock"></i> Horario</h5>
+                                <p class="mb-0 h6">{{ curso.hora|time:"H:i" }} hrs</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if curso.precio %}
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="info-box p-3 bg-warning rounded text-center">
+                                <h5 class="text-dark"><i class="fas fa-tag"></i> Precio del Curso</h5>
+                                <p class="mb-0 h4 text-dark">${{ curso.precio|floatformat:0 }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="course-description">
+                        <h5 class="text-primary mb-3"><i class="fas fa-info-circle"></i> Descripción del Curso</h5>
+                        <div class="p-3 border rounded bg-light">
+                            <p class="mb-0" style="line-height: 1.8; white-space: pre-line;">{{ curso.descripcion }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="{% url 'cursos-list' %}" class="btn btn-outline-primary btn-lg me-3">
+                            <i class="fas fa-arrow-left"></i> Volver a Cursos
+                        </a>
+                        
+                        {% if user.is_authenticated and user.is_superuser %}
+                            <a href="{% url 'editar-curso' curso.pk %}" class="btn btn-warning me-2">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                            <a href="{% url 'eliminar-curso' curso.pk %}" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.info-box {
+    border: 1px solid #e0e0e0;
+    transition: transform 0.2s ease;
+}
+
+.info-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.course-description {
+    margin-top: 2rem;
+}
+
+.text-primary {
+    color: #ffd700 !important;
+}
+
+.btn-outline-primary {
+    border-color: #ffd700;
+    color: #ffd700;
+}
+
+.btn-outline-primary:hover {
+    background-color: #ffd700;
+    border-color: #ffd700;
+    color: #000;
+}
+</style>
+{% endblock %}

@@ -29,7 +29,7 @@ from django.conf.urls.static import static
 from productos.models import Producto
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from BarberiaApp.views import index, editar_carrusel
+from BarberiaApp.views import index, editar_carrusel, admin_panel
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 
@@ -72,6 +72,7 @@ urlpatterns = [
     path('productos/', productos_list, name='productos-list'),
     path('administracion/', include('administracion.urls')),  # Asegura inclusión de rutas de administración
     path('carrusel/editar/', editar_carrusel, name='editar-carrusel'),
+    path('admin-panel/', admin_panel, name='admin-panel'),
     path('cursos/', include('cursos.urls')),
 ]
 

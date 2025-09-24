@@ -5,14 +5,31 @@
     <h2 class="mb-4">Mi Perfil</h2>
     <div class="card">
         <div class="card-body">
-            <p><strong>Nombre:</strong> {{ user.nombre }} {{ user.apellido }}</p>
-            <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>Teléfono:</strong> {{ user.telefono }}</p>
-            <p><strong>Fecha de nacimiento:</strong> {{ user.fecha_nacimiento }}</p>
-            <p><strong>Fecha de registro:</strong> {{ user.fecha_registro }}</p>
-            <div class="mt-4 d-flex gap-3">
-                <a href="{% url 'editar-perfil' %}" class="btn btn-warning">Editar datos</a>
-                <a href="{% url 'logout' %}" class="btn btn-outline-danger">Cerrar sesión</a>
+            <div class="row">
+                <div class="col-md-3 text-center mb-4">
+                    <img src="{{ user.get_foto_perfil_url }}" alt="Foto de perfil" 
+                         class="rounded-circle img-fluid" 
+                         style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #ffd700;">
+                    <p class="text-muted mt-2 small">Foto de perfil</p>
+                </div>
+                <div class="col-md-9">
+                    <p><strong>Nombre:</strong> {{ user.nombre }} {{ user.apellido }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p><strong>Teléfono:</strong> {{ user.telefono }}</p>
+                    <p><strong>Fecha de nacimiento:</strong> {{ user.fecha_nacimiento }}</p>
+                    <p><strong>Fecha de registro:</strong> {{ user.fecha_registro }}</p>
+                    <div class="mt-4 d-flex flex-wrap gap-2">
+                        <a href="{% url 'editar-perfil' %}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Editar datos
+                        </a>
+                        <a href="{% url 'cambiar-contrasena' %}" class="btn btn-info">
+                            <i class="fas fa-key"></i> Cambiar contraseña
+                        </a>
+                        <a href="{% url 'logout' %}" class="btn btn-outline-danger">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

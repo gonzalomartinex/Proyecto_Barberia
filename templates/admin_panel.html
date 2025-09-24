@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+{% block title %}Panel de Administración | Cortes Con Historia{% endblock %}
+
+{% block extra_head %}
+<style>
+.admin-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+}
+
+.admin-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border-color: #ffd700;
+}
+
+.admin-card .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #000;
+    font-weight: bold;
+    border-radius: 10px 10px 0 0;
+}
+
+.admin-card .card-header h5 {
+    color: #000 !important;
+}
+
+.admin-icon {
+    font-size: 2.5rem;
+    color: #000 !important;
+    margin-bottom: 1rem;
+}
+
+.admin-card .card-body {
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.admin-description {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    flex-grow: 1;
+}
+
+.admin-btn {
+    background-color: #ffd700;
+    border-color: #ffd700;
+    color: #222;
+    font-weight: bold;
+    border-radius: 25px;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.admin-btn:hover {
+    background-color: #e6be00;
+    border-color: #e6be00;
+    color: #222;
+    transform: scale(1.05);
+}
+
+.welcome-section {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+    color: #222;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.welcome-section h1 {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-section p {
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+.section-divider {
+    border: none;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #ffd700, transparent);
+    margin: 2rem 0;
+}
+
+/* Cambiar títulos de sección a negro */
+.text-primary {
+    color: #000 !important;
+}
+
+/* Mantener el color dorado solo en elementos específicos */
+.welcome-section {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+    color: #222;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Sección de bienvenida -->
+    <div class="welcome-section">
+        <h1><i class="fas fa-crown me-2"></i>Panel de Administración</h1>
+        <p>Bienvenido al centro de control de Cortes Con Historia</p>
+    </div>
+
+    <!-- Gestión de Turnos -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="text-primary mb-3">
+                <i class="fas fa-calendar-alt me-2"></i>Gestión de Turnos
+            </h3>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card admin-card">
+                <div class="card-header text-center">
+                    <i class="fas fa-calendar-check admin-icon"></i>
+                    <h5 class="mb-0">Administrar Turnos</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="admin-description">
+                        Visualiza, confirma y gestiona todos los turnos reservados por los clientes.
+                    </p>
+                    <a href="{% url 'administracion-turnos' %}" class="btn admin-btn w-100">
+                        <i class="fas fa-cog me-2"></i>Gestionar Turnos
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card admin-card">
+                <div class="card-header text-center">
+                    <i class="fas fa-archive admin-icon"></i>
+                    <h5 class="mb-0">Archivar Turnos</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="admin-description">
+                        Archiva turnos expirados en Excel y limpia la base de datos automáticamente.
+                    </p>
+                    <a href="{% url 'archivar-turnos' %}" class="btn admin-btn w-100">
+                        <i class="fas fa-file-excel me-2"></i>Archivar Turnos
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card admin-card">
+                <div class="card-header text-center">
+                    <i class="fas fa-file-download admin-icon"></i>
+                    <h5 class="mb-0">Archivos Excel</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="admin-description">
+                        Descarga y visualiza todos los archivos Excel generados con estadísticas.
+                    </p>
+                    <a href="{% url 'listar-archivos-excel' %}" class="btn admin-btn w-100">
+                        <i class="fas fa-download me-2"></i>Ver Archivos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- Gestión de Contenido -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="text-primary mb-3">
+                <i class="fas fa-edit me-2"></i>Gestión de Contenido
+            </h3>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card admin-card">
+                <div class="card-header text-center">
+                    <i class="fas fa-users admin-icon"></i>
+                    <h5 class="mb-0">Gestionar Usuarios</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="admin-description">
+                        Administra todos los usuarios registrados, visualiza estadísticas y gestiona estados.
+                    </p>
+                    <a href="{% url 'gestionar-usuarios' %}" class="btn admin-btn w-100">
+                        <i class="fas fa-user-cog me-2"></i>Gestionar Usuarios
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card admin-card">
+                <div class="card-header text-center">
+                    <i class="fas fa-cut admin-icon"></i>
+                    <h5 class="mb-0">Gestionar Barberos</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="admin-description">
+                        Registra nuevos barberos, edita información y gestiona sus trabajos.
+                    </p>
+                    <a href="{% url 'registrar-barbero' %}" class="btn admin-btn w-100">
+                        <i class="fas fa-user-plus me-2"></i>Gestionar Barberos
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card admin-card">
+                <div class="card-header text-center">
+                    <i class="fas fa-graduation-cap admin-icon"></i>
+                    <h5 class="mb-0">Gestionar Cursos</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="admin-description">
+                        Crea, edita y elimina cursos de capacitación para clientes.
+                    </p>
+                    <a href="{% url 'crear-curso' %}" class="btn admin-btn w-100">
+                        <i class="fas fa-plus me-2"></i>Gestionar Cursos
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card admin-card">
+                <div class="card-header text-center">
+                    <i class="fas fa-images admin-icon"></i>
+                    <h5 class="mb-0">Editar Carrusel</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="admin-description">
+                        Modifica las imágenes del carrusel principal de la página de inicio.
+                    </p>
+                    <a href="{% url 'editar-carrusel' %}" class="btn admin-btn w-100">
+                        <i class="fas fa-image me-2"></i>Editar Carrusel
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card admin-card">
+                <div class="card-header text-center">
+                    <i class="fas fa-concierge-bell admin-icon"></i>
+                    <h5 class="mb-0">Gestionar Servicios</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="admin-description">
+                        Crea, edita y elimina servicios ofrecidos por la barbería.
+                    </p>
+                    <a href="{% url 'servicio-create' %}" class="btn admin-btn w-100">
+                        <i class="fas fa-plus me-2"></i>Gestionar Servicios
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card admin-card">
+                <div class="card-header text-center">
+                    <i class="fas fa-shopping-bag admin-icon"></i>
+                    <h5 class="mb-0">Gestionar Productos</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="admin-description">
+                        Administra el catálogo de productos disponibles en la barbería.
+                    </p>
+                    <a href="{% url 'producto-create' %}" class="btn admin-btn w-100">
+                        <i class="fas fa-plus me-2"></i>Gestionar Productos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- Panel de Django Admin -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="text-primary mb-3">
+                <i class="fas fa-database me-2"></i>Administración Avanzada
+            </h3>
+        </div>
+        
+        <div class="col-lg-6 col-md-12 mb-4 mx-auto">
+            <div class="card admin-card">
+                <div class="card-header text-center">
+                    <i class="fas fa-cogs admin-icon"></i>
+                    <h5 class="mb-0">Panel Django Admin</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="admin-description">
+                        Acceso completo al panel de administración de Django para gestión avanzada de la base de datos.
+                    </p>
+                    <a href="/admin/" target="_blank" class="btn admin-btn w-100">
+                        <i class="fas fa-external-link-alt me-2"></i>Abrir Django Admin
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información adicional -->
+    <div class="alert alert-info mt-4">
+        <h5><i class="fas fa-info-circle me-2"></i>Información</h5>
+        <p class="mb-0">
+            Desde este panel puedes gestionar todas las funciones administrativas de la barbería.
+            Cada sección está diseñada para facilitar la gestión diaria del negocio.
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+{% endblock %}

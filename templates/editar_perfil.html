@@ -3,30 +3,83 @@
 {% block content %}
 <div class="container mt-5">
     <h2 class="mb-4">Editar Perfil</h2>
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="nombre" class="form-label">Nombre</label>
-            <input type="text" class="form-control" id="nombre" name="nombre" value="{{ user.nombre }}" required>
+    
+    <div class="row">
+        <div class="col-md-3 text-center mb-4">
+            <!-- Foto actual -->
+            <img src="{{ user.get_foto_perfil_url }}" alt="Foto de perfil" 
+                 class="rounded-circle img-fluid mb-3" 
+                 style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #ffd700;">
+            <p class="text-muted small">Foto actual</p>
         </div>
-        <div class="mb-3">
-            <label for="apellido" class="form-label">Apellido</label>
-            <input type="text" class="form-control" id="apellido" name="apellido" value="{{ user.apellido }}" required>
+        
+        <div class="col-md-9">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.nombre.id_for_label }}" class="form-label">{{ form.nombre.label }}</label>
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}
+                            <div class="text-danger small">{{ form.nombre.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.apellido.id_for_label }}" class="form-label">{{ form.apellido.label }}</label>
+                        {{ form.apellido }}
+                        {% if form.apellido.errors %}
+                            <div class="text-danger small">{{ form.apellido.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.telefono.id_for_label }}" class="form-label">{{ form.telefono.label }}</label>
+                    {{ form.telefono }}
+                    {% if form.telefono.errors %}
+                        <div class="text-danger small">{{ form.telefono.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.foto_perfil.id_for_label }}" class="form-label">
+                        <i class="bi bi-camera"></i> {{ form.foto_perfil.label }}
+                    </label>
+                    {{ form.foto_perfil }}
+                    {% if form.foto_perfil.errors %}
+                        <div class="text-danger small">{{ form.foto_perfil.errors.0 }}</div>
+                    {% endif %}
+                    {% if form.foto_perfil.help_text %}
+                        <div class="form-text">{{ form.foto_perfil.help_text }}</div>
+                    {% endif %}
+                    <div class="form-text">Deja vacío para mantener la foto actual</div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Fecha de nacimiento</label>
+                    <input type="text" class="form-control" value="{{ user.fecha_nacimiento|date:'d/m/Y' }}" readonly>
+                    <div class="form-text">La fecha de nacimiento no se puede modificar</div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-lg"></i> Guardar cambios
+                    </button>
+                    <a href="{% url 'perfil_usuario' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </a>
+                </div>
+            </form>
         </div>
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
-        </div>
-        <div class="mb-3">
-            <label for="telefono" class="form-label">Teléfono</label>
-            <input type="text" class="form-control" id="telefono" name="telefono" value="{{ user.telefono }}">
-        </div>
-        <div class="mb-3">
-            <label for="fecha_nacimiento" class="form-label">Fecha de nacimiento</label>
-            <input type="text" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ user.fecha_nacimiento|date:'d/m/Y' }}" readonly>
-        </div>
-        <button type="submit" class="btn btn-success">Guardar cambios</button>
-        <a href="{% url 'perfil_usuario' %}" class="btn btn-secondary ms-2">Cancelar</a>
-    </form>
+    </div>
 </div>
 {% endblock %}

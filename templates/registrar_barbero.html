@@ -1,20 +1,126 @@
 {% extends 'base.html' %}
-{% block title %}Registrar Barbero | BarberíaApp{% endblock %}
+{% block title %}Registrar Barbero | Cortes Con Historia{% endblock %}
 {% block content %}
-<div class="row justify-content-center mt-5">
-  <div class="col-md-6">
-    <div class="card shadow">
-      <div class="card-body">
-        <h3 class="mb-4 text-center">Registrar nuevo barbero</h3>
-        <form method="post" enctype="multipart/form-data">
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card shadow-lg">
+      <div class="card-body p-4">
+        <h3 class="mb-4 text-center text-primary">
+          <i class="bi bi-person-plus"></i> Registrar Nuevo Barbero
+        </h3>
+        
+        {% if form.errors %}
+        <div class="alert alert-danger">
+          <h6><i class="bi bi-exclamation-triangle"></i> Por favor corrige los siguientes errores:</h6>
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+              <div>• {{ error }}</div>
+            {% endfor %}
+          {% endfor %}
+        </div>
+        {% endif %}
+        
+        <form method="post" enctype="multipart/form-data" id="barbero-form">
           {% csrf_token %}
-          {{ form.non_field_errors }}
-          {{ form.as_p }}
-          <button type="submit" class="btn btn-primary w-100">Registrar</button>
+          
+          <div class="mb-3">
+            <label for="{{ form.nombre.id_for_label }}" class="form-label fw-bold">
+              <i class="bi bi-person"></i> {{ form.nombre.label }}
+            </label>
+            {{ form.nombre }}
+            {% if form.nombre.errors %}
+              <div class="text-danger small mt-1">{{ form.nombre.errors.0 }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="mb-3">
+            <label for="{{ form.dni.id_for_label }}" class="form-label fw-bold">
+              <i class="bi bi-card-text"></i> {{ form.dni.label }}
+            </label>
+            {{ form.dni }}
+            {% if form.dni.errors %}
+              <div class="text-danger small mt-1">{{ form.dni.errors.0 }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="mb-3">
+            <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label fw-bold">
+              <i class="bi bi-calendar"></i> {{ form.fecha_nacimiento.label }}
+            </label>
+            {{ form.fecha_nacimiento }}
+            {% if form.fecha_nacimiento.errors %}
+              <div class="text-danger small mt-1">{{ form.fecha_nacimiento.errors.0 }}</div>
+            {% endif %}
+            <div class="form-text">Selecciona la fecha usando el calendario</div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="{{ form.telefono.id_for_label }}" class="form-label fw-bold">
+              <i class="bi bi-telephone"></i> {{ form.telefono.label }}
+            </label>
+            {{ form.telefono }}
+            {% if form.telefono.errors %}
+              <div class="text-danger small mt-1">{{ form.telefono.errors.0 }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="mb-3">
+            <label for="{{ form.foto.id_for_label }}" class="form-label fw-bold">
+              <i class="bi bi-image"></i> {{ form.foto.label }}
+            </label>
+            {{ form.foto }}
+            {% if form.foto.errors %}
+              <div class="text-danger small mt-1">{{ form.foto.errors.0 }}</div>
+            {% endif %}
+            {% if form.foto.help_text %}
+              <div class="form-text">{{ form.foto.help_text }}</div>
+            {% endif %}
+            <div id="image-preview" class="mt-2" style="display: none;">
+              <img id="preview-img" src="" alt="Vista previa" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <label for="{{ form.bio.id_for_label }}" class="form-label fw-bold">
+              <i class="bi bi-card-text"></i> {{ form.bio.label }}
+            </label>
+            {{ form.bio }}
+            {% if form.bio.errors %}
+              <div class="text-danger small mt-1">{{ form.bio.errors.0 }}</div>
+            {% endif %}
+          </div>
+          
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="bi bi-check-circle"></i> Registrar Barbero
+            </button>
+            <a href="{% url 'barberos-list' %}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left"></i> Volver al listado
+            </a>
+          </div>
         </form>
-        <a href="{% url 'barberos-list' %}" class="btn btn-link mt-3 w-100">Volver al listado</a>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+// Vista previa de imagen
+document.getElementById('{{ form.foto.id_for_label }}').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById('image-preview');
+    const previewImg = document.getElementById('preview-img');
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = 'none';
+    }
+});
+</script>
 {% endblock %}

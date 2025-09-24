@@ -15,7 +15,7 @@ from django.db import models
 
 from django import forms
 from django.http import HttpResponseForbidden
-from .forms import BarberoForm, get_redsocial_formset
+from .forms import BarberoForm, get_redsocial_formset, UsuarioForm, CambiarContrasenaForm
 from django.forms import inlineformset_factory, modelform_factory
 # Create your views here.
 
@@ -202,12 +202,135 @@ def gestionar_redes_barbero(request, barbero_id):
 def editar_perfil_usuario(request):
     user = request.user
     if request.method == 'POST':
-        user.nombre = request.POST.get('nombre', user.nombre)
-        user.apellido = request.POST.get('apellido', user.apellido)
-        user.email = request.POST.get('email', user.email)
-        user.telefono = request.POST.get('telefono', user.telefono)
-        # La fecha de nacimiento solo se puede cambiar desde el admin site
-        user.save()
-        messages.success(request, 'Datos actualizados correctamente.')
-        return redirect('perfil_usuario')
-    return render(request, 'editar_perfil.html', {'user': user})
+        form = UsuarioForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Perfil actualizado correctamente.')
+            return redirect('perfil_usuario')
+    else:
+        form = UsuarioForm(instance=user)
+    return render(request, 'editar_perfil.html', {'form': form, 'user': user})
+
+@user_passes_test(lambda u: u.is_superuser)
+def gestionar_usuarios(request):
+    """Vista para gestionar todos los usuarios del sistema"""
+    usuarios = Usuario.objects.all()
+    
+    # Filtros
+    nombre_filtro = request.GET.get('nombre', '')
+    email_filtro = request.GET.get('email', '')
+    telefono_filtro = request.GET.get('telefono', '')
+    estado_filtro = request.GET.get('estado', '')
+    faltas_filtro = request.GET.get('faltas', '')
+    
+    # Aplicar filtros
+    if nombre_filtro:
+        usuarios = usuarios.filter(
+            models.Q(nombre__icontains=nombre_filtro) | 
+            models.Q(apellido__icontains=nombre_filtro)
+        )
+    
+    if email_filtro:
+        usuarios = usuarios.filter(email__icontains=email_filtro)
+    
+    if telefono_filtro:
+        usuarios = usuarios.filter(telefono__icontains=telefono_filtro)
+    
+    if estado_filtro:
+        if estado_filtro == 'activo':
+            usuarios = usuarios.filter(estado=True)
+        elif estado_filtro == 'inactivo':
+            usuarios = usuarios.filter(estado=False)
+    
+    if faltas_filtro:
+        try:
+            faltas_num = int(faltas_filtro)
+            usuarios = usuarios.filter(contador_faltas__gte=faltas_num)
+        except ValueError:
+            pass
+    
+    # Ordenar por nombre y apellido
+    usuarios = usuarios.order_by('nombre', 'apellido')
+    
+    # Estadísticas rápidas
+    total_usuarios = Usuario.objects.count()
+    usuarios_activos = Usuario.objects.filter(estado=True).count()
+    usuarios_con_faltas = Usuario.objects.filter(contador_faltas__gt=0).count()
+    
+    context = {
+        'usuarios': usuarios,
+        'total_usuarios': total_usuarios,
+        'usuarios_activos': usuarios_activos,
+        'usuarios_con_faltas': usuarios_con_faltas,
+        'filtros': {
+            'nombre': nombre_filtro,
+            'email': email_filtro,
+            'telefono': telefono_filtro,
+            'estado': estado_filtro,
+            'faltas': faltas_filtro,
+        }
+    }
+    
+    return render(request, 'gestionar_usuarios.html', context)
+
+@user_passes_test(lambda u: u.is_superuser)
+def editar_usuario_admin(request, user_id):
+    """Vista para que los administradores editen usuarios"""
+    usuario_a_editar = get_object_or_404(Usuario, pk=user_id)
+    
+    if request.method == 'POST':
+        # Actualizar datos básicos
+        usuario_a_editar.nombre = request.POST.get('nombre', usuario_a_editar.nombre)
+        usuario_a_editar.apellido = request.POST.get('apellido', usuario_a_editar.apellido)
+        usuario_a_editar.email = request.POST.get('email', usuario_a_editar.email)
+        usuario_a_editar.telefono = request.POST.get('telefono', usuario_a_editar.telefono)
+        
+        # Actualizar estado (habilitado/deshabilitado)
+        estado = request.POST.get('estado')
+        if estado == 'habilitado':
+            usuario_a_editar.estado = True
+        elif estado == 'deshabilitado':
+            usuario_a_editar.estado = False
+        
+        # Actualizar contador de faltas
+        try:
+            faltas = int(request.POST.get('contador_faltas', usuario_a_editar.contador_faltas))
+            usuario_a_editar.contador_faltas = max(0, faltas)  # No permitir valores negativos
+        except (ValueError, TypeError):
+            pass  # Mantener el valor actual si hay error
+        
+        # Procesar foto de perfil si se subió una nueva
+        if 'foto_perfil' in request.FILES:
+            usuario_a_editar.foto_perfil = request.FILES['foto_perfil']
+        
+        usuario_a_editar.save()
+        messages.success(request, f'Usuario {usuario_a_editar.nombre} {usuario_a_editar.apellido} actualizado correctamente.')
+        return redirect('gestionar-usuarios')
+    
+    context = {
+        'usuario_editar': usuario_a_editar,
+        'es_admin_editando': True
+    }
+    return render(request, 'editar_usuario_admin.html', context)
+
+@login_required
+def cambiar_contrasena(request):
+    """Vista para cambiar contraseña del usuario desde su perfil"""
+    if request.method == 'POST':
+        form = CambiarContrasenaForm(request.user, request.POST)
+        if form.is_valid():
+            # Cambiar la contraseña
+            nueva_contrasena = form.cleaned_data['nueva_contrasena']
+            request.user.set_password(nueva_contrasena)
+            request.user.save()
+            
+            # Actualizar la sesión para que no se deslogee
+            from django.contrib.auth import update_session_auth_hash
+            update_session_auth_hash(request, request.user)
+            
+            messages.success(request, '¡Contraseña cambiada exitosamente!')
+            return redirect('perfil_usuario')
+    else:
+        form = CambiarContrasenaForm(request.user)
+    
+    return render(request, 'cambiar_contrasena.html', {'form': form})
