@@ -1,28 +1,33 @@
-# Entornos virtuales
-venv/
-Venv/
-.venv/
-ENV/
-.env/
-
-# Archivos de configuración de entorno
-.env
-.env.*
-
-# Archivos de Python compilados
+# Archivos de caché de Python
 __pycache__/
 *.py[cod]
+*.class
 
-# Archivos de bases de datos locales
+# Entorno virtual
+venv/
+env/
+ENV/
+
+# Archivos de medios subidos por usuarios (excepto los por defecto)
+media/barberos/fotos/*
+media/barberos/trabajos/*  
+media/productos/imagenes/*
+media/servicios/imagenes/*
+media/usuarios/perfiles/*
+media/cursos/*
+
+# Archivos de prueba y debug
+debug_*.py
+test_*.py
+verificar_*.py
+
+# Archivos de base de datos local
 *.sqlite3
+db.sqlite3
 
-# Archivos de logs
+# Logs
 *.log
 
-# Archivos de sistema
-.DS_Store
-Thumbs.db
-
-# Otros
-*.bak
-*.swp
+# Archivos de configuración local
+.env
+local_settings.py
