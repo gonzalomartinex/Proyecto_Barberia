@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import PerfilUsuarioView, cambiar_estado_usuario, gestionar_redes_barbero, gestionar_usuarios, editar_usuario_admin
+from .views import PerfilUsuarioView, cambiar_estado_usuario, gestionar_redes_barbero, gestionar_usuarios, editar_usuario_admin, cancelar_turno_usuario
 
 urlpatterns = [
     path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -16,4 +16,5 @@ urlpatterns = [
     path('perfil/editar/', views.editar_perfil_usuario, name='editar-perfil'),
     path('perfil/cambiar-contrasena/', views.cambiar_contrasena, name='cambiar-contrasena'),
     path('perfil/', views.perfil_usuario, name='perfil_usuario'),
+    path('perfil/cancelar-turno/<int:turno_id>/', cancelar_turno_usuario, name='cancelar-turno-usuario'),
 ]

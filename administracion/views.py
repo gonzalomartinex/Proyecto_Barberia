@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework import generics, permissions
 from .models import RegistroServicios
 from .serializers import RegistroServiciosSerializer
@@ -12,7 +12,7 @@ from usuarios.models import Barbero, Usuario
 from django.contrib.auth.decorators import user_passes_test
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.views.decorators.http import require_POST
 from django.db.models import F, Q
 from django.contrib import messages
@@ -128,8 +128,14 @@ def administracion_turnos(request):
             turnos = turnos.filter(estado=estado)
     horas = [f'{h:02d}' for h in range(0, 24)]
     minutos = [f'{m:02d}' for m in range(0, 60, 5)]
+    
+    # Obtener servicios para el modal de edición
+    from servicios.models import Servicio
+    servicios = Servicio.objects.all()
+    
     return render(request, 'administracion_turnos.html', {
         'barberos': barberos,
+        'servicios': servicios,
         'turnos': turnos,
         'hoy': hoy,
         'horas': horas,
@@ -156,11 +162,7 @@ def agregar_turnos(request):
                 messages.error(request, 'Faltan datos obligatorios para crear los turnos.')
                 return HttpResponseRedirect('/administracion/turnos/')
             
-            # Obtener servicio por defecto
-            servicio = Servicio.objects.first()
-            if not servicio:
-                messages.error(request, 'No hay servicios disponibles. Crea al menos un servicio primero.')
-                return HttpResponseRedirect('/administracion/turnos/')
+            # Ya no necesitamos servicio por defecto - los turnos se crean sin servicio
             
             from datetime import datetime, timedelta
             turnos_creados = 0
@@ -187,7 +189,7 @@ def agregar_turnos(request):
                             barbero_id=barbero_id,
                             fecha_hora=actual,
                             estado='disponible',
-                            servicio=servicio
+                            servicio=None  # Los turnos se crean sin servicio
                         )
                         turnos_creados += 1
                     else:
@@ -391,3 +393,127 @@ def descargar_archivo_excel(request, nombre_archivo):
     )
     
     return response
+
+@user_passes_test(lambda u: u.is_superuser)
+def obtener_datos_turno_admin(request, turno_id):
+    """Vista AJAX para obtener datos de un turno específico desde administración"""
+    try:
+        turno = get_object_or_404(Turno, id=turno_id)
+        
+        # Convertir a hora local para mostrar en el formulario
+        from django.utils.timezone import localtime
+        fecha_hora_local = localtime(turno.fecha_hora)
+        
+        datos = {
+            'id': turno.id,
+            'fecha': fecha_hora_local.strftime('%Y-%m-%d'),
+            'hora': fecha_hora_local.strftime('%H:%M'),
+            'barbero_id': turno.barbero.id if turno.barbero else None,
+            'servicio_id': turno.servicio.id if turno.servicio else None,
+            'estado': turno.estado,
+            'precio_final': float(turno.precio_final) if turno.precio_final else None,
+            'cliente_email': turno.cliente.email if turno.cliente else None,
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'turno': datos
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al obtener datos: {str(e)}'
+        })
+
+@user_passes_test(lambda u: u.is_superuser)
+def editar_turno_admin(request):
+    """Vista AJAX para editar un turno completo desde administración"""
+    if request.method == 'POST':
+        try:
+            turno_id = request.POST.get('turno_id')
+            turno = get_object_or_404(Turno, id=turno_id)
+            
+            # Actualizar fecha y hora solo si realmente cambió
+            fecha = request.POST.get('fecha')
+            hora = request.POST.get('hora')
+            if fecha and hora:
+                from django.utils.timezone import localtime
+                import pytz
+                
+                # Obtener fecha/hora actual del turno en local
+                fecha_hora_actual_local = localtime(turno.fecha_hora)
+                fecha_actual = fecha_hora_actual_local.strftime('%Y-%m-%d')
+                hora_actual = fecha_hora_actual_local.strftime('%H:%M')
+                
+                # Solo actualizar si hay cambio real en fecha o hora
+                if fecha != fecha_actual or hora != hora_actual:
+                    from datetime import datetime
+                    
+                    # Parsear la nueva fecha/hora como naive
+                    fecha_hora_str = f"{fecha} {hora}"
+                    fecha_hora_naive = datetime.strptime(fecha_hora_str, '%Y-%m-%d %H:%M')
+                    
+                    # Obtener la zona horaria local (Argentina)
+                    tz_local = pytz.timezone('America/Argentina/Buenos_Aires')
+                    
+                    # Localizar en zona horaria argentina (sin conversión)
+                    fecha_hora_nueva = tz_local.localize(fecha_hora_naive)
+                    
+                    turno.fecha_hora = fecha_hora_nueva
+            
+            # Actualizar barbero
+            barbero_id = request.POST.get('barbero')
+            if barbero_id:
+                barbero = get_object_or_404(Barbero, id=barbero_id)
+                turno.barbero = barbero
+            
+            # Actualizar servicio (puede ser NULL)
+            servicio_id = request.POST.get('servicio')
+            if servicio_id:
+                from servicios.models import Servicio
+                servicio = get_object_or_404(Servicio, id=servicio_id)
+                turno.servicio = servicio
+            else:
+                turno.servicio = None
+            
+            # Actualizar estado
+            estado = request.POST.get('estado')
+            if estado:
+                turno.estado = estado
+            
+            # Actualizar precio final
+            precio_final = request.POST.get('precio_final')
+            if precio_final:
+                turno.precio_final = precio_final
+            else:
+                turno.precio_final = None
+            
+            # Actualizar cliente
+            cliente_email = request.POST.get('cliente_email')
+            if cliente_email:
+                try:
+                    from usuarios.models import Usuario
+                    cliente = Usuario.objects.get(email=cliente_email)
+                    turno.cliente = cliente
+                except Usuario.DoesNotExist:
+                    return JsonResponse({
+                        'success': False,
+                        'message': f'No se encontró usuario con email: {cliente_email}'
+                    })
+            else:
+                turno.cliente = None
+            
+            turno.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Turno actualizado correctamente'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al actualizar turno: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})

@@ -4,6 +4,25 @@ from django.forms import modelformset_factory
 import os
 from django.conf import settings
 
+def formatear_nombre(nombre):
+    """
+    Formatea un nombre para que cada palabra tenga la primera letra en mayúscula
+    y el resto en minúscula. Maneja múltiples espacios y palabras.
+    
+    Ejemplos:
+    - "juan carlos" → "Juan Carlos"
+    - "MARÍA JOSÉ" → "María José" 
+    - "  ana  maria  " → "Ana Maria"
+    """
+    if not nombre:
+        return nombre
+    
+    # Dividir por espacios, filtrar palabras vacías y formatear cada palabra
+    palabras = [palabra.strip().capitalize() for palabra in nombre.split() if palabra.strip()]
+    
+    # Unir con un solo espacio
+    return ' '.join(palabras)
+
 class DateWidget(forms.DateInput):
     """Widget personalizado para fechas que maneja mejor los valores iniciales"""
     
@@ -68,6 +87,11 @@ class BarberoForm(forms.ModelForm):
             self.fields['foto'].widget.clear_checkbox_label = 'Eliminar imagen actual'
             self.fields['foto'].help_text = 'Formatos permitidos: JPG, PNG, WEBP, GIF. Tamaño máximo: 5MB'
 
+    def clean_nombre(self):
+        """Aplica formateo automático al nombre del barbero"""
+        nombre = self.cleaned_data.get('nombre')
+        return formatear_nombre(nombre)
+
     def save(self, commit=True):
         instance = super().save(commit=False)
         # Si se eliminó la imagen y no está en uso en otro barbero, eliminar el archivo físico
@@ -124,6 +148,16 @@ class UsuarioForm(forms.ModelForm):
         
         # Help text para la foto
         self.fields['foto_perfil'].help_text = 'Formatos permitidos: JPG, PNG, WEBP, GIF. Tamaño máximo: 5MB'
+    
+    def clean_nombre(self):
+        """Aplica formateo automático al nombre"""
+        nombre = self.cleaned_data.get('nombre')
+        return formatear_nombre(nombre)
+    
+    def clean_apellido(self):
+        """Aplica formateo automático al apellido"""
+        apellido = self.cleaned_data.get('apellido')
+        return formatear_nombre(apellido)
 
 class CambiarContrasenaForm(forms.Form):
     """Formulario para cambiar contraseña desde el perfil del usuario"""

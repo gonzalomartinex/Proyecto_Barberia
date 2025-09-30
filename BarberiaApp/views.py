@@ -126,4 +126,11 @@ def editar_carrusel(request):
 @user_passes_test(lambda u: u.is_superuser)
 def admin_panel(request):
     """Vista del panel de administración centralizado"""
-    return render(request, 'admin_panel.html')
+    from turnos.models import Notificacion
+    
+    # Obtener notificaciones recientes no leídas
+    notificaciones_recientes = Notificacion.objects.filter(leida=False)[:10]
+    
+    return render(request, 'admin_panel.html', {
+        'notificaciones_recientes': notificaciones_recientes
+    })

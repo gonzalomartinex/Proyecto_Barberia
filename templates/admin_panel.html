@@ -99,6 +99,53 @@
     background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
     color: #222;
 }
+
+/* Estilos para las notificaciones */
+.bg-light-success {
+    background-color: #d4edda !important;
+}
+
+.bg-light-danger {
+    background-color: #f8d7da !important;
+}
+
+.bg-light-primary {
+    background-color: #cce5ff !important;
+}
+
+.bg-light-warning {
+    background-color: #fff3cd !important;
+}
+
+.notification-item {
+    transition: all 0.3s ease;
+}
+
+.notification-item:hover {
+    background-color: rgba(0,0,0,0.02) !important;
+}
+
+.notifications-container {
+    border-radius: 8px;
+}
+
+.notifications-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notifications-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.notifications-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.notifications-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
 </style>
 {% endblock %}
 
@@ -171,6 +218,93 @@
 
     <hr class="section-divider">
 
+    <!-- Bandeja de Entrada / Centro de Notificaciones -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="text-primary mb-3">
+                <i class="fas fa-inbox me-2"></i>Centro de Notificaciones
+            </h3>
+        </div>
+        
+        <div class="col-12">
+            <div class="card admin-card" onclick="window.location.href='{% url 'listar-notificaciones' %}'" style="cursor: pointer;">
+                <div class="card-header text-center">
+                    <i class="fas fa-bell admin-icon"></i>
+                    <h5 class="mb-0">Actividad Reciente de Turnos</h5>
+                    <p class="mb-0 mt-1"><small>Haz clic para ver todas las notificaciones</small></p>
+                </div>
+                <div class="card-body">
+                    {% if notificaciones_recientes %}
+                        <div class="notifications-container" style="max-height: 400px; overflow-y: auto;">
+                            {% for notificacion in notificaciones_recientes %}
+                            <div class="notification-item p-3 mb-2 border-start border-4 
+                                        {% if notificacion.tipo == 'turno_reservado' %}border-success bg-light-success
+                                        {% elif notificacion.tipo == 'turno_cancelado' %}border-danger bg-light-danger
+                                        {% elif notificacion.tipo == 'turno_completado' %}border-primary bg-light-primary
+                                        {% else %}border-warning bg-light-warning{% endif %}"
+                                 style="border-radius: 0.5rem;">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="notification-content">
+                                            <p class="mb-1 fw-bold">
+                                                {% if notificacion.tipo == 'turno_reservado' %}
+                                                    <i class="fas fa-calendar-plus text-success me-1"></i>
+                                                {% elif notificacion.tipo == 'turno_cancelado' %}
+                                                    <i class="fas fa-calendar-times text-danger me-1"></i>
+                                                {% elif notificacion.tipo == 'turno_completado' %}
+                                                    <i class="fas fa-calendar-check text-primary me-1"></i>
+                                                {% else %}
+                                                    <i class="fas fa-calendar-edit text-warning me-1"></i>
+                                                {% endif %}
+                                                {{ notificacion.get_tipo_display }}
+                                            </p>
+                                            <p class="mb-1">{{ notificacion.get_mensaje_completo }}</p>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>
+                                                {{ notificacion.fecha_creacion|date:"d/m/Y H:i" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="ms-3">
+                                        <button class="btn btn-sm btn-outline-secondary" 
+                                                onclick="marcarLeida({{ notificacion.id }})"
+                                                title="Marcar como leída">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        {% if notificaciones_recientes|length >= 10 %}
+                        <div class="text-center mt-3">
+                            <small class="text-muted">Mostrando las 10 notificaciones más recientes</small>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="text-center mt-3">
+                            <a href="{% url 'listar-notificaciones' %}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-list me-1"></i>Ver Todas las Notificaciones
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3 text-muted">No hay notificaciones nuevas</h5>
+                            <p class="text-muted">Las notificaciones aparecerán aquí cuando haya actividad en los turnos.</p>
+                            <a href="{% url 'listar-notificaciones' %}" class="btn btn-warning btn-sm mt-2">
+                                <i class="fas fa-list me-1"></i>Ver Historial de Notificaciones
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="section-divider">
+
     <!-- Gestión de Contenido -->
     <div class="row mb-4">
         <div class="col-12">
@@ -204,10 +338,10 @@
                 </div>
                 <div class="card-body text-center">
                     <p class="admin-description">
-                        Registra nuevos barberos, edita información y gestiona sus trabajos.
+                        Visualiza y gestiona todos los barberos registrados en la barbería.
                     </p>
-                    <a href="{% url 'registrar-barbero' %}" class="btn admin-btn w-100">
-                        <i class="fas fa-user-plus me-2"></i>Gestionar Barberos
+                    <a href="{% url 'barberos-list' %}" class="btn admin-btn w-100">
+                        <i class="fas fa-users me-2"></i>Gestionar Barberos
                     </a>
                 </div>
             </div>
@@ -221,10 +355,10 @@
                 </div>
                 <div class="card-body text-center">
                     <p class="admin-description">
-                        Crea, edita y elimina cursos de capacitación para clientes.
+                        Visualiza y gestiona todos los cursos disponibles en la barbería.
                     </p>
-                    <a href="{% url 'crear-curso' %}" class="btn admin-btn w-100">
-                        <i class="fas fa-plus me-2"></i>Gestionar Cursos
+                    <a href="{% url 'cursos-list' %}" class="btn admin-btn w-100">
+                        <i class="fas fa-list me-2"></i>Gestionar Cursos
                     </a>
                 </div>
             </div>
@@ -255,10 +389,10 @@
                 </div>
                 <div class="card-body text-center">
                     <p class="admin-description">
-                        Crea, edita y elimina servicios ofrecidos por la barbería.
+                        Visualiza y gestiona todos los servicios ofrecidos por la barbería.
                     </p>
-                    <a href="{% url 'servicio-create' %}" class="btn admin-btn w-100">
-                        <i class="fas fa-plus me-2"></i>Gestionar Servicios
+                    <a href="{% url 'servicios-list' %}" class="btn admin-btn w-100">
+                        <i class="fas fa-list me-2"></i>Gestionar Servicios
                     </a>
                 </div>
             </div>
@@ -272,10 +406,10 @@
                 </div>
                 <div class="card-body text-center">
                     <p class="admin-description">
-                        Administra el catálogo de productos disponibles en la barbería.
+                        Visualiza y gestiona el catálogo de productos disponibles en la barbería.
                     </p>
-                    <a href="{% url 'producto-create' %}" class="btn admin-btn w-100">
-                        <i class="fas fa-plus me-2"></i>Gestionar Productos
+                    <a href="{% url 'productos-list' %}" class="btn admin-btn w-100">
+                        <i class="fas fa-list me-2"></i>Gestionar Productos
                     </a>
                 </div>
             </div>
@@ -323,4 +457,63 @@
 
 {% block extra_js %}
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script>
+function marcarLeida(notificacionId) {
+    fetch(`/api/notificaciones/${notificacionId}/marcar-leida/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin'  // Incluir cookies de sesión
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Ocultar la notificación con animación
+            const notificationElement = document.querySelector(`button[onclick="marcarLeida(${notificacionId})"]`).closest('.notification-item');
+            if (notificationElement) {
+                notificationElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                notificationElement.style.opacity = '0';
+                notificationElement.style.transform = 'translateX(-20px)';
+                
+                setTimeout(() => {
+                    notificationElement.remove();
+                    
+                    // Si no quedan notificaciones, mostrar mensaje vacío
+                    const container = document.querySelector('.notifications-container');
+                    if (container && container.children.length === 0) {
+                        location.reload(); // Recargar para mostrar el mensaje "No hay notificaciones nuevas"
+                    }
+                }, 300);
+            }
+        } else {
+            throw new Error(data.error || 'Error desconocido');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al marcar la notificación como leída: ' + error.message);
+    });
+}
+
+// Obtener CSRF token
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar CSRF token si no existe
+    if (!document.querySelector('[name=csrfmiddlewaretoken]')) {
+        const csrfToken = '{{ csrf_token }}';
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'csrfmiddlewaretoken';
+        input.value = csrfToken;
+        document.body.appendChild(input);
+    }
+});
+</script>
 {% endblock %}

@@ -104,6 +104,13 @@ function renderResumen() {
     let servicio = servicios.find(s => s.id === servicioSeleccionado);
     let turno = (turnosPorDia[diaSeleccionado][turnoSeleccionado] || []).find(t => t.barbero_id === barberoSeleccionado);
     let barbero = barberos.find(b => b.id === barberoSeleccionado);
+    
+    // Verificar que se encontraron todos los objetos necesarios
+    if (!servicio || !barbero) {
+        console.error('Error: No se encontraron todos los objetos necesarios', {servicio, barbero});
+        return '';
+    }
+    
     return `<div class='card mt-4'><div class='card-body'>
         <h5 class='card-title'>Confirmar Reserva</h5>
         <ul class='list-group list-group-flush mb-3'>

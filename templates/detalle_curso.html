@@ -53,6 +53,69 @@
                         </div>
                     </div>
                     
+                    <!-- Información de inscriptos -->
+                    <div class="mt-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-box p-3 bg-info text-white rounded">
+                                    <h6><i class="fas fa-users"></i> Inscriptos</h6>
+                                    <p class="mb-0 h5" id="total-inscriptos">{{ total_inscriptos }} persona{{ total_inscriptos|pluralize }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botones de inscripción para usuarios autenticados -->
+                    {% if user.is_authenticated and not user.is_superuser %}
+                        <div class="text-center mt-4 mb-4">
+                            <div id="inscripcion-buttons">
+                                {% if esta_inscripto %}
+                                    <button class="btn btn-danger btn-lg" onclick="desinscribirse({{ curso.pk }})">
+                                        <i class="fas fa-user-minus"></i> Desinscribirse del Curso
+                                    </button>
+                                    <p class="text-success mt-2">
+                                        <i class="fas fa-check-circle"></i> Ya estás inscripto en este curso
+                                    </p>
+                                {% else %}
+                                    <button class="btn btn-success btn-lg" onclick="inscribirse({{ curso.pk }})">
+                                        <i class="fas fa-user-plus"></i> Inscribirse al Curso
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Lista de emails para administradores -->
+                    {% if user.is_authenticated and user.is_superuser and emails_inscriptos %}
+                        <div class="mt-4">
+                            <div class="card border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-envelope"></i> Emails de Inscriptos 
+                                        <span class="badge bg-dark">{{ emails_inscriptos|length }}</span>
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        {% for email in emails_inscriptos %}
+                                            <div class="col-md-6 mb-2">
+                                                <span class="badge bg-light text-dark p-2">
+                                                    <i class="fas fa-envelope me-1"></i>{{ email }}
+                                                </span>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    <hr>
+                                    <div class="text-center">
+                                        <button class="btn btn-outline-warning btn-sm" onclick="copiarEmails()">
+                                            <i class="fas fa-copy"></i> Copiar todos los emails
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
                     <div class="text-center mt-4">
                         <a href="{% url 'cursos-list' %}" class="btn btn-outline-primary btn-lg me-3">
                             <i class="fas fa-arrow-left"></i> Volver a Cursos
@@ -102,5 +165,160 @@
     border-color: #ffd700;
     color: #000;
 }
+
+.badge {
+    font-size: 0.9em;
+}
 </style>
+
+<script>
+function inscribirse(cursoId) {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    // Deshabilitar botón y mostrar spinner
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inscribiendo...';
+    
+    fetch(`/cursos/${cursoId}/inscribirse/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Actualizar el botón a desinscribirse
+            button.className = 'btn btn-danger btn-lg';
+            button.onclick = () => desinscribirse(cursoId);
+            button.innerHTML = '<i class="fas fa-user-minus"></i> Desinscribirse del Curso';
+            
+            // Agregar mensaje de éxito
+            const container = document.getElementById('inscripcion-buttons');
+            container.innerHTML += '<p class="text-success mt-2"><i class="fas fa-check-circle"></i> Ya estás inscripto en este curso</p>';
+            
+            // Actualizar contador
+            document.getElementById('total-inscriptos').textContent = `${data.total_inscriptos} persona${data.total_inscriptos !== 1 ? 's' : ''}`;
+            
+            // Mostrar mensaje de éxito
+            mostrarMensaje(data.mensaje, 'success');
+        } else {
+            throw new Error(data.error || 'Error desconocido');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarMensaje('Error al inscribirse: ' + error.message, 'error');
+        // Restaurar botón
+        button.disabled = false;
+        button.innerHTML = originalText;
+    });
+}
+
+function desinscribirse(cursoId) {
+    if (!confirm('¿Estás seguro de que quieres desinscribirte de este curso?')) {
+        return;
+    }
+    
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    // Deshabilitar botón y mostrar spinner
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Desinscribiendo...';
+    
+    fetch(`/cursos/${cursoId}/desinscribirse/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Actualizar el botón a inscribirse
+            button.className = 'btn btn-success btn-lg';
+            button.onclick = () => inscribirse(cursoId);
+            button.innerHTML = '<i class="fas fa-user-plus"></i> Inscribirse al Curso';
+            
+            // Quitar mensaje de inscripto
+            const successMsg = document.querySelector('.text-success');
+            if (successMsg) {
+                successMsg.remove();
+            }
+            
+            // Actualizar contador
+            document.getElementById('total-inscriptos').textContent = `${data.total_inscriptos} persona${data.total_inscriptos !== 1 ? 's' : ''}`;
+            
+            // Mostrar mensaje de éxito
+            mostrarMensaje(data.mensaje, 'success');
+        } else {
+            throw new Error(data.error || 'Error desconocido');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarMensaje('Error al desinscribirse: ' + error.message, 'error');
+        // Restaurar botón
+        button.disabled = false;
+        button.innerHTML = originalText;
+    });
+}
+
+function copiarEmails() {
+    const emails = [{% for email in emails_inscriptos %}'{{ email }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+    const emailsText = emails.join(', ');
+    
+    // Copiar al portapapeles
+    navigator.clipboard.writeText(emailsText).then(() => {
+        mostrarMensaje('Emails copiados al portapapeles', 'success');
+    }).catch(() => {
+        // Fallback para navegadores que no soportan clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = emailsText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        mostrarMensaje('Emails copiados al portapapeles', 'success');
+    });
+}
+
+function mostrarMensaje(mensaje, tipo) {
+    // Crear elemento de mensaje
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${tipo === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+    alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alert.innerHTML = `
+        ${mensaje}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alert);
+    
+    // Auto-eliminar después de 5 segundos
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.remove();
+        }
+    }, 5000);
+}
+
+// Obtener CSRF token
+document.addEventListener('DOMContentLoaded', function() {
+    if (!document.querySelector('[name=csrfmiddlewaretoken]')) {
+        const csrfToken = '{{ csrf_token }}';
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'csrfmiddlewaretoken';
+        input.value = csrfToken;
+        document.body.appendChild(input);
+    }
+});
+</script>
 {% endblock %}

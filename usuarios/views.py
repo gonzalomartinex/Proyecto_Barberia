@@ -17,6 +17,27 @@ from django import forms
 from django.http import HttpResponseForbidden
 from .forms import BarberoForm, get_redsocial_formset, UsuarioForm, CambiarContrasenaForm
 from django.forms import inlineformset_factory, modelform_factory
+
+# Función auxiliar para formatear nombres
+def formatear_nombre(nombre):
+    """
+    Formatea un nombre para que cada palabra tenga la primera letra en mayúscula
+    y el resto en minúscula. Maneja múltiples espacios y palabras.
+    
+    Ejemplos:
+    - "juan carlos" → "Juan Carlos"
+    - "MARÍA JOSÉ" → "María José" 
+    - "  ana  maria  " → "Ana Maria"
+    """
+    if not nombre:
+        return nombre
+    
+    # Dividir por espacios, filtrar palabras vacías y formatear cada palabra
+    palabras = [palabra.strip().capitalize() for palabra in nombre.split() if palabra.strip()]
+    
+    # Unir con un solo espacio
+    return ' '.join(palabras)
+
 # Create your views here.
 
 class PerfilUsuarioView(APIView):
@@ -51,7 +72,44 @@ def barbero_perfil(request, pk):
 
 @login_required
 def perfil_usuario(request):
-    return render(request, 'perfil.html', {'user': request.user})
+    from turnos.models import Turno
+    from django.utils import timezone
+    from django.db.models import Count
+    
+    # Obtener turnos activos del usuario (ocupados, no expirados)
+    now = timezone.now()
+    turnos_activos = Turno.objects.filter(
+        cliente=request.user,
+        estado='ocupado',
+        fecha_hora__gte=now
+    ).select_related('barbero', 'servicio').order_by('fecha_hora')
+    
+    # Obtener estadísticas del usuario
+    total_turnos = Turno.objects.filter(cliente=request.user).count()
+    turnos_completados = Turno.objects.filter(cliente=request.user, estado='completado').count()
+    turnos_cancelados = Turno.objects.filter(cliente=request.user, estado='cancelado').count()
+    
+    # Barbero favorito (con más turnos)
+    barbero_favorito = Turno.objects.filter(
+        cliente=request.user,
+        estado__in=['ocupado', 'completado']
+    ).values('barbero__nombre').annotate(
+        total=Count('barbero')
+    ).order_by('-total').first()
+    
+    estadisticas = {
+        'total_turnos': total_turnos,
+        'turnos_completados': turnos_completados,
+        'turnos_cancelados': turnos_cancelados,
+        'turnos_activos_count': turnos_activos.count(),
+        'barbero_favorito': barbero_favorito['barbero__nombre'] if barbero_favorito else 'Ninguno'
+    }
+    
+    return render(request, 'perfil.html', {
+        'user': request.user,
+        'turnos_activos': turnos_activos,
+        'estadisticas': estadisticas
+    })
 
 class RegistroForm(forms.ModelForm):
     password1 = forms.CharField(label='Contraseña', widget=forms.PasswordInput)
@@ -69,6 +127,16 @@ class RegistroForm(forms.ModelForm):
         if p1 and p2 and p1 != p2:
             self.add_error('password2', 'Las contraseñas no coinciden')
         return cleaned_data
+    
+    def clean_nombre(self):
+        """Aplica formateo automático al nombre"""
+        nombre = self.cleaned_data.get('nombre')
+        return formatear_nombre(nombre)
+    
+    def clean_apellido(self):
+        """Aplica formateo automático al apellido"""
+        apellido = self.cleaned_data.get('apellido')
+        return formatear_nombre(apellido)
 
 def registro_usuario(request):
     if request.method == 'POST':
@@ -77,6 +145,11 @@ def registro_usuario(request):
             usuario = form.save(commit=False)
             usuario.set_password(form.cleaned_data['password1'])
             usuario.estado = False  # Usuario deshabilitado por defecto
+            
+            # Formatear nombre y apellido con mayúsculas iniciales
+            usuario.nombre = formatear_nombre(usuario.nombre)
+            usuario.apellido = formatear_nombre(usuario.apellido)
+            
             # Unir código de país y número
             usuario.telefono = f"{form.cleaned_data['codigo_pais']}{form.cleaned_data['telefono_numero']}"
             usuario.save()
@@ -225,10 +298,30 @@ def gestionar_usuarios(request):
     
     # Aplicar filtros
     if nombre_filtro:
-        usuarios = usuarios.filter(
-            models.Q(nombre__icontains=nombre_filtro) | 
-            models.Q(apellido__icontains=nombre_filtro)
-        )
+        # Mejorar búsqueda de nombre/apellido para permitir "nombre apellido"
+        palabras = nombre_filtro.strip().split()
+        
+        if len(palabras) == 1:
+            # Búsqueda con una sola palabra (como antes)
+            usuarios = usuarios.filter(
+                models.Q(nombre__icontains=palabras[0]) | 
+                models.Q(apellido__icontains=palabras[0])
+            )
+        elif len(palabras) == 2:
+            # Búsqueda con dos palabras: "nombre apellido" o "apellido nombre"
+            palabra1, palabra2 = palabras[0], palabras[1]
+            usuarios = usuarios.filter(
+                # Caso: "nombre apellido" - ambas palabras deben coincidir
+                (models.Q(nombre__icontains=palabra1) & models.Q(apellido__icontains=palabra2)) |
+                # Caso: "apellido nombre" - ambas palabras deben coincidir
+                (models.Q(nombre__icontains=palabra2) & models.Q(apellido__icontains=palabra1))
+            )
+        else:
+            # Búsqueda con más de dos palabras: buscar cada una en cualquier campo
+            query = models.Q()
+            for palabra in palabras:
+                query |= models.Q(nombre__icontains=palabra) | models.Q(apellido__icontains=palabra)
+            usuarios = usuarios.filter(query)
     
     if email_filtro:
         usuarios = usuarios.filter(email__icontains=email_filtro)
@@ -279,9 +372,12 @@ def editar_usuario_admin(request, user_id):
     usuario_a_editar = get_object_or_404(Usuario, pk=user_id)
     
     if request.method == 'POST':
-        # Actualizar datos básicos
-        usuario_a_editar.nombre = request.POST.get('nombre', usuario_a_editar.nombre)
-        usuario_a_editar.apellido = request.POST.get('apellido', usuario_a_editar.apellido)
+        # Actualizar datos básicos con formateo de nombres
+        nombre_raw = request.POST.get('nombre', usuario_a_editar.nombre)
+        apellido_raw = request.POST.get('apellido', usuario_a_editar.apellido)
+        
+        usuario_a_editar.nombre = formatear_nombre(nombre_raw)
+        usuario_a_editar.apellido = formatear_nombre(apellido_raw)
         usuario_a_editar.email = request.POST.get('email', usuario_a_editar.email)
         usuario_a_editar.telefono = request.POST.get('telefono', usuario_a_editar.telefono)
         
@@ -334,3 +430,109 @@ def cambiar_contrasena(request):
         form = CambiarContrasenaForm(request.user)
     
     return render(request, 'cambiar_contrasena.html', {'form': form})
+
+@login_required
+def cancelar_turno_usuario(request, turno_id):
+    """Vista para que el usuario cancele su propio turno"""
+    from turnos.models import Turno
+    from turnos.views import crear_notificacion
+    from django.utils import timezone
+    from django.http import JsonResponse
+    from datetime import timedelta
+    
+    try:
+        turno = Turno.objects.get(
+            id=turno_id,
+            cliente=request.user,
+            estado='ocupado',
+            fecha_hora__gte=timezone.now()  # Solo turnos futuros
+        )
+        
+        # Verificar si es una cancelación tardía (menos de 1 hora)
+        ahora = timezone.now()
+        tiempo_restante = turno.fecha_hora - ahora
+        es_cancelacion_tardia = tiempo_restante <= timedelta(hours=1)
+        
+        # Si es por AJAX y es cancelación tardía, devolver advertencia
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and es_cancelacion_tardia:
+            confirmar_con_falta = request.POST.get('confirmar_con_falta', 'false') == 'true'
+            
+            if not confirmar_con_falta:
+                # Primera vez - mostrar advertencia
+                horas_restantes = int(tiempo_restante.total_seconds() // 3600)
+                minutos_restantes = int((tiempo_restante.total_seconds() % 3600) // 60)
+                
+                tiempo_texto = ""
+                if horas_restantes > 0:
+                    tiempo_texto = f"{horas_restantes} hora{'s' if horas_restantes != 1 else ''}"
+                    if minutos_restantes > 0:
+                        tiempo_texto += f" y {minutos_restantes} minuto{'s' if minutos_restantes != 1 else ''}"
+                else:
+                    tiempo_texto = f"{minutos_restantes} minuto{'s' if minutos_restantes != 1 else ''}"
+                
+                return JsonResponse({
+                    'warning': True,
+                    'mensaje': f'⚠️ Tu turno es en {tiempo_texto}. Cancelar con menos de 1 hora de anticipación agregará una FALTA a tu cuenta.',
+                    'faltas_actuales': request.user.contador_faltas,
+                    'tiempo_restante': tiempo_texto
+                })
+        
+        # Cancelar el turno
+        turno.estado = 'cancelado'
+        turno.save()
+        
+        # Si es cancelación tardía, agregar falta
+        if es_cancelacion_tardia:
+            request.user.contador_faltas += 1
+            
+            # Si llega a 3 faltas, deshabilitar usuario
+            if request.user.contador_faltas >= 3:
+                request.user.estado = False
+                mensaje_falta = f'❌ Turno cancelado. Se agregó 1 FALTA a tu cuenta. Has alcanzado 3 FALTAS y tu usuario ha sido DESHABILITADO.'
+            else:
+                mensaje_falta = f'⚠️ Turno cancelado. Se agregó 1 FALTA por cancelación tardía. Faltas actuales: {request.user.contador_faltas}/3.'
+            
+            request.user.save()
+            
+            # Crear notificación para administradores
+            crear_notificacion(turno, 'turno_cancelado')
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'mensaje': mensaje_falta,
+                    'usuario_deshabilitado': not request.user.estado,
+                    'faltas': request.user.contador_faltas
+                })
+            else:
+                messages.warning(request, mensaje_falta)
+                return redirect('perfil_usuario')
+        else:
+            # Cancelación normal (con más de 1 hora de anticipación)
+            crear_notificacion(turno, 'turno_cancelado')
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'mensaje': f'Turno del {turno.fecha_hora.strftime("%d/%m/%Y a las %H:%M")} cancelado correctamente.'
+                })
+            else:
+                messages.success(request, f'Turno del {turno.fecha_hora.strftime("%d/%m/%Y a las %H:%M")} cancelado correctamente.')
+                return redirect('perfil_usuario')
+            
+    except Turno.DoesNotExist:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'error': 'No se encontró el turno o no tienes permisos para cancelarlo.'
+            }, status=404)
+        else:
+            messages.error(request, 'No se encontró el turno o no tienes permisos para cancelarlo.')
+            return redirect('perfil_usuario')
+    except Exception as e:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'error': 'Ocurrió un error al cancelar el turno.'
+            }, status=500)
+        else:
+            messages.error(request, 'Ocurrió un error al cancelar el turno.')
+            return redirect('perfil_usuario')

@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import user_passes_test, login_required
 from django.contrib import messages
-from .models import Curso
+from django.http import JsonResponse
+from .models import Curso, InscripcionCurso
 from .forms import CursoForm
 
 def cursos_list(request):
@@ -10,7 +11,28 @@ def cursos_list(request):
 
 def detalle_curso(request, pk):
     curso = get_object_or_404(Curso, pk=pk)
-    return render(request, 'detalle_curso.html', {'curso': curso})
+    
+    # Verificar si el usuario está inscripto
+    esta_inscripto = False
+    if request.user.is_authenticated:
+        esta_inscripto = InscripcionCurso.objects.filter(
+            usuario=request.user, 
+            curso=curso
+        ).exists()
+    
+    # Para admins: obtener lista de emails de inscriptos
+    emails_inscriptos = []
+    if request.user.is_authenticated and request.user.is_superuser:
+        emails_inscriptos = list(curso.inscriptos.values_list('email', flat=True))
+    
+    context = {
+        'curso': curso,
+        'esta_inscripto': esta_inscripto,
+        'emails_inscriptos': emails_inscriptos,
+        'total_inscriptos': curso.total_inscriptos()
+    }
+    
+    return render(request, 'detalle_curso.html', context)
 
 @user_passes_test(lambda u: u.is_superuser)
 def crear_curso(request):
@@ -45,3 +67,65 @@ def eliminar_curso(request, pk):
         messages.success(request, 'Curso eliminado correctamente.')
         return redirect('cursos-list')
     return render(request, 'curso_confirm_delete.html', {'curso': curso})
+
+@login_required
+def inscribirse_curso(request, pk):
+    """Vista para inscribirse a un curso"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    
+    curso = get_object_or_404(Curso, pk=pk)
+    
+    try:
+        # Verificar si ya está inscripto
+        if InscripcionCurso.objects.filter(usuario=request.user, curso=curso).exists():
+            return JsonResponse({
+                'error': 'Ya estás inscripto en este curso'
+            }, status=400)
+        
+        # Crear inscripción
+        InscripcionCurso.objects.create(usuario=request.user, curso=curso)
+        
+        return JsonResponse({
+            'success': True,
+            'mensaje': f'Te has inscripto correctamente al curso "{curso.titulo}"',
+            'total_inscriptos': curso.total_inscriptos()
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Error al inscribirse: {str(e)}'
+        }, status=500)
+
+@login_required
+def desinscribirse_curso(request, pk):
+    """Vista para desinscribirse de un curso"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    
+    curso = get_object_or_404(Curso, pk=pk)
+    
+    try:
+        # Buscar y eliminar inscripción
+        inscripcion = InscripcionCurso.objects.filter(
+            usuario=request.user, 
+            curso=curso
+        ).first()
+        
+        if not inscripcion:
+            return JsonResponse({
+                'error': 'No estás inscripto en este curso'
+            }, status=400)
+        
+        inscripcion.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'mensaje': f'Te has desinscripto del curso "{curso.titulo}"',
+            'total_inscriptos': curso.total_inscriptos()
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Error al desinscribirse: {str(e)}'
+        }, status=500)
