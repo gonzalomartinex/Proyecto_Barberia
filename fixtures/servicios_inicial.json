@@ -1,0 +1,42 @@
+[
+{
+  "model": "servicios.servicio",
+  "pk": 1,
+  "fields": {
+    "nombre": "Corte de pelo",
+    "imagen": "servicios/imagenes/cortepelo.png",
+    "descripcion": "Corte de pelo profesional",
+    "precio": "3000.00"
+  }
+},
+{
+  "model": "servicios.servicio",
+  "pk": 2,
+  "fields": {
+    "nombre": "Corte de barbas",
+    "imagen": "servicios/imagenes/cortebarba_2kVEQRI.png",
+    "descripcion": "Perfilado y arreglo de barba",
+    "precio": "25000.00"
+  }
+},
+{
+  "model": "servicios.servicio",
+  "pk": 3,
+  "fields": {
+    "nombre": "Corte de pelo y barba",
+    "imagen": "servicios/imagenes/peloybarba_cRzM4Ft.png",
+    "descripcion": "Combo corte de pelo y barba",
+    "precio": "4500.00"
+  }
+},
+{
+  "model": "servicios.servicio",
+  "pk": 4,
+  "fields": {
+    "nombre": "Perfilado de Cejas",
+    "imagen": "servicios/imagenes/cejas.png",
+    "descripcion": "Perfilado de cejas",
+    "precio": "1000.00"
+  }
+}
+]

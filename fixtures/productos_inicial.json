@@ -1,0 +1,47 @@
+[
+{
+  "model": "productos.producto",
+  "pk": 1,
+  "fields": {
+    "nombre": "Crema",
+    "imagen": "productos/imagenes/crema.png",
+    "precio": "2700.00"
+  }
+},
+{
+  "model": "productos.producto",
+  "pk": 2,
+  "fields": {
+    "nombre": "Gel",
+    "imagen": "productos/imagenes/gel.png",
+    "precio": "3500.00"
+  }
+},
+{
+  "model": "productos.producto",
+  "pk": 3,
+  "fields": {
+    "nombre": "Crema After Shave",
+    "imagen": "productos/imagenes/cremaafter.png",
+    "precio": "4000.00"
+  }
+},
+{
+  "model": "productos.producto",
+  "pk": 5,
+  "fields": {
+    "nombre": "pan",
+    "imagen": "Default/noimage.png",
+    "precio": "12000.00"
+  }
+},
+{
+  "model": "productos.producto",
+  "pk": 6,
+  "fields": {
+    "nombre": "Georgina",
+    "imagen": "productos/imagenes/cejas_pK21xsl.png",
+    "precio": "5000.00"
+  }
+}
+]

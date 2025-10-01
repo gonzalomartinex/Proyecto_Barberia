@@ -1,0 +1,163 @@
+[
+{
+  "model": "usuarios.usuario",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$zmxAg5eAcFSO3tTOuMsAje$IqvxgVygvFpOUOUw/Od5dSvh2oDgatsH7twKI6lcrP4=",
+    "last_login": "2025-09-30T17:42:00.725Z",
+    "is_superuser": true,
+    "nombre": "admin",
+    "apellido": "admin",
+    "email": "admin@gmail.com",
+    "telefono": "543516178033",
+    "fecha_nacimiento": "2000-02-02",
+    "fecha_registro": "2025-06-11T19:47:18.378Z",
+    "estado": true,
+    "contador_faltas": 0,
+    "es_administrador": true,
+    "foto_perfil": "usuarios/perfiles/a.png",
+    "is_staff": true,
+    "is_active": true,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$nHS0mNTZO5uMP1VCuxcH4I$eP7uT5jYrfOjrap43nuIV2m9HDuz1UwQvicmsqWz6Og=",
+    "last_login": null,
+    "is_superuser": false,
+    "nombre": "yo",
+    "apellido": "yo tambien",
+    "email": "blavalclal@gmail.com",
+    "telefono": "+5435188888822",
+    "fecha_nacimiento": "2024-02-17",
+    "fecha_registro": "2025-06-11T23:57:09.017Z",
+    "estado": true,
+    "contador_faltas": 0,
+    "es_administrador": false,
+    "foto_perfil": "",
+    "is_staff": false,
+    "is_active": true,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$3WeCyhBVo6OUQRTnTey2g3$NVMZjSEHwCTalEIIlr1bV5T0h0dNvolZtq5jtDDd7x4=",
+    "last_login": "2025-09-24T20:44:27.288Z",
+    "is_superuser": false,
+    "nombre": "hola",
+    "apellido": "tambien",
+    "email": "hola@gmail.com",
+    "telefono": "",
+    "fecha_nacimiento": "2023-02-10",
+    "fecha_registro": "2025-06-12T02:28:39.909Z",
+    "estado": false,
+    "contador_faltas": 3,
+    "es_administrador": false,
+    "foto_perfil": "",
+    "is_staff": false,
+    "is_active": true,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$yCR1m0HsCjpNWRygeIuGA2$HC5KIpFXax8pWNsWrtObmBhoiJzQuuCFYycDIjqkiW4=",
+    "last_login": null,
+    "is_superuser": false,
+    "nombre": "ejemplo",
+    "apellido": "plo",
+    "email": "ejemplo@gmail.com",
+    "telefono": "+544443335555",
+    "fecha_nacimiento": "3444-02-12",
+    "fecha_registro": "2025-06-12T16:24:31.632Z",
+    "estado": true,
+    "contador_faltas": 0,
+    "es_administrador": false,
+    "foto_perfil": "",
+    "is_staff": false,
+    "is_active": true,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 5,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$UTCy7yE5zVNVNCUlWndRFm$nWrHBEKWjaLwdd/L/TXlt4Xyj/a5IOb6/Zzz0gXVEwY=",
+    "last_login": "2025-09-30T17:26:54.163Z",
+    "is_superuser": false,
+    "nombre": "Mateoeo",
+    "apellido": "lEoEo",
+    "email": "yo.yo@gmail.com",
+    "telefono": "+543332223322",
+    "fecha_nacimiento": "2025-09-30",
+    "fecha_registro": "2025-09-30T17:26:24.610Z",
+    "estado": false,
+    "contador_faltas": 0,
+    "es_administrador": false,
+    "foto_perfil": "",
+    "is_staff": false,
+    "is_active": true,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 6,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$RKYqHcpQryiRIKuaripxVy$Vr+NeTQy1qSziNOt3OSM2XxY94+z/TbrWdPIsW6wEDU=",
+    "last_login": null,
+    "is_superuser": false,
+    "nombre": "Juan Carlos Fernando",
+    "apellido": "Pérez García López",
+    "email": "prueba.formateo@test.com",
+    "telefono": "+549351123456",
+    "fecha_nacimiento": "1990-01-15",
+    "fecha_registro": "2025-09-30T17:39:13.095Z",
+    "estado": false,
+    "contador_faltas": 0,
+    "es_administrador": false,
+    "foto_perfil": "",
+    "is_staff": false,
+    "is_active": true,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 7,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$ipN98pGvsKHMMfkcfEw255$QQk99M09DuBTfbJok25fvdJZV+IhoWXGHLveSXq1lNk=",
+    "last_login": "2025-09-30T17:40:54.397Z",
+    "is_superuser": false,
+    "nombre": "Siiil",
+    "apellido": "Si Siiii",
+    "email": "si@gmail.com",
+    "telefono": "+543512223333",
+    "fecha_nacimiento": "2025-09-30",
+    "fecha_registro": "2025-09-30T17:40:39.509Z",
+    "estado": false,
+    "contador_faltas": 0,
+    "es_administrador": false,
+    "foto_perfil": "",
+    "is_staff": false,
+    "is_active": true,
+    "groups": [],
+    "user_permissions": []
+  }
+}
+]

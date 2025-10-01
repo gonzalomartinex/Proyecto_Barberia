@@ -122,6 +122,9 @@ class Command(BaseCommand):
         # Crear DataFrame con los datos de los turnos (formato simple)
         datos_turnos = []
         for turno in turnos_expirados:
+            # Obtener el precio final o usar el precio del servicio como fallback
+            precio_final = turno.precio_final if turno.precio_final else (turno.servicio.precio if turno.servicio else 0)
+            
             datos_turnos.append({
                 'ID': turno.id,
                 'Fecha': turno.fecha_hora.strftime('%Y-%m-%d'),
@@ -129,7 +132,7 @@ class Command(BaseCommand):
                 'Barbero': turno.barbero.nombre if turno.barbero else 'Sin barbero',
                 'Cliente': f'{turno.cliente.nombre} {turno.cliente.apellido}' if turno.cliente else 'Sin cliente',
                 'Servicio': turno.servicio.nombre if turno.servicio else 'Sin servicio',
-                'Precio': f"${turno.servicio.precio:,.2f}" if turno.servicio and turno.servicio.precio else '$0,00',
+                'Precio': f"${precio_final:,.2f}" if precio_final else '$0,00',
                 'Estado': turno.estado,
                 'Fecha_Archivado': timezone.now().strftime('%Y-%m-%d %H:%M:%S')
             })
@@ -261,9 +264,10 @@ class Command(BaseCommand):
                 stats['servicios_realizados'] += 1
                 stats['turnos_completados'] += 1
                 
-                # Dinero generado
-                if turno.servicio and turno.servicio.precio:
-                    stats['dinero_generado'] += float(turno.servicio.precio)
+                # Dinero generado - usar precio_final o precio del servicio como fallback
+                precio_final = turno.precio_final if turno.precio_final else (turno.servicio.precio if turno.servicio else 0)
+                if precio_final:
+                    stats['dinero_generado'] += float(precio_final)
                 
                 # Servicios por tipo
                 if turno.servicio:
@@ -322,9 +326,10 @@ class Command(BaseCommand):
             if turno.estado in ['completado', 'ocupado']:
                 total_servicios += 1
                 
-                # Dinero generado
-                if turno.servicio and turno.servicio.precio:
-                    total_dinero += float(turno.servicio.precio)
+                # Dinero generado - usar precio_final o precio del servicio como fallback
+                precio_final = turno.precio_final if turno.precio_final else (turno.servicio.precio if turno.servicio else 0)
+                if precio_final:
+                    total_dinero += float(precio_final)
                 
                 # Servicios por tipo
                 if turno.servicio:

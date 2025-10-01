@@ -1,0 +1,74 @@
+[
+{
+  "model": "usuarios.barbero",
+  "pk": 1,
+  "fields": {
+    "nombre": "Victor Mansilla",
+    "foto": "barberos/fotos/viktor.png",
+    "fecha_nacimiento": "2025-06-11",
+    "bio": "Hola soy dueño y barbero de la barberia Estacionbarber1973 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "telefono": "+5435188888888",
+    "dni": "46666777"
+  }
+},
+{
+  "model": "usuarios.barbero",
+  "pk": 4,
+  "fields": {
+    "nombre": "Jorge",
+    "foto": "barberos/fotos/bar2.png",
+    "fecha_nacimiento": "2025-06-19",
+    "bio": "dadqdqqdjajdjadjadj",
+    "telefono": "+5435188888888",
+    "dni": "46666778"
+  }
+},
+{
+  "model": "usuarios.barbero",
+  "pk": 8,
+  "fields": {
+    "nombre": "Fernando",
+    "foto": "barberos/fotos/bar4.png",
+    "fecha_nacimiento": "2025-06-11",
+    "bio": "aaaa",
+    "telefono": "+5435188888888",
+    "dni": "46666000"
+  }
+},
+{
+  "model": "usuarios.barbero",
+  "pk": 9,
+  "fields": {
+    "nombre": "patrik",
+    "foto": "barberos/fotos/bar1_1bvQvOT.png",
+    "fecha_nacimiento": "2025-06-16",
+    "bio": "soy patroklo",
+    "telefono": "+5435188888822",
+    "dni": "46666733"
+  }
+},
+{
+  "model": "usuarios.barbero",
+  "pk": 12,
+  "fields": {
+    "nombre": "Georgina",
+    "foto": "barberos/fotos/bar4_0T8PBMO.png",
+    "fecha_nacimiento": "2025-06-11",
+    "bio": "",
+    "telefono": "+5435188888888",
+    "dni": "46666809"
+  }
+},
+{
+  "model": "usuarios.barbero",
+  "pk": 13,
+  "fields": {
+    "nombre": "Patroclo",
+    "foto": "barberos/fotos/cejas_eMHNlCa.png",
+    "fecha_nacimiento": "2025-09-18",
+    "bio": "desde la cuna papa",
+    "telefono": "+5435188888883",
+    "dni": "46666771"
+  }
+}
+]
