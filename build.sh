@@ -3,8 +3,10 @@
 
 set -o errexit  # Exit on error
 
+# Actualizar pip y setuptools primero
+pip install --upgrade pip setuptools wheel
+
 # Instalar dependencias
-pip install --upgrade pip
 pip install -r requirements.txt
 
 # Recopilar archivos estáticos
