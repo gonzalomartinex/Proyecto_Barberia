@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: barberia-app
+    env: python
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+      python manage.py migrate
+    startCommand: gunicorn BarberiaApp.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: barberia-db
+          property: connectionString
+      - key: DJANGO_SETTINGS_MODULE
+        value: BarberiaApp.settings
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        value: .render.com
+      - key: DISABLE_COLLECTSTATIC
+        value: 1
+
+  - type: pserv
+    name: barberia-db
+    env: postgresql
+    plan: free
+    databaseName: barberia
+    databaseUser: barberia_user
