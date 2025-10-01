@@ -15,8 +15,14 @@ python manage.py collectstatic --no-input
 # Ejecutar migraciones
 python manage.py migrate
 
+# Verificar usuarios existentes
+python manage.py verify_users
+
 # Crear superusuario automáticamente
 python manage.py create_superuser_auto
+
+# Verificar usuarios después de la creación
+python manage.py verify_users
 
 # Cargar datos iniciales (opcional)
 # python manage.py loaddata fixtures/barberos_inicial.json
