@@ -31,3 +31,15 @@ db.sqlite3
 # Archivos de configuración local
 .env
 local_settings.py
+
+# Archivos Excel generados
+media/archivos_turnos/*.xlsx
+
+# Backups de base de datos
+*.json.backup
+backup.json
+fixtures/backup_*.json
+
+# Archivos de producción
+gunicorn.pid
+*.sock
