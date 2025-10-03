@@ -15,7 +15,7 @@ class Command(BaseCommand):
         if users.exists():
             for user in users:
                 status = "SUPERUSUARIO" if user.is_superuser else "Usuario normal"
-                self.stdout.write(f"- {user.username} ({user.email}) [{status}]")
+                self.stdout.write(f"- {user.email} ({user.nombre} {user.apellido}) [{status}]")
         else:
             self.stdout.write("No hay usuarios en la base de datos")
         
@@ -24,6 +24,7 @@ class Command(BaseCommand):
         
         # Mostrar variables de entorno
         self.stdout.write("\n=== VARIABLES DE ENTORNO ===")
-        self.stdout.write(f"USERNAME: {os.environ.get('DJANGO_SUPERUSER_USERNAME', 'NO DEFINIDA')}")
         self.stdout.write(f"EMAIL: {os.environ.get('DJANGO_SUPERUSER_EMAIL', 'NO DEFINIDA')}")
+        self.stdout.write(f"NOMBRE: {os.environ.get('DJANGO_SUPERUSER_NOMBRE', 'NO DEFINIDA')}")
+        self.stdout.write(f"APELLIDO: {os.environ.get('DJANGO_SUPERUSER_APELLIDO', 'NO DEFINIDA')}")
         self.stdout.write(f"PASSWORD: {'***DEFINIDA***' if os.environ.get('DJANGO_SUPERUSER_PASSWORD') else 'NO DEFINIDA'}")
