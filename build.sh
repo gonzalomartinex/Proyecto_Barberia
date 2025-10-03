@@ -12,6 +12,9 @@ pip install -r requirements.txt
 # Recopilar archivos estáticos
 python manage.py collectstatic --no-input
 
+# Copiar archivos media a static para que WhiteNoise los sirva
+python manage.py copy_media_to_static
+
 # Ejecutar migraciones
 python manage.py migrate
 
