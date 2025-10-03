@@ -76,10 +76,7 @@ urlpatterns = [
     path('cursos/', include('cursos.urls')),
 ]
 
-# Servir archivos media en desarrollo
+# Servir archivos media solo en desarrollo
+# En producción con Cloudinary, las imágenes se sirven desde Cloudinary
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-else:
-    # En producción, los archivos media son servidos por WhiteNoise desde static
-    # porque los copiamos ahí durante el build
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.STATIC_ROOT / 'media')

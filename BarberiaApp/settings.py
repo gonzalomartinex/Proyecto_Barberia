@@ -208,6 +208,13 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
             secure=True
         )
         
+        # Configuración específica de Cloudinary Storage
+        CLOUDINARY_STORAGE = {
+            'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+            'API_KEY': CLOUDINARY_API_KEY,
+            'API_SECRET': CLOUDINARY_API_SECRET,
+        }
+        
         # Usar Cloudinary para archivos media subidos por usuarios
         DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
         print(f"✅ Cloudinary configurado: {CLOUDINARY_CLOUD_NAME}")
