@@ -146,6 +146,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',  # Archivos estáticos de la aplicación (logos, imágenes por defecto)
+]
 
 # Configuración de WhiteNoise para servir archivos estáticos Y media
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

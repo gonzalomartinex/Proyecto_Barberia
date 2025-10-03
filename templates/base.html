@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -131,7 +132,7 @@
 <body>
     <nav class="custom-navbar">
         <a class="navbar-brand" href="/">
-            <img src="/media/logo/logoblanco.png" alt="Logo Cortes Con Historia" style="height:40px;vertical-align:middle;">
+            <img src="{% static 'logo/logoblanco.png' %}" alt="Logo Cortes Con Historia" style="height:40px;vertical-align:middle;">
         </a>
         <div class="navbar-menu">
             <button onclick="location.href='/'">Inicio</button>

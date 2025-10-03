@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Productos | BarberíaApp{% endblock %}
 {% block content %}
 <h1 class="mb-4">Productos</h1>
@@ -16,7 +17,7 @@
                 {% if producto.imagen %}
                 <img src="{{ producto.imagen.url }}" class="card-img-top object-fit-cover" alt="{{ producto.nombre }}" style="width:100%;height:100%;object-fit:cover;object-position:center;">
                 {% else %}
-                <img src="/media/Default/noimage.png" class="card-img-top object-fit-cover" alt="{{ producto.nombre }}" style="width:100%;height:100%;object-fit:cover;object-position:center;">
+                <img src="{% static 'Default/noimage.png' %}" class="card-img-top object-fit-cover" alt="{{ producto.nombre }}" style="width:100%;height:100%;object-fit:cover;object-position:center;">
                 {% endif %}
             </div>
             <div class="card-body">

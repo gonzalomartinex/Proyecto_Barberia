@@ -41,7 +41,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
         """Retorna la URL de la foto de perfil o la imagen por defecto si no tiene"""
         if self.foto_perfil and hasattr(self.foto_perfil, 'url'):
             return self.foto_perfil.url
-        return '/media/Default/perfil_default.png'
+        return '/static/Default/perfil_default.png'
 
     def deshabilitar_si_faltas(self):
         if self.contador_faltas >= 3:

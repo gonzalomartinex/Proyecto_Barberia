@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Inicio | Cortes Con Historia{% endblock %}
 {% block content %}
 <div class="row align-items-center mb-4">
     <div class="col-md-6 d-flex flex-column justify-content-center align-items-center text-center">
         <h1 class="display-4 mb-3 fw-bold" style="letter-spacing:1px;">Bienvenido a</h1>
         <div class="mb-4">
-            <img src="/media/logo/logo.png" alt="Cortes Con Historia" style="height:70px;max-width:100%;">
+            <img src="{% static 'logo/logo.png' %}" alt="Cortes Con Historia" style="height:70px;max-width:100%;">
         </div>
         <p class="lead mb-4">Tu barbería de confianza. Reserva tu turno, conoce a nuestros barberos y descubre los mejores servicios y productos. También atendemos por orden de llegada.</p>
         <a href="/turnos/" class="btn btn-primary btn-lg">Reservar Turno</a>
