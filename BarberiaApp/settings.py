@@ -213,14 +213,15 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
             'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
             'API_KEY': CLOUDINARY_API_KEY,
             'API_SECRET': CLOUDINARY_API_SECRET,
-            'FOLDER': 'media',  # Carpeta base en Cloudinary
+            'UPLOAD_PRESET': 'django-media',
         }
         
         # FORZAR uso de Cloudinary para todos los archivos media
         DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
         
-        # No configurar MEDIA_URL manualmente, dejar que Cloudinary lo maneje
+        # Dejar que Cloudinary maneje las URLs automáticamente
         print(f"✅ Cloudinary configurado: {CLOUDINARY_CLOUD_NAME}")
+        print(f"✅ Upload preset: django-media")
         print(f"✅ Storage: MediaCloudinaryStorage")
         
     except ImportError:
