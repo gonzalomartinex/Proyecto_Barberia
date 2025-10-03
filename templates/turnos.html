@@ -46,8 +46,12 @@
                         <span class="badge bg-warning text-dark">Ocupado</span>
                     {% elif turno.estado == 'cancelado' %}
                         <span class="badge bg-danger">Cancelado</span>
-                    {% else %}
+                    {% elif turno.estado == 'completado' %}
                         <span class="badge bg-secondary">Completado</span>
+                    {% elif turno.estado == 'expirado' %}
+                        <span class="badge bg-dark">Expirado</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ turno.estado|title }}</span>
                     {% endif %}
                 </td>
                 <td>

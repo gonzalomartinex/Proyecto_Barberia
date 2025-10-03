@@ -65,10 +65,10 @@ class Command(BaseCommand):
         elif excluir_disponibles:
             # Si no se especificaron estados y excluir_disponibles es True (por defecto)
             # entonces usar los estados por defecto excluyendo disponible
-            estados_incluir = ['ocupado', 'completado', 'cancelado']
+            estados_incluir = ['ocupado', 'completado', 'cancelado', 'expirado']
         else:
             # Incluir todos los estados si no se excluyen disponibles
-            estados_incluir = ['disponible', 'ocupado', 'completado', 'cancelado']
+            estados_incluir = ['disponible', 'ocupado', 'completado', 'cancelado', 'expirado']
         
         # Mostrar estados finales (solo en verbosity alta)
         if options.get('verbosity', 1) >= 2:

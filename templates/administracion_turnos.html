@@ -34,6 +34,7 @@
           <option value="ocupado" {% if request.GET.estado == 'ocupado' %}selected{% endif %}>Ocupado</option>
           <option value="cancelado" {% if request.GET.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
           <option value="completado" {% if request.GET.estado == 'completado' %}selected{% endif %}>Completado</option>
+          <option value="expirado" {% if request.GET.estado == 'expirado' %}selected{% endif %}>Expirado</option>
         </select>
       </div>
       <div class="col-12 text-end">
@@ -149,8 +150,8 @@
           <td>{{ turno.barbero.nombre }}</td>
           <td>{{ turno.servicio.nombre|default:"Sin servicio" }}</td>
           <td class="position-relative">
-            <button type="button" class="btn btn-sm w-100 text-start estado-btn {% if turno.estado == 'disponible' %}btn-success{% elif turno.estado == 'ocupado' %}btn-warning text-dark{% elif turno.estado == 'completado' %}btn-completado{% elif turno.estado == 'cancelado' %}btn-danger{% endif %}" data-turno-id="{{ turno.id }}" data-estado="{{ turno.estado }}">
-              {% if turno.estado == 'disponible' %}Disponible{% elif turno.estado == 'ocupado' %}Ocupado{% elif turno.estado == 'completado' %}Completado{% else %}Cancelado{% endif %}
+            <button type="button" class="btn btn-sm w-100 text-start estado-btn {% if turno.estado == 'disponible' %}btn-success{% elif turno.estado == 'ocupado' %}btn-warning text-dark{% elif turno.estado == 'completado' %}btn-completado{% elif turno.estado == 'cancelado' %}btn-danger{% elif turno.estado == 'expirado' %}btn-secondary{% endif %}" data-turno-id="{{ turno.id }}" data-estado="{{ turno.estado }}">
+              {% if turno.estado == 'disponible' %}Disponible{% elif turno.estado == 'ocupado' %}Ocupado{% elif turno.estado == 'completado' %}Completado{% elif turno.estado == 'cancelado' %}Cancelado{% else %}Expirado{% endif %}
             </button>
             <div class="estado-menu position-absolute bg-white border rounded shadow p-2" style="display:none; min-width:150px; right:0; z-index:10;">
               <form method="post" action="{% url 'cambiar-estado-turno-admin' %}" class="mb-0" id="form-estado-{{ turno.id }}">
@@ -160,6 +161,7 @@
                 <button type="submit" name="estado" value="ocupado" class="dropdown-item text-warning">Ocupado</button>
                 <button type="submit" name="estado" value="completado" class="dropdown-item text-white" style="background-color:#145a32;">Completado</button>
                 <button type="submit" name="estado" value="cancelado" class="dropdown-item text-danger">Cancelado</button>
+                <button type="submit" name="estado" value="expirado" class="dropdown-item text-muted">Expirado</button>
               </form>
             </div>
           </td>
@@ -239,6 +241,7 @@
                   <option value="ocupado">Ocupado</option>
                   <option value="completado">Completado</option>
                   <option value="cancelado">Cancelado</option>
+                  <option value="expirado">Expirado</option>
                 </select>
               </div>
             </div>

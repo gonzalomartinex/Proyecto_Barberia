@@ -9,6 +9,10 @@ pip install --upgrade pip setuptools wheel
 # Instalar dependencias
 pip install -r requirements.txt
 
+# Migrar imágenes existentes a Cloudinary (solo una vez después de configurar Cloudinary)
+echo "🔄 Migrando imágenes existentes a Cloudinary..."
+python manage.py migrar_imagenes_cloudinary
+
 # Recopilar archivos estáticos
 python manage.py collectstatic --no-input
 
@@ -29,6 +33,9 @@ python manage.py create_superuser_auto
 
 # Verificar usuarios después de la creación
 python manage.py verify_users
+
+# Marcar como expirados los turnos que ya pasaron
+python manage.py expirar_turnos
 
 # Cargar datos iniciales (opcional)
 # python manage.py loaddata fixtures/barberos_inicial.json

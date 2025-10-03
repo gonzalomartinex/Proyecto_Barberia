@@ -129,7 +129,9 @@ def reservar_turno(request, turno_id):
         messages.error(request, 'Tu usuario está deshabilitado. No puedes reservar turnos. Contacta con la barbería para reactivar tu cuenta.')
         return redirect('perfil_usuario')
     
-    turno = get_object_or_404(Turno, id=turno_id, estado='disponible')
+    # Verificar que el turno esté disponible y no haya expirado
+    now = timezone.now()
+    turno = get_object_or_404(Turno, id=turno_id, estado='disponible', fecha_hora__gte=now)
     servicios = Servicio.objects.all()
     
     if request.method == 'POST':
@@ -191,8 +193,16 @@ def reservar_turno_form(request):
         return redirect('perfil_usuario')
     servicios = list(Servicio.objects.all().values('id', 'nombre', 'precio'))
     barberos = list(Barbero.objects.all().values('id', 'nombre'))
-    # Obtener todos los turnos disponibles próximos (solo los disponibles)
-    turnos = Turno.objects.filter(estado='disponible').select_related('servicio', 'barbero')
+    # Primero, marcar como expirados los turnos disponibles que ya pasaron
+    from django.utils import timezone
+    now = timezone.now()
+    Turno.objects.filter(estado='disponible', fecha_hora__lt=now).update(estado='expirado')
+    
+    # Obtener todos los turnos disponibles próximos (excluir expirados)
+    turnos = Turno.objects.filter(
+        estado='disponible',
+        fecha_hora__gte=now
+    ).select_related('servicio', 'barbero')
     # Agrupar turnos por día y hora local
     turnos_por_dia = {}
     for t in turnos:
@@ -215,7 +225,7 @@ def reservar_turno_form(request):
         if not (servicio_id and turno_id and barbero_id):
             messages.error(request, 'Debes seleccionar servicio, turno y barbero.')
             return redirect('reservar-turno-form')
-        turno = get_object_or_404(Turno, id=turno_id, estado='disponible', barbero_id=barbero_id)
+        turno = get_object_or_404(Turno, id=turno_id, estado='disponible', barbero_id=barbero_id, fecha_hora__gte=timezone.now())
         fecha_turno = localtime(turno.fecha_hora).date()
         
         # Nueva validación: verificar que no tenga más de un turno activo por semana

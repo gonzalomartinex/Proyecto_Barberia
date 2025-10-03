@@ -8,6 +8,7 @@ class Turno(models.Model):
         ('ocupado', 'Ocupado'),
         ('cancelado', 'Cancelado'),
         ('completado', 'Completado'),
+        ('expirado', 'Expirado'),
     ]
     cliente = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name='turnos')
     barbero = models.ForeignKey(Barbero, on_delete=models.CASCADE, related_name='turnos')
