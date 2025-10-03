@@ -213,16 +213,15 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
             'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
             'API_KEY': CLOUDINARY_API_KEY,
             'API_SECRET': CLOUDINARY_API_SECRET,
+            'FOLDER': 'media',  # Carpeta base en Cloudinary
         }
         
         # FORZAR uso de Cloudinary para todos los archivos media
         DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
         
-        # Configurar MEDIA_URL para que use Cloudinary
-        MEDIA_URL = f'https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/'
-        
+        # No configurar MEDIA_URL manualmente, dejar que Cloudinary lo maneje
         print(f"✅ Cloudinary configurado: {CLOUDINARY_CLOUD_NAME}")
-        print(f"✅ MEDIA_URL: {MEDIA_URL}")
+        print(f"✅ Storage: MediaCloudinaryStorage")
         
     except ImportError:
         print("⚠️ Cloudinary no disponible - usando almacenamiento local")
