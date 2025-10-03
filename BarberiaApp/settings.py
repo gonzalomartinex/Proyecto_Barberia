@@ -150,14 +150,14 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Configuración de WhiteNoise para servir archivos estáticos Y media
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# MEDIA_URL y MEDIA_ROOT se configuran dinámicamente más abajo según Cloudinary
 
 # Configurar WhiteNoise para servir archivos media
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_AUTOREFRESH = True
 
-# Agregar directorio media a WhiteNoise
+# Directorio base para media (se usa si no hay Cloudinary)
+MEDIA_ROOT = BASE_DIR / 'media'
 WHITENOISE_ROOT = MEDIA_ROOT
 
 # Configuraciones adicionales para producción
@@ -187,7 +187,7 @@ REST_FRAMEWORK = {
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 
-# Configuración de archivos media
+# Configuración de archivos media - FORZAR CLOUDINARY
 # Usar Cloudinary si tenemos las credenciales, independientemente del entorno
 CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
 CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
@@ -215,15 +215,22 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
             'API_SECRET': CLOUDINARY_API_SECRET,
         }
         
-        # Usar Cloudinary para archivos media subidos por usuarios
+        # FORZAR uso de Cloudinary para todos los archivos media
         DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+        
+        # Configurar MEDIA_URL para que use Cloudinary
+        MEDIA_URL = f'https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/'
+        
         print(f"✅ Cloudinary configurado: {CLOUDINARY_CLOUD_NAME}")
+        print(f"✅ MEDIA_URL: {MEDIA_URL}")
         
     except ImportError:
         print("⚠️ Cloudinary no disponible - usando almacenamiento local")
         DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+        MEDIA_URL = '/media/'
 else:
     # Sin credenciales usar almacenamiento local
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    MEDIA_URL = '/media/'
     print("⚠️ Cloudinary no configurado - faltan credenciales")
 LOGOUT_REDIRECT_URL = '/'
