@@ -103,21 +103,44 @@ WSGI_APPLICATION = 'BarberiaApp.wsgi.application'
 # Configuración de base de datos para desarrollo y producción
 if 'DATABASE_URL' in os.environ:
     # Configuración para Render (PostgreSQL)
-    DATABASES = {
-        'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
-    }
-else:
-    # Configuración para desarrollo local (MySQL)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': env('DB_NAME'),
-            'USER': env('DB_USER'),
-            'PASSWORD': env('DB_PASSWORD'),
-            'HOST': env('DB_HOST'),
-            'PORT': env('DB_PORT'),
+    try:
+        DATABASES = {
+            'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
         }
-    }
+    except Exception as e:
+        print(f"Error configurando DATABASE_URL: {e}")
+        # Fallback básico para PostgreSQL
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': 'barberia',
+                'USER': 'barberia_user',
+                'PASSWORD': 'password',
+                'HOST': 'localhost',
+                'PORT': '5432',
+            }
+        }
+else:
+    # Configuración para desarrollo local (MySQL o SQLite)
+    try:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.mysql',
+                'NAME': env('DB_NAME'),
+                'USER': env('DB_USER'),
+                'PASSWORD': env('DB_PASSWORD'),
+                'HOST': env('DB_HOST'),
+                'PORT': env('DB_PORT'),
+            }
+        }
+    except:
+        # Fallback a SQLite para desarrollo
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 
 
 # Password validation
@@ -200,17 +223,24 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 
 # Configuración híbrida: WhiteNoise para imágenes por defecto + Cloudinary para uploads
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
+try:
+    import cloudinary
+    import cloudinary.uploader
+    import cloudinary.api
+    CLOUDINARY_AVAILABLE = True
+except ImportError:
+    print("Cloudinary no disponible, usando almacenamiento local")
+    CLOUDINARY_AVAILABLE = False
 
 # Verificar si tenemos las credenciales de Cloudinary
 CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
 CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
 CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET')
 
-# Configurar Cloudinary si tenemos las credenciales y estamos en producción
-if not DEBUG and CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+# Configurar Cloudinary si tenemos las credenciales y está disponible
+if (not DEBUG and CLOUDINARY_AVAILABLE and 
+    CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):
+    
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
         'API_KEY': CLOUDINARY_API_KEY,
