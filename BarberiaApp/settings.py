@@ -188,13 +188,13 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 
 # Configuración de archivos media
-# En producción usar Cloudinary si está disponible, sino almacenamiento local
+# Usar Cloudinary si tenemos las credenciales, independientemente del entorno
 CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
 CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
 CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET')
 
-# Solo configurar Cloudinary en producción si tenemos las credenciales
-if (not DEBUG and CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):
+# Configurar Cloudinary si tenemos todas las credenciales
+if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     try:
         import cloudinary
         import cloudinary.uploader
@@ -216,6 +216,7 @@ if (not DEBUG and CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_AP
         print("⚠️ Cloudinary no disponible - usando almacenamiento local")
         DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 else:
-    # En desarrollo o sin credenciales usar almacenamiento local
+    # Sin credenciales usar almacenamiento local
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    print("⚠️ Cloudinary no configurado - faltan credenciales")
 LOGOUT_REDIRECT_URL = '/'
