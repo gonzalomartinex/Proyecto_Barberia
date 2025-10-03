@@ -8,7 +8,6 @@ charset-normalizer==3.4.2
 cloudinary==1.44.1
 cryptography==45.0.4
 cssselect2==0.8.0
-dj-database-url==3.0.1
 Django==5.2.6
 django-cloudinary-storage==0.3.0
 django-environ==0.12.0

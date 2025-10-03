@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import environ
 import os
-import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -100,47 +99,35 @@ WSGI_APPLICATION = 'BarberiaApp.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Configuración de base de datos para desarrollo y producción
-if 'DATABASE_URL' in os.environ:
-    # Configuración para Render (PostgreSQL)
-    try:
-        DATABASES = {
-            'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
+# Configuración simplificada de base de datos
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    # Configuración para Render (PostgreSQL) - configuración manual
+    import urllib.parse as urlparse
+    url = urlparse.urlparse(DATABASE_URL)
+    
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': url.path[1:],  # Remover el '/' inicial
+            'USER': url.username,
+            'PASSWORD': url.password,
+            'HOST': url.hostname,
+            'PORT': url.port,
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
         }
-    except Exception as e:
-        print(f"Error configurando DATABASE_URL: {e}")
-        # Fallback básico para PostgreSQL
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': 'barberia',
-                'USER': 'barberia_user',
-                'PASSWORD': 'password',
-                'HOST': 'localhost',
-                'PORT': '5432',
-            }
-        }
+    }
 else:
-    # Configuración para desarrollo local (MySQL o SQLite)
-    try:
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.mysql',
-                'NAME': env('DB_NAME'),
-                'USER': env('DB_USER'),
-                'PASSWORD': env('DB_PASSWORD'),
-                'HOST': env('DB_HOST'),
-                'PORT': env('DB_PORT'),
-            }
+    # Configuración para desarrollo local (SQLite)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
-    except:
-        # Fallback a SQLite para desarrollo
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
+    }
 
 
 # Password validation
@@ -222,46 +209,35 @@ REST_FRAMEWORK = {
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 
-# Configuración híbrida: WhiteNoise para imágenes por defecto + Cloudinary para uploads
-try:
-    import cloudinary
-    import cloudinary.uploader
-    import cloudinary.api
-    CLOUDINARY_AVAILABLE = True
-except ImportError:
-    print("Cloudinary no disponible, usando almacenamiento local")
-    CLOUDINARY_AVAILABLE = False
-
-# Verificar si tenemos las credenciales de Cloudinary
+# Configuración de archivos media
+# En producción usar Cloudinary si está disponible, sino almacenamiento local
 CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
 CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
 CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET')
 
-# Configurar Cloudinary si tenemos las credenciales y está disponible
-if (not DEBUG and CLOUDINARY_AVAILABLE and 
-    CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):
-    
-    CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
-        'API_KEY': CLOUDINARY_API_KEY,
-        'API_SECRET': CLOUDINARY_API_SECRET,
-    }
-    
-    # Configurar Cloudinary
-    cloudinary.config(
-        cloud_name=CLOUDINARY_CLOUD_NAME,
-        api_key=CLOUDINARY_API_KEY,
-        api_secret=CLOUDINARY_API_SECRET,
-        secure=True
-    )
-    
-    # Usar Cloudinary para archivos media subidos por usuarios
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    
-    print(f"✅ Cloudinary configurado para uploads: {CLOUDINARY_CLOUD_NAME}")
+# Solo configurar Cloudinary en producción si tenemos las credenciales
+if (not DEBUG and CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):
+    try:
+        import cloudinary
+        import cloudinary.uploader
+        import cloudinary.api
+        
+        # Configurar Cloudinary
+        cloudinary.config(
+            cloud_name=CLOUDINARY_CLOUD_NAME,
+            api_key=CLOUDINARY_API_KEY,
+            api_secret=CLOUDINARY_API_SECRET,
+            secure=True
+        )
+        
+        # Usar Cloudinary para archivos media subidos por usuarios
+        DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+        print(f"✅ Cloudinary configurado: {CLOUDINARY_CLOUD_NAME}")
+        
+    except ImportError:
+        print("⚠️ Cloudinary no disponible - usando almacenamiento local")
+        DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 else:
-    # En desarrollo usar almacenamiento local
+    # En desarrollo o sin credenciales usar almacenamiento local
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-    if not DEBUG:
-        print("⚠️ Cloudinary no configurado - usando almacenamiento local")
 LOGOUT_REDIRECT_URL = '/'
