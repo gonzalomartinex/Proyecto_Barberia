@@ -5,10 +5,12 @@ certifi==2025.4.26
 cffi==1.17.1
 chardet==5.2.0
 charset-normalizer==3.4.2
+cloudinary==1.44.1
 cryptography==45.0.4
 cssselect2==0.8.0
 dj-database-url==3.0.1
 Django==5.2.6
+django-cloudinary-storage==0.3.0
 django-environ==0.12.0
 djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.0

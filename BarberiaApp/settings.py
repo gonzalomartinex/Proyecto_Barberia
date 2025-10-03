@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'whitenoise.runserver_nostatic',  # Para servir archivos estáticos en producción
+    'cloudinary_storage',
+    'cloudinary',
     'rest_framework',
     'rest_framework_simplejwt',
     'usuarios',
@@ -197,7 +199,39 @@ REST_FRAMEWORK = {
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 
-# Configuración simple de archivos media - sin Cloudinary
-# Usar almacenamiento local siempre
-DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+# Configuración híbrida: WhiteNoise para imágenes por defecto + Cloudinary para uploads
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+# Verificar si tenemos las credenciales de Cloudinary
+CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
+CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
+CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET')
+
+# Configurar Cloudinary si tenemos las credenciales y estamos en producción
+if not DEBUG and CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+        'API_KEY': CLOUDINARY_API_KEY,
+        'API_SECRET': CLOUDINARY_API_SECRET,
+    }
+    
+    # Configurar Cloudinary
+    cloudinary.config(
+        cloud_name=CLOUDINARY_CLOUD_NAME,
+        api_key=CLOUDINARY_API_KEY,
+        api_secret=CLOUDINARY_API_SECRET,
+        secure=True
+    )
+    
+    # Usar Cloudinary para archivos media subidos por usuarios
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    
+    print(f"✅ Cloudinary configurado para uploads: {CLOUDINARY_CLOUD_NAME}")
+else:
+    # En desarrollo usar almacenamiento local
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    if not DEBUG:
+        print("⚠️ Cloudinary no configurado - usando almacenamiento local")
 LOGOUT_REDIRECT_URL = '/'
