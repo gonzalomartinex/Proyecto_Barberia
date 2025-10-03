@@ -38,6 +38,20 @@ class Curso(models.Model):
     def total_inscriptos(self):
         """Retorna el número total de inscriptos"""
         return self.inscriptos.count()
+    
+    def curso_pasado(self):
+        """Verifica si el curso ya pasó (fecha y hora)"""
+        from datetime import datetime, time
+        from django.utils import timezone
+        
+        # Combinar fecha y hora del curso
+        curso_datetime = timezone.make_aware(
+            datetime.combine(self.dia, self.hora),
+            timezone.get_current_timezone()
+        )
+        
+        # Comparar con la fecha y hora actual
+        return timezone.now() > curso_datetime
 
 class InscripcionCurso(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)

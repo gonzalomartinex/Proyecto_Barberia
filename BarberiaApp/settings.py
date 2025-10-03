@@ -163,6 +163,10 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Configurar WhiteNoise para servir archivos media también
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = True
+
 # Configuraciones adicionales para producción
 if not DEBUG:
     # Configuraciones de seguridad para producción

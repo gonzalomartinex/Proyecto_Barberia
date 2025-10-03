@@ -7,6 +7,11 @@ from .forms import CursoForm
 
 def cursos_list(request):
     cursos = Curso.objects.all()
+    
+    # Añadir información sobre si cada curso ya pasó
+    for curso in cursos:
+        curso.ya_paso = curso.curso_pasado()
+    
     return render(request, 'cursos.html', {'cursos': cursos})
 
 def detalle_curso(request, pk):
@@ -20,6 +25,9 @@ def detalle_curso(request, pk):
             curso=curso
         ).exists()
     
+    # Verificar si el curso ya pasó
+    curso_ya_paso = curso.curso_pasado()
+    
     # Para admins: obtener lista de emails de inscriptos
     emails_inscriptos = []
     if request.user.is_authenticated and request.user.is_superuser:
@@ -28,6 +36,7 @@ def detalle_curso(request, pk):
     context = {
         'curso': curso,
         'esta_inscripto': esta_inscripto,
+        'curso_ya_paso': curso_ya_paso,
         'emails_inscriptos': emails_inscriptos,
         'total_inscriptos': curso.total_inscriptos()
     }
@@ -77,6 +86,12 @@ def inscribirse_curso(request, pk):
     curso = get_object_or_404(Curso, pk=pk)
     
     try:
+        # Verificar si el curso ya pasó
+        if curso.curso_pasado():
+            return JsonResponse({
+                'error': 'No puedes inscribirte a un curso que ya ha pasado'
+            }, status=400)
+        
         # Verificar si ya está inscripto
         if InscripcionCurso.objects.filter(usuario=request.user, curso=curso).exists():
             return JsonResponse({

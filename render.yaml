@@ -7,6 +7,9 @@ services:
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
       python manage.py migrate
+      python manage.py create_superuser_auto
+      python manage.py setup_carousel
+      python manage.py setup_initial_data
     startCommand: gunicorn BarberiaApp.wsgi:application
     envVars:
       - key: PYTHON_VERSION
@@ -23,8 +26,16 @@ services:
         value: False
       - key: ALLOWED_HOSTS
         value: .render.com
-      - key: DISABLE_COLLECTSTATIC
-        value: 1
+      - key: DJANGO_SUPERUSER_EMAIL
+        value: admin@barberia.com
+      - key: DJANGO_SUPERUSER_PASSWORD
+        value: BarberiaAdmin2025!
+      - key: DJANGO_SUPERUSER_NOMBRE
+        value: Admin
+      - key: DJANGO_SUPERUSER_APELLIDO
+        value: Barberia
+      - key: DJANGO_SUPERUSER_TELEFONO
+        value: 1234567890
 
   - type: pserv
     name: barberia-db
