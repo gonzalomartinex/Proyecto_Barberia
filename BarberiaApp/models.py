@@ -1,5 +1,10 @@
 from django.db import models
-from utils.image_fields import OptimizedImageField
+
+# Campo temporal para deploy - reemplazar utils
+class OptimizedImageField(models.ImageField):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('image_type', None)  # Remover parámetros personalizados
+        super().__init__(*args, **kwargs)
 
 class CarouselImage(models.Model):
     imagen = OptimizedImageField(image_type='curso', upload_to='carousel/')

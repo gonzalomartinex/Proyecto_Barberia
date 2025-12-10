@@ -2,8 +2,13 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from utils.binary_image_fields import CursoBinaryImageField
-from utils.binary_image_mixin import BinaryImageMixin
+
+# Campos temporales para deploy - reemplazar utils
+class CursoBinaryImageField(models.ImageField):
+    pass
+
+class BinaryImageMixin:
+    pass
 
 User = get_user_model()
 

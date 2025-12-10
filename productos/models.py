@@ -1,6 +1,11 @@
 from django.db import models
-from utils.binary_image_fields import ProductoBinaryImageField
-from utils.binary_image_mixin import BinaryImageMixin
+
+# Campos temporales para deploy - reemplazar utils
+class ProductoBinaryImageField(models.ImageField):
+    pass
+
+class BinaryImageMixin:
+    pass
 
 # Create your models here.
 class Producto(models.Model, BinaryImageMixin):

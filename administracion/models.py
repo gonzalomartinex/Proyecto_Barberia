@@ -2,10 +2,14 @@ from django.db import models
 from django.utils import timezone
 from usuarios.models import Usuario, Barbero
 from servicios.models import Servicio
-from utils.binary_excel_fields import BinaryExcelField
-from utils.binary_excel_fields import BinaryExcelField as BinaryFileField
 from pathlib import Path
 import base64
+
+# Campos temporales para deploy - reemplazar utils
+class BinaryExcelField(models.FileField):
+    pass
+
+BinaryFileField = BinaryExcelField
 
 class RegistroServicios(models.Model):
     cliente = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='registros_servicios')
@@ -107,7 +111,9 @@ class ArchivoExcel(models.Model):
         """
         import os
         from pathlib import Path
-        from utils.binary_excel_fields import store_excel_file
+        # Función temporal para deploy
+        def store_excel_file(data, filename):
+            return filename
         
         ruta = Path(ruta_archivo)
         
@@ -134,7 +140,12 @@ class ArchivoExcel(models.Model):
         """
         Retorna una respuesta HTTP para descargar este archivo
         """
-        from utils.binary_excel_fields import create_excel_response
+        # Función temporal para deploy
+        from django.http import HttpResponse
+        def create_excel_response(filename, data):
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
         
         if not self.archivo_excel:
             raise ValueError("No hay archivo para descargar")

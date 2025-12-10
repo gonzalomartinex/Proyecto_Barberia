@@ -1,8 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
-from utils.binary_image_fields import PerfilBinaryImageField, BarberoBinaryImageField
-from utils.binary_image_mixin import BinaryImageMixin
+
+# Campos temporales para deploy - reemplazar utils
+class PerfilBinaryImageField(models.ImageField):
+    pass
+
+class BarberoBinaryImageField(models.ImageField):
+    pass
+
+class BinaryImageMixin:
+    pass
 
 class UsuarioManager(BaseUserManager):
     def create_user(self, email, nombre, apellido, telefono, fecha_nacimiento, password=None, **extra_fields):

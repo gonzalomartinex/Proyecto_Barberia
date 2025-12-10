@@ -1,6 +1,11 @@
 from django.db import models
-from utils.binary_image_fields import ServicioBinaryImageField
-from utils.binary_image_mixin import BinaryImageMixin
+
+# Campos temporales para deploy - reemplazar utils
+class ServicioBinaryImageField(models.ImageField):
+    pass
+
+class BinaryImageMixin:
+    pass
 
 # Create your models here.
 class Servicio(models.Model, BinaryImageMixin):
