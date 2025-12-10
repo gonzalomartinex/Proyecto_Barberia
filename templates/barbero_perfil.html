@@ -333,11 +333,7 @@
             <div class="col-12 col-lg-4">
                 <div class="profile-card">
                     <div class="text-center">
-                        {% if barbero.foto %}
-                            <img src="{{ barbero.foto }}" class="barbero-image" alt="{{ barbero.nombre }}">
-                        {% else %}
-                            <img src="{% static 'Default/noimage.png' %}" class="barbero-image" alt="{{ barbero.nombre }}">
-                        {% endif %}
+                            <img src="{{ barbero.get_foto_url }}" class="barbero-image" alt="{{ barbero.nombre }}">
                     </div>
                     
                     <div class="info-list">

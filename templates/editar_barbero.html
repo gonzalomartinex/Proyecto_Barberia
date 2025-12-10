@@ -7,12 +7,10 @@
       <div class="card-body">
         <h3 class="mb-4 text-center" style="color: var(--text-primary);">Editar Barbero</h3>
         
-        {% if barbero.foto %}
         <div class="text-center mb-4">
-          <img src="{{ barbero.foto }}" alt="{{ barbero.nombre }}" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+          <img src="{{ barbero.get_foto_url }}" alt="{{ barbero.nombre }}" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
           <p class="small mt-2" style="color: var(--text-muted);">Foto actual</p>
         </div>
-        {% endif %}
         
         <form method="post" enctype="multipart/form-data" id="editarBarberoForm">
           {% csrf_token %}

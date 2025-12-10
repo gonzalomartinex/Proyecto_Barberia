@@ -141,19 +141,11 @@
     <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 sortable-item" data-id="{{ barbero.id }}">
         <div class="card h-100 barbero-card" style="position: relative;">
             <div class="ratio ratio-4x3" style="overflow:hidden;">
-                {% if barbero.foto %}
-                <img src="{{ barbero.foto }}" 
+                <img src="{{ barbero.get_foto_url }}" 
                      class="card-img-top object-fit-cover" 
                      alt="{{ barbero.nombre }}" 
                      style="width:100%;height:100%;object-fit:cover;object-position:center;"
                      loading="lazy">
-                {% else %}
-                <img src="{% static 'Default/noimage.png' %}" 
-                     class="card-img-top object-fit-cover" 
-                     alt="{{ barbero.nombre }}" 
-                     style="width:100%;height:100%;object-fit:cover;object-position:center;"
-                     loading="lazy">
-                {% endif %}
             </div>
             <div class="card-body d-flex flex-column">
                 <h5 class="card-title text-primary">

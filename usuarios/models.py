@@ -10,7 +10,22 @@ class BarberoBinaryImageField(models.ImageField):
     pass
 
 class BinaryImageMixin:
-    pass
+    """Mixin temporal para compatibilidad con código legacy después de remover utils"""
+    
+    def has_image(self, field_name):
+        """Verifica si el campo imagen tiene un valor"""
+        field = getattr(self, field_name, None)
+        return field and hasattr(field, 'name') and field.name
+    
+    def get_image_data_url(self, field_name):
+        """Obtiene la URL del campo de imagen"""
+        field = getattr(self, field_name, None)
+        if field and hasattr(field, 'url'):
+            try:
+                return field.url
+            except (ValueError, AttributeError):
+                pass
+        return None
 
 class UsuarioManager(BaseUserManager):
     def create_user(self, email, nombre, apellido, telefono, fecha_nacimiento, password=None, **extra_fields):
@@ -49,8 +64,11 @@ class Usuario(AbstractBaseUser, PermissionsMixin, BinaryImageMixin):
 
     def get_foto_perfil_url(self):
         """Retorna la URL de la foto de perfil o la imagen por defecto si no tiene"""
-        if self.has_image('foto_perfil'):
-            return self.get_image_data_url('foto_perfil')
+        if self.foto_perfil:
+            try:
+                return self.foto_perfil.url
+            except (ValueError, AttributeError):
+                pass
         return '/static/Default/perfil_default.png'
 
     def deshabilitar_si_faltas(self):
@@ -77,6 +95,15 @@ class Barbero(models.Model, BinaryImageMixin):
         
     def __str__(self):
         return self.nombre
+    
+    def get_foto_url(self):
+        """Retorna la URL de la foto del barbero o imagen por defecto si no tiene"""
+        if self.foto:
+            try:
+                return self.foto.url
+            except (ValueError, AttributeError):
+                pass
+        return '/static/Default/noimage.png'
 
 class TrabajoBarbero(models.Model, BinaryImageMixin):
     barbero = models.ForeignKey(Barbero, on_delete=models.CASCADE, related_name='trabajos')
