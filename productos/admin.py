@@ -1,6 +1,12 @@
 from django.contrib import admin
+from django import forms
 from .models import Producto
-from utils.forms import ProductoForm
+
+# Formulario temporal para deploy - reemplazar utils
+class ProductoForm(forms.ModelForm):
+    class Meta:
+        model = Producto
+        fields = '__all__'
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):

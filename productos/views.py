@@ -7,9 +7,15 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from rest_framework import generics, permissions
+from django import forms
 from .models import Producto
 from .serializers import ProductoSerializer
-from utils.forms import ProductoForm
+
+# Formulario temporal para deploy - reemplazar utils
+class ProductoForm(forms.ModelForm):
+    class Meta:
+        model = Producto
+        fields = '__all__'
 
 # Create your views here.
 

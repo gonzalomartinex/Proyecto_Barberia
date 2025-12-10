@@ -1,6 +1,12 @@
 from django.contrib import admin
+from django import forms
 from .models import Servicio
-from utils.forms import ServicioForm
+
+# Formulario temporal para deploy - reemplazar utils
+class ServicioForm(forms.ModelForm):
+    class Meta:
+        model = Servicio
+        fields = '__all__'
 
 @admin.register(Servicio)
 class ServicioAdmin(admin.ModelAdmin):

@@ -1,6 +1,12 @@
 from django.contrib import admin
+from django import forms
 from .models import Curso, InscripcionCurso
-from utils.forms import CursoForm
+
+# Formulario temporal para deploy - reemplazar utils
+class CursoForm(forms.ModelForm):
+    class Meta:
+        model = Curso
+        fields = '__all__'
 
 @admin.register(Curso)
 class CursoAdmin(admin.ModelAdmin):

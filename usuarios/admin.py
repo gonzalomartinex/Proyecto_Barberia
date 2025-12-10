@@ -1,7 +1,18 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django import forms
 from .models import Usuario, Barbero, TrabajoBarbero, RedSocial
-from utils.forms import BarberoForm, UsuarioAdminForm
+
+# Formularios temporales para deploy - reemplazar utils
+class BarberoForm(forms.ModelForm):
+    class Meta:
+        model = Barbero
+        fields = '__all__'
+
+class UsuarioAdminForm(forms.ModelForm):
+    class Meta:
+        model = Usuario
+        fields = '__all__'
 
 class UsuarioAdmin(BaseUserAdmin):
     form = UsuarioAdminForm

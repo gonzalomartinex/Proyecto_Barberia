@@ -6,7 +6,10 @@ from django.conf import settings
 from pathlib import Path
 import os
 from administracion.models import ArchivoExcel
-from utils.binary_excel_fields import store_excel_file
+
+# Función temporal para deploy - reemplazar utils
+def store_excel_file(data, filename):
+    return filename
 
 
 class Command(BaseCommand):
