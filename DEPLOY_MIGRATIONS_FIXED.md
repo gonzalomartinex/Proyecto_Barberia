@@ -54,21 +54,37 @@ Se reemplazaron todas las importaciones de campos personalizados de `utils` con 
 13. **administracion/migrations/0004_backupbasedatos.py**
     - `utils.binary_excel_fields.BinaryExcelField` → `models.FileField`
 
+### Problema de Dependencias de Migraciones
+Después del primer deploy fallido, se detectó un problema adicional:
+```
+NodeNotFoundError: Migration cursos.0004_alter_curso_imagen dependencies reference nonexistent parent node ('cursos', '0003_auto_20250924_1709')
+```
+
+**Solución:** Se corrigió la dependencia en `cursos/migrations/0004_alter_curso_imagen.py`:
+- `('cursos', '0003_auto_20250924_1709')` → `('cursos', '0003_inscripcioncurso_curso_inscriptos')`
+
 ### Cambios Realizados
 - **Eliminación de imports**: Se removieron todas las líneas `import utils.*` de las migraciones
 - **Reemplazo de campos**: Todos los campos personalizados se reemplazaron por `models.ImageField` o `models.FileField`
 - **Conservación de atributos**: Se mantuvieron `blank=True`, `null=True`, `max_length=2000000` y `upload_to` según corresponda
+- **Corrección de dependencias**: Se corrigieron las referencias a migraciones padre incorrectas
 
 ### Compatibilidad
 Los campos estándar de Django (`ImageField` y `FileField`) son completamente compatibles con los campos personalizados que se usaban antes, por lo que no hay pérdida de funcionalidad.
 
 ## Resultado Esperado
-Con estos cambios, las migraciones ahora solo importan módulos estándar de Django y no dependen del módulo `utils` del proyecto, permitiendo que el deploy en Render proceda sin errores de importación.
+Con estos cambios, las migraciones ahora:
+1. Solo importan módulos estándar de Django
+2. No dependen del módulo `utils` del proyecto
+3. Tienen dependencias correctas entre migraciones
+4. Permiten que el deploy en Render proceda sin errores
 
-## Commit
+## Commits
 ```
 6704cee - Fix critical migration imports: Replace all utils field imports with Django's models.ImageField and models.FileField to prevent 'ModuleNotFoundError: No module named utils' during deploy migrations on Render
+
+960d078 - Fix migration dependency: Update cursos/migrations/0004_alter_curso_imagen.py to reference correct parent migration 0003_inscripcioncurso_curso_inscriptos instead of nonexistent 0003_auto_20250924_1709
 ```
 
-**Estado:** ✅ CORREGIDO - Todas las migraciones están limpias de importaciones a `utils`
+**Estado:** ✅ CORREGIDO - Todas las migraciones están limpias y con dependencias correctas
 **Próximo paso:** Monitor del nuevo deploy en Render

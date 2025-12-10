@@ -20,7 +20,15 @@ class Command(BaseCommand):
         
         # Configuración de Django
         self.stdout.write(f"DEBUG: {settings.DEBUG}")
-        self.stdout.write(f"DEFAULT_FILE_STORAGE: {settings.DEFAULT_FILE_STORAGE}")
+        
+        # Verificar configuración de storage (Django 4.2+ usa STORAGES)
+        if hasattr(settings, 'STORAGES'):
+            default_storage = settings.STORAGES.get('default', {}).get('BACKEND', 'No configurado')
+            self.stdout.write(f"STORAGES['default']['BACKEND']: {default_storage}")
+        elif hasattr(settings, 'DEFAULT_FILE_STORAGE'):
+            self.stdout.write(f"DEFAULT_FILE_STORAGE: {settings.DEFAULT_FILE_STORAGE}")
+        else:
+            self.stdout.write("❌ No se encontró configuración de storage")
         
         # Verificar si Cloudinary está disponible
         try:
