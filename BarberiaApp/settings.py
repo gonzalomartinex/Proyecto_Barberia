@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'productos',
     'BarberiaApp',
     'cursos',
-    'utils',  # Sistema de optimización de imágenes
+
 ]
 
 MIDDLEWARE = [
