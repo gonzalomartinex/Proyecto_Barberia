@@ -6,7 +6,7 @@ cffi==1.17.1
 chardet==5.2.0
 charset-normalizer==3.4.2
 Django==5.2.6
-Pillow==10.4.0
+Pillow==11.3.0
 django-environ==0.12.0
 djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.0
@@ -15,12 +15,10 @@ gunicorn==21.2.0
 html5lib==1.1
 idna==3.10
 lxml==5.4.0
-mysqlclient==2.2.7
 numpy==2.3.3
 openpyxl==3.1.5
 oscrypto==1.3.0
 pandas==2.3.2
-pillow==11.3.0
 pycparser==2.22
 pyHanko==0.29.0
 pyhanko-certvalidator==0.27.0
