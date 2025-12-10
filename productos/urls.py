@@ -11,4 +11,6 @@ urlpatterns = [
     path('productos/agregar/', views.ProductoCreateView.as_view(), name='producto-create'),
     path('productos/<int:pk>/editar/', views.ProductoUpdateView.as_view(), name='producto-update'),
     path('productos/<int:pk>/eliminar/', views.ProductoDeleteView.as_view(), name='producto-delete'),
+    # Reordenamiento
+    path('productos/reordenar/', views.reordenar_productos, name='reordenar-productos'),
 ]

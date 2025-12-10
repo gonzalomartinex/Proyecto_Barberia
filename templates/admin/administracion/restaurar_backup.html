@@ -1,0 +1,122 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | {{ site_title|default:"Django site admin" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Inicio</a>
+    &rsaquo; <a href="{% url 'admin:administracion_backupbasedatos_changelist' %}">Backups de Base de Datos</a>
+    &rsaquo; {{ title }}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="module aligned">
+    <h2>Restaurar Backup de la Base de Datos</h2>
+    
+    <div class="form-row">
+        <div class="help">
+            <p><strong>⚠️ ADVERTENCIA CRÍTICA:</strong></p>
+            <ul style="color: #ba2121; font-weight: bold;">
+                <li>Esta operación <strong>ELIMINARÁ TODOS LOS DATOS ACTUALES</strong> de la base de datos</li>
+                <li>Los datos actuales serán <strong>REEMPLAZADOS COMPLETAMENTE</strong> por los del backup</li>
+                <li>Es <strong>ALTAMENTE RECOMENDABLE</strong> crear un backup de la base de datos actual antes de continuar</li>
+                <li>Esta operación <strong>NO SE PUEDE DESHACER</strong></li>
+            </ul>
+            <p style="margin-top: 15px;"><strong>Formatos soportados:</strong></p>
+            <ul>
+                <li><strong>.zip:</strong> Backup completo (recomendado)</li>
+                <li><strong>.json:</strong> Backup de fixtures</li>
+                <li><strong>.db:</strong> Base de datos SQLite</li>
+            </ul>
+        </div>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data" id="restore-form">
+        <!-- Token CSRF oculto para compatibilidad -->
+        <input type="hidden" name="csrfmiddlewaretoken" value="dummy-token">
+        
+        <fieldset class="module aligned">
+            <div class="form-row">
+                <div>
+                    <label for="id_backup_file" class="required">Archivo de backup:</label>
+                    <input type="file" name="backup_file" id="id_backup_file" required 
+                           accept=".zip,.json,.db" class="vFileField">
+                    <p class="help">Selecciona el archivo de backup a restaurar (.zip, .json, o .db)</p>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label for="id_restaurar_media">
+                        <input type="checkbox" name="restaurar_media" id="id_restaurar_media">
+                        Restaurar archivos media (solo para backups ZIP)
+                    </label>
+                    <p class="help">⚠️ Esto reemplazará los archivos media actuales con los del backup</p>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div style="background: #ffeaa7; padding: 15px; border-left: 5px solid #fdcb6e; margin: 15px 0;">
+                    <h4 style="margin-top: 0; color: #2d3436;">Confirme que entiende los riesgos:</h4>
+                    <label for="id_confirm_risk" style="font-weight: normal;">
+                        <input type="checkbox" id="id_confirm_risk" required>
+                        <strong>Sí, entiendo que esta operación eliminará todos los datos actuales y no se puede deshacer.</strong>
+                    </label>
+                </div>
+            </div>
+        </fieldset>
+        
+        <div class="submit-row">
+            <input type="submit" value="Restaurar Backup" class="default" name="_restore" 
+                   style="background-color: #e74c3c; border-color: #c0392b;">
+            <a href="{% url 'admin:administracion_backupbasedatos_changelist' %}" class="button cancel-link">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('restore-form');
+    const submitButton = form.querySelector('input[type="submit"]');
+    const confirmCheckbox = document.getElementById('id_confirm_risk');
+    const fileInput = document.getElementById('id_backup_file');
+    
+    // Deshabilitar botón hasta que se confirme
+    function updateSubmitButton() {
+        submitButton.disabled = !confirmCheckbox.checked || !fileInput.files.length;
+    }
+    
+    confirmCheckbox.addEventListener('change', updateSubmitButton);
+    fileInput.addEventListener('change', updateSubmitButton);
+    
+    // Inicializar estado del botón
+    updateSubmitButton();
+    
+    form.addEventListener('submit', function(e) {
+        if (!confirm('¿Está ABSOLUTAMENTE SEGURO de que desea continuar?\n\nEsta acción eliminará TODOS los datos actuales y NO se puede deshacer.\n\n¿Continuar con la restauración?')) {
+            e.preventDefault();
+            // Si el usuario cancela, NO deshabilitar los inputs
+            return false;
+        }
+        
+        // Solo si el usuario confirma, entonces procesar
+        submitButton.value = 'Restaurando backup...';
+        submitButton.disabled = true;
+        
+        // Mostrar mensaje de espera
+        const message = document.createElement('div');
+        message.className = 'messagelist';
+        message.innerHTML = '<div class="warning">⏳ Restaurando backup, por favor espere. NO cierre esta ventana.</div>';
+        form.insertBefore(message, form.firstChild);
+        
+        // Solo deshabilitar inputs DESPUÉS de confirmar
+        const inputs = form.querySelectorAll('input:not([type="file"]), select, textarea');
+        inputs.forEach(input => input.disabled = true);
+        
+        // NO deshabilitar el input de archivo para que el POST lo envíe
+    });
+});
+</script>
+{% endblock %}

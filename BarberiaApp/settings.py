@@ -38,7 +38,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', env('SECRET_KEY', default='djan
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else env('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else env('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver').split(',')
 
 
 # Application definition
@@ -51,8 +51,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'whitenoise.runserver_nostatic',  # Para servir archivos estáticos en producción
-    'cloudinary_storage',
-    'cloudinary',
     'rest_framework',
     'rest_framework_simplejwt',
     'usuarios',
@@ -62,6 +60,7 @@ INSTALLED_APPS = [
     'productos',
     'BarberiaApp',
     'cursos',
+    'utils',  # Sistema de optimización de imágenes
 ]
 
 MIDDLEWARE = [
@@ -190,50 +189,43 @@ REST_FRAMEWORK = {
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 
-# Configuración de archivos media - FORZAR CLOUDINARY
-# Usar Cloudinary si tenemos las credenciales, independientemente del entorno
-CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
-CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
-CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET')
+# Configuración de archivos media - ALMACENAMIENTO LOCAL OPTIMIZADO
+# Sistema de imágenes optimizadas con conversión automática a WebP
 
-# Configurar Cloudinary si tenemos todas las credenciales
-if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
-    try:
-        import cloudinary
-        import cloudinary.uploader
-        import cloudinary.api
-        
-        # Configurar Cloudinary
-        cloudinary.config(
-            cloud_name=CLOUDINARY_CLOUD_NAME,
-            api_key=CLOUDINARY_API_KEY,
-            api_secret=CLOUDINARY_API_SECRET,
-            secure=True
-        )
-        
-        # Configuración específica de Cloudinary Storage
-        CLOUDINARY_STORAGE = {
-            'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
-            'API_KEY': CLOUDINARY_API_KEY,
-            'API_SECRET': CLOUDINARY_API_SECRET,
-            'UPLOAD_PRESET': 'django-media',
-        }
-        
-        # FORZAR uso de Cloudinary para todos los archivos media
-        DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-        
-        # Dejar que Cloudinary maneje las URLs automáticamente
-        print(f"✅ Cloudinary configurado: {CLOUDINARY_CLOUD_NAME}")
-        print(f"✅ Upload preset: django-media")
-        print(f"✅ Storage: MediaCloudinaryStorage")
-        
-    except ImportError:
-        print("⚠️ Cloudinary no disponible - usando almacenamiento local")
-        DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-        MEDIA_URL = '/media/'
-else:
-    # Sin credenciales usar almacenamiento local
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-    MEDIA_URL = '/media/'
-    print("⚠️ Cloudinary no configurado - faltan credenciales")
+# Configuración de almacenamiento local
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Crear directorios de media si no existen
+MEDIA_DIRS = ['perfiles', 'productos', 'barberos', 'servicios', 'cursos', 'carousel']
+for media_dir in MEDIA_DIRS:
+    dir_path = os.path.join(MEDIA_ROOT, media_dir)
+    os.makedirs(dir_path, exist_ok=True)
+
+# Configuración para el sistema de optimización de imágenes
+IMAGE_OPTIMIZATION = {
+    'ENABLED': True,
+    'FORMAT': 'WEBP',  # Formato de salida
+    'QUALITY': {
+        'perfil': 85,
+        'producto': 80,
+        'barbero': 85,
+        'servicio': 80,
+        'curso': 80,
+        'default': 80
+    },
+    'SIZES': {
+        'perfil': {'width': 400, 'height': 400},
+        'producto': {'width': 800, 'height': 600},
+        'barbero': {'width': 600, 'height': 600},
+        'servicio': {'width': 800, 'height': 500},
+        'curso': {'width': 1000, 'height': 600},
+        'default': {'width': 800, 'height': 600}
+    }
+}
+
+print("✅ Sistema de imágenes optimizadas configurado")
+print(f"✅ Directorio media: {MEDIA_ROOT}")
+print(f"✅ URL media: {MEDIA_URL}")
+print("✅ Conversión automática a WebP habilitada")
 LOGOUT_REDIRECT_URL = '/'

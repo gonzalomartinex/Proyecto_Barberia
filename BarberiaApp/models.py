@@ -1,7 +1,8 @@
 from django.db import models
+from utils.image_fields import OptimizedImageField
 
 class CarouselImage(models.Model):
-    imagen = models.ImageField(upload_to='carousel/')
+    imagen = OptimizedImageField(image_type='curso', upload_to='carousel/')
     orden = models.PositiveIntegerField(default=0)
 
     class Meta:

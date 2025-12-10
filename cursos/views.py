@@ -6,7 +6,7 @@ from .models import Curso, InscripcionCurso
 from .forms import CursoForm
 
 def cursos_list(request):
-    cursos = Curso.objects.all()
+    cursos = Curso.objects.all().order_by('-dia', '-hora')
     
     # Añadir información sobre si cada curso ya pasó
     for curso in cursos:

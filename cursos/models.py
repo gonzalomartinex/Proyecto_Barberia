@@ -2,19 +2,21 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from utils.binary_image_fields import CursoBinaryImageField
+from utils.binary_image_mixin import BinaryImageMixin
 
 User = get_user_model()
 
-class Curso(models.Model):
+class Curso(models.Model, BinaryImageMixin):
     titulo = models.CharField(max_length=200)
     dia = models.DateField(help_text="Fecha específica del curso")  # Fecha específica
     hora = models.TimeField()  # Formato HH:MM
     descripcion = models.TextField()
-    imagen = models.ImageField(upload_to='cursos/', blank=True, null=True)
+    imagen = CursoBinaryImageField(blank=True, null=True)
     inscriptos = models.ManyToManyField(User, through='InscripcionCurso', related_name='cursos_inscripto')
     
     class Meta:
-        ordering = ['dia', 'hora']
+        ordering = ['-dia', '-hora']
         
     def __str__(self):
         return f"{self.titulo} - {self.dia.strftime('%d/%m/%Y')} {self.hora}"
@@ -44,14 +46,22 @@ class Curso(models.Model):
         from datetime import datetime, time
         from django.utils import timezone
         
-        # Combinar fecha y hora del curso
-        curso_datetime = timezone.make_aware(
-            datetime.combine(self.dia, self.hora),
-            timezone.get_current_timezone()
-        )
+        # Verificar que tengamos fecha y hora válidas
+        if not self.dia or not self.hora:
+            return False  # Si no tiene fecha/hora, consideramos que no ha pasado
         
-        # Comparar con la fecha y hora actual
-        return timezone.now() > curso_datetime
+        try:
+            # Combinar fecha y hora del curso
+            curso_datetime = timezone.make_aware(
+                datetime.combine(self.dia, self.hora),
+                timezone.get_current_timezone()
+            )
+            
+            # Comparar con la fecha y hora actual
+            return timezone.now() > curso_datetime
+        except (ValueError, TypeError):
+            # En caso de cualquier error, consideramos que no ha pasado
+            return False
 
 class InscripcionCurso(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)

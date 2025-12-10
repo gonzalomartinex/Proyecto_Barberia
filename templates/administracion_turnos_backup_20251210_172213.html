@@ -1,0 +1,1431 @@
+{% extends 'base.html' %}
+{% block title %}Administración de Turnos | Cortes Con Historia{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Estilos para botones de estado - Compatible con modo oscuro */
+.btn-completado {
+    background-color: #145a32 !important;
+    color: #ffffff !important;
+    border-color: #145a32 !important;
+}
+
+/* Modo oscuro - Estados más visibles */
+[data-theme="dark"] .btn-completado {
+    background-color: #4dabf7 !important;
+    color: #ffffff !important;
+    border-color: #4dabf7 !important;
+}
+
+[data-theme="dark"] .btn-completado:hover {
+    background-color: #339af0 !important;
+    border-color: #339af0 !important;
+}
+
+/* Estilos para el menú desplegable */
+.estado-menu {
+    background-color: var(--bs-body-bg) !important;
+    border: 1px solid var(--bs-border-color) !important;
+    color: var(--bs-body-color) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
+/* Modo oscuro específico */
+[data-theme="dark"] .estado-menu {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+    box-shadow: var(--card-shadow) !important;
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+    background-color: var(--secondary-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Botón completado en el menú para modo oscuro */
+[data-theme="dark"] .dropdown-item[value="completado"] {
+    background-color: #4dabf7 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .dropdown-item[value="completado"]:hover {
+    background-color: #339af0 !important;
+    color: #ffffff !important;
+}
+
+/* ==========================================
+   ESTILOS PARA TABLA EN MODO OSCURO
+   ========================================== */
+
+/* Tabla principal en modo oscuro */
+[data-theme="dark"] .table {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table td {
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .table-light {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Filas de turnos en modo oscuro */
+[data-theme="dark"] .turno-row {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .turno-row:hover {
+    background-color: var(--bg-secondary) !important;
+}
+
+/* Estados específicos en modo oscuro - Botón principal completado */
+[data-theme="dark"] .btn-completado {
+    background-color: #4dabf7 !important;
+    border-color: #4dabf7 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-completado:hover {
+    background-color: #339af0 !important;
+    border-color: #339af0 !important;
+}
+
+/* Texto en celdas para modo oscuro */
+[data-theme="dark"] .text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Cards y contenedores en modo oscuro */
+[data-theme="dark"] .card {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .card-body {
+    background-color: var(--card-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* ==========================================
+   CSS FORZADO PARA TESTING - TEMPORAL
+   ========================================== */
+
+/* Forzar colores de modo oscuro para testing */
+[data-theme="dark"] .table {
+    background-color: #121212 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .table td,
+[data-theme="dark"] .table th {
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
+    border-color: #333333 !important;
+}
+
+[data-theme="dark"] .table-light > th {
+    background-color: #2d2d2d !important;
+    color: #ffffff !important;
+}
+
+/* Forzar visibilidad del texto */
+[data-theme="dark"] * {
+    border-color: #333333 !important;
+}
+
+/* ==========================================
+   CSS OVERRIDE AGRESIVO - FUERZA MODO OSCURO
+   ========================================== */
+
+/* Forzar modo oscuro con especificidad máxima */
+html[data-theme="dark"] body {
+    background-color: #121212 !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .table,
+html[data-theme="dark"] table {
+    background-color: #121212 !important;
+    color: #ffffff !important;
+    border: 2px solid #ff0000 !important; /* BORDE ROJO PARA DEBUG */
+}
+
+html[data-theme="dark"] .table td,
+html[data-theme="dark"] .table th,
+html[data-theme="dark"] table td,
+html[data-theme="dark"] table th {
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
+    border-color: #333333 !important;
+}
+
+html[data-theme="dark"] .table-light,
+html[data-theme="dark"] .table-light > th,
+html[data-theme="dark"] .table-light > td {
+    background-color: #2d2d2d !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .card {
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
+    border-color: #333333 !important;
+}
+
+html[data-theme="dark"] .card-body {
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
+}
+
+/* BORDE ROJO PARA DETECTAR SI EL CSS SE APLICA */
+html[data-theme="dark"] .table {
+    box-shadow: 0 0 10px #ff0000 !important;
+}
+
+/* ==========================================
+   SOLUCIÓN ALTERNATIVA: DETECCIÓN DE MODO OSCURO DEL NAVEGADOR
+   ========================================== */
+
+/* Detectar modo oscuro del sistema operativo */
+@media (prefers-color-scheme: dark) {
+    .table {
+        background-color: #121212 !important;
+        color: #ffffff !important;
+        border: 2px solid #00ff00 !important; /* BORDE VERDE para distinguir */
+    }
+    
+    .table td,
+    .table th {
+        background-color: #1e1e1e !important;
+        color: #ffffff !important;
+        border-color: #333333 !important;
+    }
+    
+    .table-light,
+    .table-light > th,
+    .table-light > td {
+        background-color: #2d2d2d !important;
+        color: #ffffff !important;
+    }
+    
+    .card {
+        background-color: #1e1e1e !important;
+        color: #ffffff !important;
+        border-color: #333333 !important;
+    }
+    
+    .card-body {
+        background-color: #1e1e1e !important;
+        color: #ffffff !important;
+    }
+    
+    body {
+        background-color: #121212 !important;
+        color: #ffffff !important;
+    }
+}
+
+/* ==========================================
+   SOLUCIÓN DIRECTA: FORZAR MODO OSCURO SIEMPRE
+   ========================================== */
+
+/* Descomenta estas líneas si quieres forzar modo oscuro siempre */
+/*
+.administracion-turnos-oscuro .table {
+    background-color: #121212 !important;
+    color: #ffffff !important;
+    border: 2px solid #0066ff !important;
+}
+
+.administracion-turnos-oscuro .table td,
+.administracion-turnos-oscuro .table th {
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
+    border-color: #333333 !important;
+}
+
+.administracion-turnos-oscuro .card {
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
+    border-color: #333333 !important;
+}
+*/
+
+/* ================================================================
+   SOLUCIÓN DE EMERGENCIA - MODO OSCURO FORZADO 
+   Esta solución NO depende de JavaScript ni de data-theme
+   ================================================================ */
+
+/* MÉTODO 1: Detectar modo oscuro del sistema operativo */
+@media (prefers-color-scheme: dark) {
+    /* Fondo general */
+    body, html {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+    }
+    
+    /* Contenedor principal */
+    .container, .container-fluid {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+    }
+    
+    /* TABLA - FORZAR MODO OSCURO CON MÁXIMA ESPECIFICIDAD */
+    html body .container table.table,
+    html body .container table.table.table-striped,
+    html body .container table.table.table-hover,
+    html body .container div table.table,
+    html body div.container table.table {
+        background-color: #2d2d2d !important;
+        color: #ffffff !important;
+        border: 2px solid #444444 !important;
+        /* INDICADOR VISUAL - SOMBRA VERDE = MODO OSCURO SISTEMA FUNCIONANDO */
+        box-shadow: 0 0 15px #00ff00 !important;
+    }
+    
+    /* Headers de la tabla */
+    html body .container table.table thead th,
+    html body .container table.table tbody th,
+    html body div.container table.table thead th,
+    html body div.container table.table tbody th {
+        background-color: #333333 !important;
+        color: #ffffff !important;
+        border-color: #555555 !important;
+        border-bottom: 2px solid #555555 !important;
+    }
+    
+    /* Filas de la tabla */
+    html body .container table.table tbody tr,
+    html body .container table.table tbody tr td,
+    html body div.container table.table tbody tr,
+    html body div.container table.table tbody tr td {
+        background-color: #2d2d2d !important;
+        color: #ffffff !important;
+        border-color: #444444 !important;
+    }
+    
+    /* Filas alternadas (striped) */
+    html body .container table.table.table-striped tbody tr:nth-of-type(odd),
+    html body .container table.table tbody tr:nth-of-type(odd) td,
+    html body div.container table.table.table-striped tbody tr:nth-of-type(odd),
+    html body div.container table.table tbody tr:nth-of-type(odd) td {
+        background-color: #363636 !important;
+        color: #ffffff !important;
+    }
+    
+    /* Hover en filas */
+    html body .container table.table.table-hover tbody tr:hover,
+    html body .container table.table tbody tr:hover td,
+    html body div.container table.table.table-hover tbody tr:hover,
+    html body div.container table.table tbody tr:hover td {
+        background-color: #404040 !important;
+        color: #ffffff !important;
+    }
+    
+    /* FORMULARIOS Y BOTONES */
+    html body .container .btn,
+    html body .container button,
+    html body .container input[type="submit"],
+    html body .container select.form-select,
+    html body .container input.form-control {
+        background-color: #333333 !important;
+        color: #ffffff !important;
+        border: 1px solid #555555 !important;
+    }
+    
+    /* Cards y headers */
+    html body .container .card,
+    html body .container .card-header {
+        background-color: #2d2d2d !important;
+        color: #ffffff !important;
+        border: 1px solid #555555 !important;
+    }
+}
+
+/* MÉTODO 2: Clases de respaldo aplicadas por JavaScript */
+html.modo-oscuro-forzado body,
+body.modo-oscuro-forzado,
+.administracion-turnos-oscuro {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+}
+
+html.modo-oscuro-forzado table.table,
+body.modo-oscuro-forzado table.table,
+.administracion-turnos-oscuro table.table {
+    background-color: #2d2d2d !important;
+    color: #ffffff !important;
+    border: 2px solid #444444 !important;
+    /* INDICADOR VISUAL - SOMBRA MAGENTA = JAVASCRIPT DE RESPALDO FUNCIONANDO */
+    box-shadow: 0 0 15px #ff00ff !important;
+}
+
+html.modo-oscuro-forzado table.table thead th,
+html.modo-oscuro-forzado table.table tbody th,
+body.modo-oscuro-forzado table.table thead th,
+body.modo-oscuro-forzado table.table tbody th,
+.administracion-turnos-oscuro table.table thead th,
+.administracion-turnos-oscuro table.table tbody th {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+}
+
+html.modo-oscuro-forzado table.table tbody tr td,
+body.modo-oscuro-forzado table.table tbody tr td,
+.administracion-turnos-oscuro table.table tbody tr td {
+    background-color: #2d2d2d !important;
+    color: #ffffff !important;
+    border-color: #444444 !important;
+}
+
+/* ================================================================
+   SOLUCIÓN DEFINITIVA - VENCER A BOOTSTRAP CON MÁXIMA ESPECIFICIDAD
+   Específicamente para table-light y table-bordered
+   ================================================================ */
+
+/* FORZAR MODO OSCURO - MÁXIMA ESPECIFICIDAD CONTRA BOOTSTRAP */
+html[data-theme="dark"] table.table,
+html[data-theme="dark"] table.table.table-bordered,
+html[data-theme="dark"] table.table * {
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
+    border-color: #444444 !important;
+}
+
+/* ESPECÍFICO PARA thead.table-light QUE CAUSA EL PROBLEMA */
+html[data-theme="dark"] thead.table-light,
+html[data-theme="dark"] thead.table-light th,
+html[data-theme="dark"] table.table thead.table-light th {
+    background-color: #2d2d2d !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+}
+
+/* TAMBIÉN APLICAR CON LAS CLASES DE EMERGENCIA */
+html.modo-oscuro-forzado table.table,
+html.modo-oscuro-forzado table.table.table-bordered,
+html.modo-oscuro-forzado table.table *,
+body.modo-oscuro-forzado table.table,
+body.modo-oscuro-forzado table.table.table-bordered,
+body.modo-oscuro-forzado table.table *,
+.administracion-turnos-oscuro table.table,
+.administracion-turnos-oscuro table.table.table-bordered,
+.administracion-turnos-oscuro table.table * {
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
+    border-color: #444444 !important;
+}
+
+/* ESPECÍFICO PARA thead.table-light CON CLASES DE EMERGENCIA */
+html.modo-oscuro-forzado thead.table-light,
+html.modo-oscuro-forzado thead.table-light th,
+html.modo-oscuro-forzado table.table thead.table-light th,
+body.modo-oscuro-forzado thead.table-light,
+body.modo-oscuro-forzado thead.table-light th,
+body.modo-oscuro-forzado table.table thead.table-light th,
+.administracion-turnos-oscuro thead.table-light,
+.administracion-turnos-oscuro thead.table-light th,
+.administracion-turnos-oscuro table.table thead.table-light th {
+    background-color: #2d2d2d !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+}
+
+/* TAMBIÉN PARA DETECCIÓN DE SISTEMA OPERATIVO */
+@media (prefers-color-scheme: dark) {
+    html table.table,
+    html table.table.table-bordered,
+    html table.table *,
+    body table.table,
+    body table.table.table-bordered,
+    body table.table * {
+        background-color: #1e1e1e !important;
+        color: #ffffff !important;
+        border-color: #444444 !important;
+    }
+    
+    html thead.table-light,
+    html thead.table-light th,
+    html table.table thead.table-light th,
+    body thead.table-light,
+    body thead.table-light th,
+    body table.table thead.table-light th {
+        background-color: #2d2d2d !important;
+        color: #ffffff !important;
+        border-color: #555555 !important;
+        /* INDICADOR VISUAL - BORDE ROJO PARA CONFIRMAR QUE FUNCIONA */
+        box-shadow: inset 0 0 0 2px #ff0000 !important;
+    }
+}
+
+/* ================================================================
+   SOLUCIÓN DEFINITIVA - VARIABLES CSS DE BOOTSTRAP
+   La forma CORRECTA de vencer a Bootstrap
+   ================================================================ */
+
+/* Redefinir variables de Bootstrap cuando el tema es dark */
+[data-theme="dark"] .table {
+    --bs-table-color: #e1e1e1;
+    --bs-table-bg: #1e1e1e;
+    --bs-table-border-color: #373b3e;
+    --bs-table-striped-bg: #2c2c2c;
+    --bs-table-striped-color: #e1e1e1;
+    --bs-table-active-bg: #373737;
+    --bs-table-active-color: #e1e1e1;
+    --bs-table-hover-bg: #323232;
+    --bs-table-hover-color: #e1e1e1;
+}
+
+/* IMPORTANTE: Sobrescribir específicamente la clase table-light en modo oscuro */
+[data-theme="dark"] .table-light {
+    --bs-table-bg: #2d2d2d !important;
+    --bs-table-color: #fff !important;
+    --bs-table-border-color: #444 !important;
+    background-color: var(--bs-table-bg) !important;
+    color: var(--bs-table-color) !important;
+    border-color: var(--bs-table-border-color) !important;
+}
+
+/* Asegurar que los TH dentro de table-light también cambien */
+[data-theme="dark"] .table-light th {
+    --bs-table-bg: #2d2d2d !important;
+    --bs-table-color: #fff !important;
+    --bs-table-border-color: #444 !important;
+    background-color: var(--bs-table-bg) !important;
+    color: var(--bs-table-color) !important;
+    border-color: var(--bs-table-border-color) !important;
+}
+
+/* TAMBIÉN APLICAR CON CLASES DE EMERGENCIA */
+html.modo-oscuro-forzado .table,
+body.modo-oscuro-forzado .table,
+.administracion-turnos-oscuro .table {
+    --bs-table-color: #e1e1e1;
+    --bs-table-bg: #1e1e1e;
+    --bs-table-border-color: #373b3e;
+    --bs-table-striped-bg: #2c2c2c;
+    --bs-table-striped-color: #e1e1e1;
+}
+
+html.modo-oscuro-forzado .table-light,
+body.modo-oscuro-forzado .table-light,
+.administracion-turnos-oscuro .table-light {
+    --bs-table-bg: #2d2d2d !important;
+    --bs-table-color: #fff !important;
+    --bs-table-border-color: #444 !important;
+    background-color: var(--bs-table-bg) !important;
+    color: var(--bs-table-color) !important;
+}
+
+html.modo-oscuro-forzado .table-light th,
+body.modo-oscuro-forzado .table-light th,
+.administracion-turnos-oscuro .table-light th {
+    --bs-table-bg: #2d2d2d !important;
+    --bs-table-color: #fff !important;
+    --bs-table-border-color: #444 !important;
+    background-color: var(--bs-table-bg) !important;
+    color: var(--bs-table-color) !important;
+    border-color: var(--bs-table-border-color) !important;
+}
+
+/* DETECCIÓN POR SISTEMA OPERATIVO */
+@media (prefers-color-scheme: dark) {
+    .table {
+        --bs-table-color: #e1e1e1;
+        --bs-table-bg: #1e1e1e;
+        --bs-table-border-color: #373b3e;
+        --bs-table-striped-bg: #2c2c2c;
+        --bs-table-striped-color: #e1e1e1;
+    }
+    
+    .table-light {
+        --bs-table-bg: #2d2d2d !important;
+        --bs-table-color: #fff !important;
+        --bs-table-border-color: #444 !important;
+        background-color: var(--bs-table-bg) !important;
+        color: var(--bs-table-color) !important;
+        /* INDICADOR VISUAL - SOMBRA AZUL = VARIABLES CSS FUNCIONANDO */
+        box-shadow: 0 0 10px #0066ff !important;
+    }
+    
+    .table-light th {
+        --bs-table-bg: #2d2d2d !important;
+        --bs-table-color: #fff !important;
+        --bs-table-border-color: #444 !important;
+        background-color: var(--bs-table-bg) !important;
+        color: var(--bs-table-color) !important;
+        border-color: var(--bs-table-border-color) !important;
+    }
+}
+</style>
+
+<script>
+/* ================================================================
+   JAVASCRIPT DE EMERGENCIA - FORZAR MODO OSCURO SIN DEPENDER DEL SISTEMA
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 SOLUCIÓN DE EMERGENCIA: Aplicando modo oscuro forzado');
+    
+    // Método 1: Agregar clase al HTML
+    document.documentElement.classList.add('modo-oscuro-forzado');
+    
+    // Método 2: Agregar clase al body
+    document.body.classList.add('modo-oscuro-forzado');
+    
+    // Método 3: Agregar clase al contenedor principal
+    const container = document.querySelector('.container');
+    if (container) {
+        container.classList.add('administracion-turnos-oscuro');
+    }
+    
+    // Método 4: Forzar atributo data-theme (por si el JavaScript principal falla)
+    document.documentElement.setAttribute('data-theme', 'dark');
+    
+    console.log('✅ Clases de emergencia aplicadas:');
+    console.log('   - html.modo-oscuro-forzado');
+    console.log('   - body.modo-oscuro-forzado'); 
+    console.log('   - .administracion-turnos-oscuro');
+    console.log('   - data-theme="dark"');
+    
+    // Verificar si las clases se aplicaron
+    setTimeout(function() {
+        console.log('🔍 Verificando aplicación:');
+        console.log('   HTML classes:', document.documentElement.classList.toString());
+        console.log('   Body classes:', document.body.classList.toString());
+        console.log('   Data-theme:', document.documentElement.getAttribute('data-theme'));
+        
+        // Verificar si la tabla cambió de color
+        const table = document.querySelector('table.table');
+        if (table) {
+            const styles = window.getComputedStyle(table);
+            console.log('   Tabla background:', styles.backgroundColor);
+            console.log('   Tabla color:', styles.color);
+            console.log('   Tabla border:', styles.border);
+            console.log('   Tabla box-shadow:', styles.boxShadow);
+        }
+        
+        // Mensaje de éxito visual
+        console.log('🎯 Si ves una sombra VERDE o MAGENTA en la tabla, ¡la solución funciona!');
+        
+        // SOLUCIÓN BRUTA - APLICAR ESTILOS DIRECTAMENTE CON JAVASCRIPT
+        console.log('🔥 Aplicando estilos BRUTOS para vencer a Bootstrap...');
+        
+        // Aplicar a la tabla principal
+        const tables = document.querySelectorAll('table.table');
+        tables.forEach(table => {
+            table.style.setProperty('background-color', '#1e1e1e', 'important');
+            table.style.setProperty('color', '#ffffff', 'important');
+            table.style.setProperty('border-color', '#444444', 'important');
+            console.log('✅ Tabla principal forzada a modo oscuro');
+        });
+        
+        // SOLUCIÓN MEJORADA - Aplicar a thead.table-light y sus hijos
+        const theads = document.querySelectorAll('thead.table-light, thead.table-light th, thead th');
+        theads.forEach(el => {
+            // MÉTODO 1: Forzar variables de Bootstrap (Método moderno)
+            el.style.setProperty('--bs-table-bg', '#2d2d2d');
+            el.style.setProperty('--bs-table-color', '#ffffff');
+            el.style.setProperty('--bs-table-border-color', '#555555');
+            
+            // MÉTODO 2: Forzar estilos tradicionales (Método antiguo)
+            el.style.setProperty('background-color', '#2d2d2d', 'important');
+            el.style.setProperty('color', '#ffffff', 'important');
+            el.style.setProperty('border-color', '#555555', 'important');
+            
+            // MÉTODO 3: TRUCO DEFINITIVO - Eliminar la clase conflictiva
+            if (document.documentElement.getAttribute('data-theme') === 'dark' || 
+                document.body.classList.contains('modo-oscuro-forzado')) {
+                el.classList.remove('table-light'); // Elimina el bloqueo de Bootstrap instantáneamente
+                console.log('🔥 Clase table-light ELIMINADA de', el.tagName);
+            }
+            
+            console.log('✅ Elemento thead/th forzado con TRIPLE método');
+        });
+        
+        // Aplicar a todas las filas y celdas
+        const tds = document.querySelectorAll('table.table tbody tr, table.table tbody td');
+        tds.forEach(element => {
+            element.style.setProperty('background-color', '#1e1e1e', 'important');
+            element.style.setProperty('color', '#ffffff', 'important');
+            element.style.setProperty('border-color', '#444444', 'important');
+        });
+        
+        console.log('🔥 Estilos BRUTOS aplicados - Bootstrap NO puede ganar a esto!');
+        
+    }, 1000);
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Administración de Turnos</h1>
+<div class="card mb-4">
+  <div class="card-body">
+    <form id="filtro-turnos" class="row g-3" method="get">
+      <div class="col-md-3">
+        <label class="form-label">Barbero</label>
+        <select class="form-select" name="barbero" id="filtro-barbero">
+          <option value="">Todos</option>
+          {% for b in barberos %}
+          <option value="{{ b.id }}" {% if request.GET.barbero|default:'' == b.id|stringformat:'s' %}selected{% endif %}>{{ b.nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Día</label>
+        <input type="date" class="form-control" name="dia" id="filtro-dia" value="{{ request.GET.dia|default:'' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Rango horario</label>
+        <div class="input-group">
+          <input type="time" class="form-control" name="hora_inicio" id="filtro-hora-inicio" value="{{ request.GET.hora_inicio|default:'' }}">
+          <span class="input-group-text">a</span>
+          <input type="time" class="form-control" name="hora_fin" id="filtro-hora-fin" value="{{ request.GET.hora_fin|default:'' }}">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Disponibilidad</label>
+        <select class="form-select" name="estado" id="filtro-estado">
+          <option value="" {% if not request.GET.estado %}selected{% endif %}>Todos</option>
+          <option value="disponible" {% if request.GET.estado == 'disponible' %}selected{% endif %}>Disponible</option>
+          <option value="ocupado" {% if request.GET.estado == 'ocupado' %}selected{% endif %}>Ocupado</option>
+          <option value="cancelado" {% if request.GET.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+          <option value="completado" {% if request.GET.estado == 'completado' %}selected{% endif %}>Completado</option>
+        </select>
+      </div>
+      <div class="col-12 text-end">
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="mb-4 d-flex justify-content-between">
+  <div>
+    <a href="{% url 'admin-panel' %}" class="btn btn-outline-secondary me-2">
+      <i class="bi bi-arrow-left"></i> Volver a Gestión Admin
+    </a>
+    <a href="{% url 'archivar-turnos' %}" class="btn btn-warning">
+      <i class="bi bi-archive"></i> Archivar Turnos Antiguos
+    </a>
+  </div>
+  <div>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarTurnos">
+      <i class="bi bi-plus-circle"></i> Agregar Turnos
+    </button>
+  </div>
+</div>
+<!-- Modal Agregar Turnos -->
+<div class="modal fade" id="modalAgregarTurnos" tabindex="-1" aria-labelledby="modalAgregarTurnosLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="form-agregar-turnos" method="post" action="{% url 'agregar-turnos' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalAgregarTurnosLabel">Agregar Turnos</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Barberos</label>
+            <div class="d-flex flex-wrap gap-2" id="barberos-casillas">
+              {% for b in barberos %}
+              <button type="button" class="btn btn-outline-primary barbero-casilla" data-id="{{ b.id }}">{{ b.nombre }}</button>
+              <input type="checkbox" name="barberos" value="{{ b.id }}" class="d-none barbero-checkbox">
+              {% endfor %}
+            </div>
+            <small class="text-muted">Selecciona uno o varios barberos</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Día</label>
+            <input type="date" class="form-control" name="dia" id="dia-turno" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Hora de inicio</label>
+            <div class="input-group">
+              <input type="time" class="form-control" name="hora_inicio" id="hora-inicio" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Duración de cada turno (minutos)</label>
+            <input type="number" class="form-control" name="duracion" id="duracion-turno" min="1" value="45" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Cantidad de turnos</label>
+            <div class="input-group" style="max-width: 200px;">
+              <button type="button" class="btn btn-outline-secondary" id="btn-menos-turnos">-</button>
+              <input type="number" class="form-control text-center" name="cantidad_turnos" id="cantidad-turnos-input" value="1" min="1" readonly required>
+              <button type="button" class="btn btn-outline-secondary" id="btn-mas-turnos">+</button>
+            </div>
+            <div id="mensaje-limite-turnos" class="text-danger mt-1" style="display:none;"></div>
+            <small class="text-muted">El máximo depende de la duración y la hora de inicio</small>
+          </div>
+          <div class="mb-3">
+            <div id="hora-fin-calculada" class="fw-bold mb-2"></div>
+            <div id="preview-turnos" class="d-flex flex-wrap gap-2"></div>
+          </div>
+          <div class="mb-3">
+            <div id="cantidad-turnos" class="fw-bold"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-crear-turnos">
+            <span class="btn-text">Crear Turnos</span>
+            <span class="btn-loading d-none">
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Creando...
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div id="agenda-turnos">
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle">
+      <thead>
+        <tr>
+          <th>Día</th>
+          <th>Hora</th>
+          <th>Barbero</th>
+          <th>Servicio</th>
+          <th>Estado</th>
+          <th>Cliente</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for turno in turnos %}
+        <tr class="turno-row">
+          <td class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+            <span>{{ turno.fecha_hora|date:"d/m/Y" }}</span>
+            <span class="text-muted small">{{ turno.fecha_hora|date:"l"|capfirst }}</span>
+          </td>
+          <td>{{ turno.fecha_hora|time:"H:i" }}</td>
+          <td>{{ turno.barbero.nombre }}</td>
+          <td>{{ turno.servicio.nombre|default:"Sin servicio" }}</td>
+          <td class="position-relative">
+            <button type="button" class="btn btn-sm w-100 text-start estado-btn {% if turno.estado == 'disponible' %}btn-success{% elif turno.estado == 'ocupado' %}btn-warning text-dark{% elif turno.estado == 'completado' %}btn-completado{% elif turno.estado == 'cancelado' %}btn-danger{% endif %}" data-turno-id="{{ turno.id }}" data-estado="{{ turno.estado }}">
+              {% if turno.estado == 'disponible' %}Disponible{% elif turno.estado == 'ocupado' %}Ocupado{% elif turno.estado == 'completado' %}Completado{% else %}Cancelado{% endif %}
+            </button>
+            <div class="estado-menu position-absolute border rounded shadow p-2" style="display:none; min-width:150px; right:0; z-index:10; background: var(--bs-body-bg); color: var(--bs-body-color);">
+              <form method="post" action="{% url 'cambiar-estado-turno-admin' %}" class="mb-0" id="form-estado-{{ turno.id }}">
+                {% csrf_token %}
+                <input type="hidden" name="turno_id" value="{{ turno.id }}">
+                <button type="submit" name="estado" value="disponible" class="dropdown-item text-success">Disponible</button>
+                <button type="submit" name="estado" value="ocupado" class="dropdown-item text-warning">Ocupado</button>
+                <button type="submit" name="estado" value="completado" class="dropdown-item text-white" style="background-color:#145a32;">Completado</button>
+                <button type="submit" name="estado" value="cancelado" class="dropdown-item text-danger">Cancelado</button>
+              </form>
+            </div>
+          </td>
+          <td>{% if turno.cliente %}{{ turno.cliente.nombre }} {{ turno.cliente.apellido }}{% else %}-{% endif %}</td>
+          <td class="text-center">
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="editarTurno({{ turno.id }})" title="Editar turno">
+              <i class="bi bi-pencil"></i>
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr class="turno-row"><td colspan="7" class="text-center">No hay turnos para este día.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal para editar turno -->
+<div class="modal fade" id="modalEditarTurno" tabindex="-1" aria-labelledby="modalEditarTurnoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarTurnoLabel">Editar Turno</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="formEditarTurno" method="post">
+        {% csrf_token %}
+        <div class="modal-body">
+          <input type="hidden" id="edit-turno-id" name="turno_id">
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="edit-fecha" class="form-label">Fecha</label>
+                <input type="date" class="form-control" id="edit-fecha" name="fecha" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="edit-hora" class="form-label">Hora</label>
+                <input type="time" class="form-control" id="edit-hora" name="hora" required>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="edit-barbero" class="form-label">Barbero</label>
+                <select class="form-select" id="edit-barbero" name="barbero" required>
+                  {% for barbero in barberos %}
+                  <option value="{{ barbero.id }}">{{ barbero.nombre }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="edit-servicio" class="form-label">Servicio</label>
+                <select class="form-select" id="edit-servicio" name="servicio">
+                  <option value="">Sin servicio</option>
+                  {% for servicio in servicios %}
+                  <option value="{{ servicio.id }}" data-precio="{{ servicio.precio }}">{{ servicio.nombre }} - ${{ servicio.precio }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="edit-estado" class="form-label">Estado</label>
+                <select class="form-select" id="edit-estado" name="estado" required>
+                  <option value="disponible">Disponible</option>
+                  <option value="ocupado">Ocupado</option>
+                  <option value="completado">Completado</option>
+                  <option value="cancelado">Cancelado</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="edit-precio-final" class="form-label">Precio Final</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" step="0.01" class="form-control" id="edit-precio-final" name="precio_final" placeholder="0.00">
+                </div>
+                <small class="text-muted">Deja vacío para usar precio del servicio</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="edit-cliente" class="form-label">Cliente (Email)</label>
+            <input type="email" class="form-control" id="edit-cliente" name="cliente_email" placeholder="Deja vacío si no tiene cliente">
+            <small class="text-muted">Busca usuario por email. Deja vacío para turnos disponibles.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_head %}
+{{ block.super }}
+<style>
+.btn-completado {
+  background-color: #145a32 !important;
+  color: #fff !important;
+  border-color: #145a32 !important;
+}
+
+#btn-crear-turnos:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-loading {
+  pointer-events: none;
+}
+
+/* Filas alternadas para mejor legibilidad - mayor especificidad */
+#agenda-turnos .table tbody .turno-row:nth-child(even) {
+  background-color: #f8f9fa !important;
+  box-shadow: inset 0 0 0 1000px #f8f9fa;
+}
+
+#agenda-turnos .table tbody .turno-row:nth-child(even) td {
+  background-color: #f8f9fa !important;
+}
+
+#agenda-turnos .table tbody .turno-row:nth-child(odd) {
+  background-color: #ffffff !important;
+  box-shadow: inset 0 0 0 1000px #ffffff;
+}
+
+#agenda-turnos .table tbody .turno-row:nth-child(odd) td {
+  background-color: #ffffff !important;
+}
+
+/* Hover effect para las filas */
+#agenda-turnos .table tbody .turno-row:hover {
+  background-color: #e3f2fd !important;
+  box-shadow: inset 0 0 0 1000px #e3f2fd !important;
+}
+
+#agenda-turnos .table tbody .turno-row:hover td {
+  background-color: #e3f2fd !important;
+  transition: background-color 0.2s ease;
+}
+
+/* Asegurar que los botones de estado mantengan su color */
+.turno-row .estado-btn {
+  position: relative;
+  z-index: 1;
+}
+
+/* Solucionar específicamente la primera columna con d-flex */
+#agenda-turnos .table tbody .turno-row td.d-flex {
+  border-bottom: none !important;
+  position: relative;
+}
+
+#agenda-turnos .table tbody .turno-row td.d-flex::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #dee2e6;
+  z-index: -1;
+}
+
+/* Asegurar que los spans dentro del flex no tengan bordes */
+#agenda-turnos .table tbody .turno-row td.d-flex span {
+  border: none !important;
+  background: transparent !important;
+}
+</style>
+{% endblock %}
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.querySelectorAll('.estado-btn').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    console.log('🖱️ Clic en botón de estado:', this.textContent);
+    
+    // Cerrar otros menús
+    document.querySelectorAll('.estado-menu').forEach(m => m.style.display = 'none');
+    
+    // Abrir el menú de este botón
+    const menu = btn.parentElement.querySelector('.estado-menu');
+    if (menu) {
+      menu.style.display = 'block';
+      console.log('📋 Menú desplegable mostrado');
+    } else {
+      console.log('❌ No se encontró el menú desplegable');
+    }
+  });
+});
+document.querySelectorAll('.estado-menu form').forEach(form => {
+  form.addEventListener('click', function(e) {
+    e.stopPropagation();
+  });
+});
+document.addEventListener('click', function() {
+  document.querySelectorAll('.estado-menu').forEach(m => m.style.display = 'none');
+});
+
+// Selección visual y lógica de barberos en el modal de agregar turnos
+const barberoBtns = document.querySelectorAll('#barberos-casillas .barbero-casilla');
+const barberoCheckboxes = document.querySelectorAll('#barberos-casillas .barbero-checkbox');
+barberoBtns.forEach((btn, idx) => {
+  btn.addEventListener('click', function() {
+    const checkbox = barberoCheckboxes[idx];
+    checkbox.checked = !checkbox.checked;
+    btn.classList.toggle('active', checkbox.checked);
+    btn.classList.toggle('btn-primary', checkbox.checked);
+    btn.classList.toggle('btn-outline-primary', !checkbox.checked);
+  });
+});
+
+// Lógica para sumar/restar cantidad de turnos y actualizar preview y hora fin
+const inputCantidad = document.getElementById('cantidad-turnos-input');
+const btnMas = document.getElementById('btn-mas-turnos');
+const btnMenos = document.getElementById('btn-menos-turnos');
+const inputHora = document.getElementById('hora-inicio');
+const inputDuracion = document.getElementById('duracion-turno');
+const previewTurnos = document.getElementById('preview-turnos');
+const horaFinCalculada = document.getElementById('hora-fin-calculada');
+const mensajeLimite = document.getElementById('mensaje-limite-turnos');
+
+function pad(n) { return n < 10 ? '0' + n : n; }
+
+function actualizarPreviewTurnos() {
+  const cantidad = parseInt(inputCantidad.value) || 1;
+  const horaInicio = inputHora.value;
+  const duracion = parseInt(inputDuracion.value) || 45;
+  previewTurnos.innerHTML = '';
+  horaFinCalculada.innerHTML = '';
+  mensajeLimite.style.display = 'none';
+  if (!horaInicio) return;
+  let [h, m] = horaInicio.split(':').map(Number);
+  let turnos = [];
+  let limite = false;
+  let endH = h, endM = m;
+  for (let i = 0; i < cantidad; i++) {
+    // Calcular hora de fin de este turno
+    let finH = endH, finM = endM + duracion;
+    while (finM >= 60) { finH++; finM -= 60; }
+    // Si la hora de fin de este turno supera 23:59, no permitir agregarlo
+    if (finH > 23 || (finH === 23 && finM > 59)) {
+      limite = true;
+      break;
+    }
+    // Agregar hora de inicio del turno
+    let horaStr = pad(endH) + ':' + pad(endM);
+    turnos.push(horaStr);
+    // Preparar para el siguiente turno
+    endM += duracion;
+    while (endM >= 60) { endH++; endM -= 60; }
+  }
+  // Mostrar preview
+  previewTurnos.innerHTML = turnos.map(t => `<span class='badge bg-primary'>${t}</span>`).join(' ');
+  // Calcular y mostrar hora de fin real
+  let finH = h, finM = m;
+  for (let i = 0; i < turnos.length; i++) {
+    finM += duracion;
+    while (finM >= 60) { finH++; finM -= 60; }
+  }
+  let finStr = (turnos.length === 0) ? '' : pad(finH) + ':' + pad(finM);
+  if (turnos.length > 0) {
+    horaFinCalculada.innerHTML = 'Hora de fin: <span class="text-success">' + finStr + '</span>';
+  }
+  // Bloquear suma si se supera el límite
+  if (limite) {
+    btnMas.disabled = true;
+    mensajeLimite.style.display = 'block';
+    mensajeLimite.textContent = 'No se pueden agregar más turnos: la hora de fin máxima es 23:59.';
+  } else {
+    btnMas.disabled = false;
+    mensajeLimite.style.display = 'none';
+  }
+  // Ajustar el input si el usuario puso un valor manualmente fuera de rango
+  inputCantidad.value = turnos.length;
+}
+
+[inputCantidad, inputHora, inputDuracion].forEach(el => {
+  el.addEventListener('input', actualizarPreviewTurnos);
+  el.addEventListener('change', actualizarPreviewTurnos);
+});
+btnMas.addEventListener('click', function() {
+  let val = parseInt(inputCantidad.value) || 1;
+  inputCantidad.value = val + 1;
+  actualizarPreviewTurnos();
+});
+btnMenos.addEventListener('click', function() {
+  let val = parseInt(inputCantidad.value) || 1;
+  if (val > 1) inputCantidad.value = val - 1;
+  actualizarPreviewTurnos();
+});
+// Inicializar preview al abrir modal
+if (inputCantidad && inputHora && inputDuracion) {
+  setTimeout(actualizarPreviewTurnos, 300);
+}
+
+// Prevenir dobles clics en el formulario de crear turnos
+const formAgregarTurnos = document.getElementById('form-agregar-turnos');
+const btnCrearTurnos = document.getElementById('btn-crear-turnos');
+let formularioEnviado = false;
+let ultimoEnvio = 0;
+
+if (formAgregarTurnos && btnCrearTurnos) {
+  formAgregarTurnos.addEventListener('submit', function(e) {
+    const ahora = Date.now();
+    
+    // Prevenir envío múltiple
+    if (formularioEnviado || (ahora - ultimoEnvio < 2000)) {
+      e.preventDefault();
+      return false;
+    }
+    
+    // Marcar como enviado
+    formularioEnviado = true;
+    ultimoEnvio = ahora;
+    
+    // Cambiar apariencia del botón
+    btnCrearTurnos.disabled = true;
+    btnCrearTurnos.querySelector('.btn-text').classList.add('d-none');
+    btnCrearTurnos.querySelector('.btn-loading').classList.remove('d-none');
+    
+    // Resetear después de un tiempo (por si hay error)
+    setTimeout(() => {
+      resetearBotonCrear();
+    }, 10000);
+  });
+  
+  function resetearBotonCrear() {
+    formularioEnviado = false;
+    btnCrearTurnos.disabled = false;
+    btnCrearTurnos.querySelector('.btn-text').classList.remove('d-none');
+    btnCrearTurnos.querySelector('.btn-loading').classList.add('d-none');
+  }
+  
+  // Resetear cuando se cierre el modal
+  const modal = document.getElementById('modalAgregarTurnos');
+  if (modal) {
+    modal.addEventListener('hidden.bs.modal', function() {
+      resetearBotonCrear();
+    });
+  }
+}
+
+// Función para actualizar precio de turno
+function actualizarPrecio(turnoId, nuevoPrecio) {
+  if (!nuevoPrecio || nuevoPrecio < 0) {
+    alert('Por favor ingresa un precio válido');
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('turno_id', turnoId);
+  formData.append('precio', nuevoPrecio);
+  formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+  
+  fetch('{% url "actualizar-precio-turno" %}', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Mostrar mensaje de éxito temporal
+      const input = document.querySelector(`input[data-turno-id="${turnoId}"]`);
+      const originalBorder = input.style.border;
+      input.style.border = '2px solid #28a745';
+      
+      setTimeout(() => {
+        input.style.border = originalBorder;
+      }, 2000);
+    } else {
+      alert('Error al actualizar precio: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error al actualizar precio');
+  });
+}
+
+// Función para abrir modal de edición
+function editarTurno(turnoId) {
+  // Hacer fetch para obtener datos del turno
+  fetch(`/administracion/turno/${turnoId}/datos/`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const turno = data.turno;
+        
+        // Llenar el formulario con los datos del turno
+        document.getElementById('edit-turno-id').value = turno.id;
+        document.getElementById('edit-fecha').value = turno.fecha;
+        document.getElementById('edit-hora').value = turno.hora;
+        document.getElementById('edit-barbero').value = turno.barbero_id;
+        document.getElementById('edit-servicio').value = turno.servicio_id || '';
+        document.getElementById('edit-estado').value = turno.estado;
+        document.getElementById('edit-precio-final').value = turno.precio_final || '';
+        document.getElementById('edit-cliente').value = turno.cliente_email || '';
+        
+        // Abrir modal
+        new bootstrap.Modal(document.getElementById('modalEditarTurno')).show();
+      } else {
+        alert('Error al cargar datos del turno: ' + data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error al cargar datos del turno');
+    });
+}
+
+// Manejar envío del formulario de edición
+document.getElementById('formEditarTurno').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(this);
+  
+  fetch('/administracion/turno/editar/', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Cerrar modal
+      bootstrap.Modal.getInstance(document.getElementById('modalEditarTurno')).hide();
+      
+      // Recargar página para mostrar cambios
+      location.reload();
+    } else {
+      alert('Error al guardar cambios: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error al guardar cambios');
+  });
+});
+
+// Auto-llenar precio cuando se selecciona servicio
+document.getElementById('edit-servicio').addEventListener('change', function() {
+  const selectedOption = this.options[this.selectedIndex];
+  const precio = selectedOption.getAttribute('data-precio');
+  
+  if (precio && !document.getElementById('edit-precio-final').value) {
+    document.getElementById('edit-precio-final').value = precio;
+  }
+});
+
+// ==========================================
+// SISTEMA AJAX PARA CAMBIO DE ESTADO SIN RECARGA
+// ==========================================
+
+// Función para obtener el token CSRF
+function getCSRFToken() {
+  return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+// Función principal para cambiar estado via AJAX desde menú desplegable
+function cambiarEstadoAjax(turnoId, nuevoEstado) {
+  fetch('/administracion/turnos/cambiar-estado/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-CSRFToken': getCSRFToken(),
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: `turno_id=${turnoId}&estado=${nuevoEstado}`
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Actualizar el botón principal con el nuevo estado
+      const botonEstado = document.querySelector(`[data-turno-id="${turnoId}"]`);
+      if (botonEstado) {
+        // Actualizar clases CSS del botón
+        botonEstado.className = `btn btn-sm w-100 text-start estado-btn`;
+        
+        // Agregar clase específica según el nuevo estado
+        if (nuevoEstado === 'disponible') {
+          botonEstado.classList.add('btn-success');
+          botonEstado.textContent = 'Disponible';
+        } else if (nuevoEstado === 'ocupado') {
+          botonEstado.classList.add('btn-warning', 'text-dark');
+          botonEstado.textContent = 'Ocupado';
+        } else if (nuevoEstado === 'completado') {
+          botonEstado.classList.add('btn-completado');
+          botonEstado.textContent = 'Completado';
+        } else if (nuevoEstado === 'cancelado') {
+          botonEstado.classList.add('btn-danger');
+          botonEstado.textContent = 'Cancelado';
+        }
+        
+        // Actualizar el atributo data-estado
+        botonEstado.setAttribute('data-estado', nuevoEstado);
+        
+        // Cerrar el menú desplegable
+        const menu = botonEstado.nextElementSibling;
+        if (menu) {
+          menu.style.display = 'none';
+        }
+        
+        // Mostrar notificación de éxito
+        mostrarNotificacion(`Estado cambiado a ${nuevoEstado}`, 'success');
+      }
+    } else {
+      mostrarNotificacion('Error al cambiar estado: ' + (data.message || 'Error desconocido'), 'danger');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    mostrarNotificacion('Error al cambiar estado', 'danger');
+  });
+}
+
+// Función para mostrar notificaciones temporales
+function mostrarNotificacion(mensaje, tipo) {
+  // Crear elemento de notificación
+  const notif = document.createElement('div');
+  notif.className = `alert alert-${tipo} alert-dismissible`;
+  notif.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 300px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    animation: slideIn 0.3s ease-out;
+  `;
+  
+  notif.innerHTML = `
+    ${mensaje}
+    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+  `;
+  
+  document.body.appendChild(notif);
+  
+  // Auto-eliminar después de 3 segundos
+  setTimeout(() => {
+    if (notif.parentElement) {
+      notif.remove();
+    }
+  }, 3000);
+}
+
+// Interceptar TODOS los formularios de cambio de estado
+document.addEventListener('DOMContentLoaded', function() {
+  
+  // Interceptar submit de formularios de estado
+  document.addEventListener('submit', function(e) {
+    // Solo interceptar formularios que tengan id que empiece con 'form-estado-'
+    if (e.target && e.target.id && e.target.id.startsWith('form-estado-')) {
+      e.preventDefault(); // PREVENIR el submit tradicional
+      
+      const form = e.target;
+      const turnoId = form.querySelector('input[name="turno_id"]').value;
+      const submitButton = document.activeElement; // El botón que se clickeó
+      const nuevoEstado = submitButton.value;
+      
+      console.log('🚫 Submit interceptado, usando AJAX:', { turnoId, nuevoEstado });
+      
+      // Usar AJAX en lugar del submit tradicional
+      cambiarEstadoAjax(turnoId, nuevoEstado);
+    }
+  });
+  
+  console.log('✅ Sistema AJAX para cambio de estado cargado (interceptor de formularios)');
+});
+
+// Agregar estilos para la animación de notificaciones
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

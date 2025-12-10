@@ -31,7 +31,7 @@ class CursoForm(forms.ModelForm):
                 'rows': 4,
                 'placeholder': 'Describe el contenido, objetivos y requisitos del curso...'
             }),
-            'imagen': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            # 'imagen' se omite para usar el widget personalizado del campo
         }
         
     def __init__(self, *args, **kwargs):

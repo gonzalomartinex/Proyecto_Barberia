@@ -1,33 +1,218 @@
 {% extends 'base.html' %}
 {% block title %}Iniciar sesión | Cortes Con Historia{% endblock %}
+
+{% block extra_head %}
+<style>
+.login-container {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+}
+
+.login-card {
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border: none;
+    overflow: hidden;
+}
+
+.login-header {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+    color: #222;
+    padding: 2rem;
+    text-align: center;
+    border-radius: 15px 15px 0 0;
+}
+
+.login-header h3 {
+    font-weight: bold;
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.login-body {
+    padding: 2rem;
+}
+
+.info-alert {
+    border: none;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1565c0;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #ffd700;
+    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.btn-login {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+    border: none;
+    color: #222;
+    font-weight: bold;
+    padding: 0.75rem;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.btn-login:hover {
+    background: linear-gradient(135deg, #e6be00 0%, #e6d441 100%);
+    color: #222;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+}
+
+.auth-links {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.auth-links a {
+    color: #ffd700;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.auth-links a:hover {
+    color: #e6be00;
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .login-container {
+        min-height: auto;
+        padding: 1rem 0;
+    }
+    
+    .login-header {
+        padding: 1.5rem;
+    }
+    
+    .login-header h3 {
+        font-size: 1.5rem;
+    }
+    
+    .login-body {
+        padding: 1.5rem;
+    }
+    
+    .info-alert {
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .auth-links {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .login-header {
+        padding: 1rem;
+    }
+    
+    .login-header h3 {
+        font-size: 1.3rem;
+    }
+    
+    .login-body {
+        padding: 1rem;
+    }
+    
+    .info-alert {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center mt-5">
-  <div class="col-md-4">
-    <div class="alert alert-info text-center mb-4">
-      Si todavía <strong>NO tenés un usuario</strong>, podés registrar uno nuevo aunque este permanecerá <strong>deshabilitado</strong>. Reservá turno por <a href="https://wa.me/" target="_blank">WHATSAPP</a> y cuando te presentes en la barbería nosotros te <strong>HABILITAMOS</strong> tu usuario para que puedas reservar turnos de manera más sencilla a partir de entonces.
+<div class="container">
+    <div class="login-container">
+        <div class="row justify-content-center w-100">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+                <div class="info-alert mb-4">
+                    <div class="text-center">
+                        <i class="fas fa-info-circle fa-2x mb-2"></i>
+                        <h5>¿Nuevo usuario?</h5>
+                        <p class="mb-2">Si <strong>NO tenés un usuario</strong>, podés registrar uno nuevo aunque permanecerá <strong>deshabilitado</strong>.</p>
+                        <p class="mb-0">Reservá turno por <a href="https://wa.me/" target="_blank" class="fw-bold">WHATSAPP</a> y cuando te presentes en la barbería te <strong>HABILITAMOS</strong> tu usuario.</p>
+                    </div>
+                </div>
+                
+                <div class="card login-card">
+                    <div class="login-header">
+                        <h3><i class="fas fa-sign-in-alt me-2"></i>Iniciar sesión</h3>
+                    </div>
+                    <div class="login-body">
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            
+                            <div class="mb-3">
+                                <label for="id_username" class="form-label">
+                                    <i class="fas fa-envelope me-1"></i>Correo electrónico
+                                </label>
+                                <input type="text" name="username" autofocus required 
+                                       class="form-control" id="id_username" 
+                                       placeholder="usuario@correo.com">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_password" class="form-label">
+                                    <i class="fas fa-lock me-1"></i>Contraseña
+                                </label>
+                                <input type="password" name="password" required 
+                                       class="form-control" id="id_password" 
+                                       placeholder="Contraseña">
+                            </div>
+                            
+                            <div class="auth-links">
+                                <a href="{% url 'password_reset' %}">
+                                    <i class="fas fa-key me-1"></i>¿Olvidaste tu contraseña?
+                                </a>
+                                <a href="{% url 'registro' %}">
+                                    <i class="fas fa-user-plus me-1"></i>Registrarse
+                                </a>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-login w-100">
+                                <i class="fas fa-sign-in-alt me-2"></i>Ingresar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card shadow">
-      <div class="card-body">
-        <h3 class="mb-4 text-center">Iniciar sesión</h3>
-        <form method="post" novalidate>
-          {% csrf_token %}
-          {{ form.non_field_errors }}
-          <div class="mb-3">
-            <label for="id_username" class="form-label">Correo electrónico</label>
-            <input type="text" name="username" autofocus required class="form-control" id="id_username" placeholder="usuario@correo.com">
-          </div>
-          <div class="mb-3">
-            <label for="id_password" class="form-label">Contraseña</label>
-            <input type="password" name="password" required class="form-control" id="id_password" placeholder="Contraseña">
-          </div>
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a>
-            <a href="{% url 'registro' %}">Registrarse</a>
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Ingresar</button>
-        </form>
-      </div>
-    </div>
-  </div>
 </div>
 {% endblock %}

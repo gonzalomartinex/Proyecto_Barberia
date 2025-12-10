@@ -12,6 +12,9 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from .models import Usuario
 from django.db import models
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 from django import forms
 from django.http import HttpResponseForbidden
@@ -65,6 +68,29 @@ def cambiar_estado_usuario(request, pk):
 def barberos_list(request):
     barberos = Barbero.objects.all()
     return render(request, 'barberos.html', {'barberos': barberos})
+
+@csrf_exempt
+@login_required
+def reordenar_barberos(request):
+    """Vista AJAX para reordenar barberos"""
+    if not request.user.is_staff:
+        return JsonResponse({'success': False, 'error': 'Permisos insuficientes'})
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            orden_ids = data.get('orden', [])
+            
+            # Actualizar el orden de cada barbero
+            for index, barbero_id in enumerate(orden_ids):
+                Barbero.objects.filter(id=barbero_id).update(orden=index)
+            
+            return JsonResponse({'success': True})
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
 
 def barbero_perfil(request, pk):
     barbero = get_object_or_404(Barbero, pk=pk)

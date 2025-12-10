@@ -10,10 +10,10 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h1 class="text-gold mb-2">
+                    <h1 style="color: var(--accent-color);" class="mb-2">
                         <i class="bi bi-file-earmark-excel"></i> Archivos Excel de Turnos
                     </h1>
-                    <p class="lead text-muted">
+                    <p class="lead" style="color: var(--text-muted);">
                         Gestiona y descarga todos los archivos Excel de turnos archivados
                     </p>
                 </div>
@@ -29,16 +29,16 @@
     <!-- Estadísticas rápidas -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card bg-light">
+            <div class="card" style="background: var(--card-bg); border-color: var(--border-color);">
                 <div class="card-body text-center">
-                    <i class="bi bi-files display-4 text-gold"></i>
-                    <h3 class="mt-2">{{ total_archivos }}</h3>
-                    <p class="text-muted mb-0">Archivos Totales</p>
+                    <i class="bi bi-files display-4" style="color: var(--accent-color);"></i>
+                    <h3 class="mt-2" style="color: var(--text-primary);">{{ total_archivos }}</h3>
+                    <p class="mb-0" style="color: var(--text-muted);">Archivos Totales</p>
                 </div>
             </div>
         </div>
         <div class="col-md-9">
-            <div class="card bg-info text-white">
+            <div class="card" style="background: #17a2b8; color: #fff; border-color: #17a2b8;">
                 <div class="card-body">
                     <h5><i class="bi bi-info-circle"></i> Información</h5>
                     <p class="mb-0">
@@ -54,58 +54,58 @@
     <!-- Lista de archivos -->
     <div class="row">
         <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header bg-gold text-white">
+            <div class="card shadow" style="background: var(--card-bg); border-color: var(--border-color);">
+                <div class="card-header" style="background: var(--accent-color); color: #222;">
                     <h5 class="card-title mb-0">
                         <i class="bi bi-list-ul"></i> Lista de Archivos Excel
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="background: var(--card-bg);"
                     {% if archivos %}
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="table-dark">
+                        <table id="excel-files-table" class="table table-hover" style="background: var(--card-bg);">
+                            <thead>
                                 <tr>
-                                    <th><i class="bi bi-file-earmark-excel"></i> Archivo</th>
-                                    <th><i class="bi bi-calendar-date"></i> Fecha Creación</th>
-                                    <th><i class="bi bi-hdd"></i> Tamaño</th>
-                                    <th><i class="bi bi-tag"></i> Tipo</th>
-                                    <th><i class="bi bi-info-circle"></i> Descripción</th>
-                                    <th><i class="bi bi-download"></i> Acción</th>
+                                    <th style="background: var(--secondary-bg); color: var(--text-primary); border-color: var(--border-color);"><i class="bi bi-file-earmark-excel"></i> Archivo</th>
+                                    <th style="background: var(--secondary-bg); color: var(--text-primary); border-color: var(--border-color);"><i class="bi bi-calendar-date"></i> Fecha Creación</th>
+                                    <th style="background: var(--secondary-bg); color: var(--text-primary); border-color: var(--border-color);"><i class="bi bi-hdd"></i> Tamaño</th>
+                                    <th style="background: var(--secondary-bg); color: var(--text-primary); border-color: var(--border-color);"><i class="bi bi-tag"></i> Tipo</th>
+                                    <th style="background: var(--secondary-bg); color: var(--text-primary); border-color: var(--border-color);"><i class="bi bi-info-circle"></i> Descripción</th>
+                                    <th style="background: var(--secondary-bg); color: var(--text-primary); border-color: var(--border-color);"><i class="bi bi-download"></i> Acción</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for archivo in archivos %}
-                                <tr>
-                                    <td>
+                                <tr style="background: var(--card-bg); border-color: var(--border-color);">
+                                    <td style="border-color: var(--border-color);">
                                         <div class="d-flex align-items-center">
-                                            <i class="bi bi-file-earmark-excel text-success me-2 fs-5"></i>
-                                            <div>
-                                                <strong>{{ archivo.nombre }}</strong>
+                                            <i class="bi bi-file-earmark-excel me-2 fs-5" style="color: #28a745;"></i>
+                                            <div style="color: var(--text-primary) !important;">
+                                                <strong style="color: var(--text-primary) !important;">{{ archivo.nombre }}</strong>
                                                 {% if 'historial' in archivo.nombre|lower %}
-                                                <span class="badge bg-warning text-dark ms-2">Maestro</span>
+                                                <span class="badge ms-2" style="background: #ffc107; color: #000;">Maestro</span>
                                                 {% endif %}
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
-                                        <span class="text-muted">{{ archivo.fecha_creacion|date:"d/m/Y" }}</span><br>
-                                        <small class="text-muted">{{ archivo.fecha_creacion|time:"H:i:s" }}</small>
+                                    <td style="border-color: var(--border-color);">
+                                        <span style="color: var(--text-muted);">{{ archivo.fecha_creacion|date:"d/m/Y" }}</span><br>
+                                        <small style="color: var(--text-muted);">{{ archivo.fecha_creacion|time:"H:i:s" }}</small>
                                     </td>
-                                    <td>
-                                        <span class="badge bg-secondary">{{ archivo.tamaño_mb }} MB</span>
+                                    <td style="border-color: var(--border-color);">
+                                        <span class="badge" style="background: #6c757d; color: #fff;">{{ archivo.tamaño_mb }} MB</span>
                                     </td>
-                                    <td>
+                                    <td style="border-color: var(--border-color);">
                                         {% if archivo.tipo == 'Historial Maestro' %}
-                                        <span class="badge bg-warning text-dark">{{ archivo.tipo }}</span>
+                                        <span class="badge" style="background: #ffc107; color: #000;">{{ archivo.tipo }}</span>
                                         {% else %}
-                                        <span class="badge bg-info">{{ archivo.tipo }}</span>
+                                        <span class="badge" style="background: #17a2b8; color: #fff;">{{ archivo.tipo }}</span>
                                         {% endif %}
                                     </td>
-                                    <td>
-                                        <small class="text-muted">{{ archivo.descripcion }}</small>
+                                    <td style="border-color: var(--border-color);">
+                                        <small style="color: var(--text-muted);">{{ archivo.descripcion }}</small>
                                     </td>
-                                    <td>
+                                    <td style="border-color: var(--border-color);">
                                         <a href="{% url 'descargar-archivo-excel' archivo.nombre %}" 
                                            class="btn btn-sm btn-success" 
                                            title="Descargar {{ archivo.nombre }}">
@@ -119,11 +119,11 @@
                     </div>
                     {% else %}
                     <div class="text-center py-5">
-                        <i class="bi bi-inbox display-1 text-muted"></i>
-                        <h3 class="mt-3 text-muted">No hay archivos Excel</h3>
-                        <p class="text-muted">
+                        <i class="bi bi-inbox display-1" style="color: var(--text-muted);"></i>
+                        <h3 class="mt-3" style="color: var(--text-muted);">No hay archivos Excel</h3>
+                        <p style="color: var(--text-muted);">
                             Aún no se han generado archivos de archivado. 
-                            <a href="{% url 'archivar-turnos' %}" class="text-gold">Crear el primer archivo</a>
+                            <a href="{% url 'archivar-turnos' %}" style="color: var(--accent-color);">Crear el primer archivo</a>
                         </p>
                     </div>
                     {% endif %}
@@ -148,6 +148,71 @@
         </div>
     </div>
 </div>
+
+{% block extra_head %}
+<style>
+/* Adaptación para modo oscuro */
+#excel-files-table tbody tr:hover {
+    background-color: var(--hover-bg) !important;
+}
+
+#excel-files-table tbody tr:hover td {
+    background-color: var(--hover-bg) !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background: var(--form-section-bg) !important;
+}
+
+/* Específico para los nombres de archivos */
+#excel-files-table tbody tr td:first-child div strong {
+    color: var(--text-primary) !important;
+}
+
+/* Asegurar que los encabezados sean visibles */
+#excel-files-table thead th {
+    color: var(--text-primary) !important;
+    background: var(--secondary-bg) !important;
+}
+
+/* Aplicar estilos al resto de la tabla */
+#excel-files-table tbody tr td {
+    color: var(--text-primary) !important;
+    background: var(--card-bg);
+    border-color: var(--border-color) !important;
+}
+
+/* Específico para fechas y textos pequeños */
+#excel-files-table tbody tr td span,
+#excel-files-table tbody tr td small {
+    color: var(--text-muted) !important;
+}
+
+.btn-outline-gold {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+    background: transparent;
+}
+
+.btn-outline-gold:hover {
+    background: var(--accent-color);
+    color: #222;
+    border-color: var(--accent-color);
+}
+
+.btn-gold {
+    background: var(--accent-color);
+    color: #222;
+    border-color: var(--accent-color);
+}
+
+.btn-gold:hover {
+    background: var(--accent-hover);
+    color: #222;
+    border-color: var(--accent-hover);
+}
+</style>
+{% endblock %}
 
 <style>
 .btn-gold {

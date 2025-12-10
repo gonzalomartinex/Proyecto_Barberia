@@ -5,30 +5,32 @@
 <style>
 .admin-card {
     transition: all 0.3s ease;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--border-color);
     border-radius: 10px;
+    background: var(--card-bg);
 }
 
 .admin-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    border-color: #ffd700;
+    box-shadow: 0 8px 25px var(--card-shadow);
+    border-color: var(--primary-color);
 }
 
 .admin-card .card-header {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    color: #000;
+    background: var(--form-section-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
     font-weight: bold;
     border-radius: 10px 10px 0 0;
 }
 
 .admin-card .card-header h5 {
-    color: #000 !important;
+    color: var(--text-primary);
 }
 
 .admin-icon {
     font-size: 2.5rem;
-    color: #000 !important;
+    color: var(--text-primary);
     margin-bottom: 1rem;
 }
 
@@ -37,18 +39,20 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    background: var(--card-bg);
+    color: var(--text-primary);
 }
 
 .admin-description {
-    color: #666;
+    color: var(--text-muted);
     font-size: 0.9rem;
     margin-bottom: 1rem;
     flex-grow: 1;
 }
 
 .admin-btn {
-    background-color: #ffd700;
-    border-color: #ffd700;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
     color: #222;
     font-weight: bold;
     border-radius: 25px;
@@ -64,7 +68,7 @@
 }
 
 .welcome-section {
-    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #ffed4a 100%);
     color: #222;
     border-radius: 15px;
     padding: 2rem;
@@ -85,48 +89,188 @@
 .section-divider {
     border: none;
     height: 3px;
-    background: linear-gradient(90deg, transparent, #ffd700, transparent);
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
     margin: 2rem 0;
 }
 
-/* Cambiar títulos de sección a negro */
-.text-primary {
-    color: #000 !important;
+/* Títulos de sección adaptativos */
+.admin-section-title {
+    color: var(--text-primary);
 }
 
-/* Mantener el color dorado solo en elementos específicos */
-.welcome-section {
-    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
-    color: #222;
+/* Información del panel */
+.admin-info {
+    background: var(--form-section-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1rem;
+    color: var(--text-primary);
+}
+
+.admin-info h6 {
+    color: var(--text-primary);
+}
+
+.admin-info p {
+    color: var(--text-muted);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .admin-card .card-body {
+        min-height: 100px;
+    }
+    
+    .admin-icon {
+        font-size: 2.2rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .welcome-section {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .welcome-section h1 {
+        font-size: 1.8rem;
+    }
+    
+    .welcome-section p {
+        font-size: 1rem;
+    }
+    
+    .admin-card .card-body {
+        min-height: 90px;
+        padding: 1rem;
+    }
+    
+    .admin-icon {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .admin-description {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .welcome-section {
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+    
+    .welcome-section h1 {
+        font-size: 1.6rem;
+    }
+    
+    .admin-card {
+        margin-bottom: 1rem;
+    }
+    
+    .admin-card .card-body {
+        min-height: 80px;
+        padding: 0.75rem;
+    }
+    
+    .admin-icon {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .admin-btn {
+        padding: 0.5rem 1.25rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .welcome-section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .welcome-section h1 {
+        font-size: 1.4rem;
+    }
+    
+    .welcome-section p {
+        font-size: 0.9rem;
+    }
+    
+    .admin-card .card-body {
+        min-height: 70px;
+        padding: 0.5rem;
+    }
+    
+    .admin-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .admin-description {
+        font-size: 0.8rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .admin-btn {
+        padding: 0.4rem 1rem;
+        font-size: 0.85rem;
+        width: 100%;
+    }
+    
+    .notification-item {
+        margin-bottom: 0.5rem;
+    }
 }
 
 /* Estilos para las notificaciones */
 .bg-light-success {
-    background-color: #d4edda !important;
+    background-color: rgba(40, 167, 69, 0.15);
+    border: 1px solid rgba(40, 167, 69, 0.3);
 }
 
 .bg-light-danger {
-    background-color: #f8d7da !important;
+    background-color: rgba(220, 53, 69, 0.15);
+    border: 1px solid rgba(220, 53, 69, 0.3);
 }
 
 .bg-light-primary {
-    background-color: #cce5ff !important;
+    background-color: rgba(13, 110, 253, 0.15);
+    border: 1px solid rgba(13, 110, 253, 0.3);
 }
 
 .bg-light-warning {
-    background-color: #fff3cd !important;
+    background-color: rgba(255, 193, 7, 0.15);
+    border: 1px solid rgba(255, 193, 7, 0.3);
 }
 
 .notification-item {
     transition: all 0.3s ease;
+    color: var(--text-primary);
 }
 
 .notification-item:hover {
-    background-color: rgba(0,0,0,0.02) !important;
+    transform: translateX(5px);
+}
+
+.notification-item p {
+    color: var(--text-primary);
+}
+
+.notification-item small {
+    color: var(--text-muted);
 }
 
 .notifications-container {
     border-radius: 8px;
+    background: var(--card-bg);
 }
 
 .notifications-container::-webkit-scrollbar {
@@ -134,17 +278,17 @@
 }
 
 .notifications-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: var(--form-section-bg);
     border-radius: 3px;
 }
 
 .notifications-container::-webkit-scrollbar-thumb {
-    background: #888;
+    background: var(--border-color);
     border-radius: 3px;
 }
 
 .notifications-container::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: var(--text-muted);
 }
 </style>
 {% endblock %}
@@ -160,8 +304,8 @@
     <!-- Gestión de Turnos -->
     <div class="row mb-4">
         <div class="col-12">
-            <h3 class="text-primary mb-3">
-                <i class="fas fa-calendar-alt me-2"></i>Gestión de Turnos
+            <h3 class="admin-section-title mb-3">
+                <i class="fas fa-calendar-alt me-2" style="color: var(--text-primary);"></i>Gestión de Turnos
             </h3>
         </div>
         <div class="col-lg-4 col-md-6 mb-4">
@@ -221,8 +365,8 @@
     <!-- Bandeja de Entrada / Centro de Notificaciones -->
     <div class="row mb-4">
         <div class="col-12">
-            <h3 class="text-primary mb-3">
-                <i class="fas fa-inbox me-2"></i>Centro de Notificaciones
+            <h3 class="admin-section-title mb-3">
+                <i class="fas fa-inbox me-2" style="color: var(--text-primary);"></i>Centro de Notificaciones
             </h3>
         </div>
         
@@ -248,18 +392,18 @@
                                         <div class="notification-content">
                                             <p class="mb-1 fw-bold">
                                                 {% if notificacion.tipo == 'turno_reservado' %}
-                                                    <i class="fas fa-calendar-plus text-success me-1"></i>
+                                                    <i class="fas fa-calendar-plus me-1" style="color: #28a745;"></i>
                                                 {% elif notificacion.tipo == 'turno_cancelado' %}
-                                                    <i class="fas fa-calendar-times text-danger me-1"></i>
+                                                    <i class="fas fa-calendar-times me-1" style="color: #dc3545;"></i>
                                                 {% elif notificacion.tipo == 'turno_completado' %}
-                                                    <i class="fas fa-calendar-check text-primary me-1"></i>
+                                                    <i class="fas fa-calendar-check me-1" style="color: #0d6efd;"></i>
                                                 {% else %}
-                                                    <i class="fas fa-calendar-edit text-warning me-1"></i>
+                                                    <i class="fas fa-calendar-edit me-1" style="color: #ffc107;"></i>
                                                 {% endif %}
                                                 {{ notificacion.get_tipo_display }}
                                             </p>
                                             <p class="mb-1">{{ notificacion.get_mensaje_completo }}</p>
-                                            <small class="text-muted">
+                                            <small style="color: var(--text-muted);">
                                                 <i class="fas fa-clock me-1"></i>
                                                 {{ notificacion.fecha_creacion|date:"d/m/Y H:i" }}
                                             </small>
@@ -279,7 +423,7 @@
                         
                         {% if notificaciones_recientes|length >= 10 %}
                         <div class="text-center mt-3">
-                            <small class="text-muted">Mostrando las 10 notificaciones más recientes</small>
+                            <small style="color: var(--text-muted);">Mostrando las 10 notificaciones más recientes</small>
                         </div>
                         {% endif %}
                         
@@ -290,9 +434,9 @@
                         </div>
                     {% else %}
                         <div class="text-center py-4">
-                            <i class="fas fa-inbox text-muted" style="font-size: 3rem;"></i>
-                            <h5 class="mt-3 text-muted">No hay notificaciones nuevas</h5>
-                            <p class="text-muted">Las notificaciones aparecerán aquí cuando haya actividad en los turnos.</p>
+                            <i class="fas fa-inbox" style="font-size: 3rem; color: var(--text-muted);"></i>
+                            <h5 class="mt-3" style="color: var(--text-muted);">No hay notificaciones nuevas</h5>
+                            <p style="color: var(--text-muted);">Las notificaciones aparecerán aquí cuando haya actividad en los turnos.</p>
                             <a href="{% url 'listar-notificaciones' %}" class="btn btn-warning btn-sm mt-2">
                                 <i class="fas fa-list me-1"></i>Ver Historial de Notificaciones
                             </a>
@@ -308,8 +452,8 @@
     <!-- Gestión de Contenido -->
     <div class="row mb-4">
         <div class="col-12">
-            <h3 class="text-primary mb-3">
-                <i class="fas fa-edit me-2"></i>Gestión de Contenido
+            <h3 class="admin-section-title mb-3">
+                <i class="fas fa-edit me-2" style="color: var(--text-primary);"></i>Gestión de Contenido
             </h3>
         </div>
         
@@ -421,8 +565,8 @@
     <!-- Panel de Django Admin -->
     <div class="row mb-4">
         <div class="col-12">
-            <h3 class="text-primary mb-3">
-                <i class="fas fa-database me-2"></i>Administración Avanzada
+            <h3 class="admin-section-title mb-3">
+                <i class="fas fa-database me-2" style="color: var(--text-primary);"></i>Administración Avanzada
             </h3>
         </div>
         
@@ -445,8 +589,8 @@
     </div>
 
     <!-- Información adicional -->
-    <div class="alert alert-info mt-4">
-        <h5><i class="fas fa-info-circle me-2"></i>Información</h5>
+    <div class="admin-info mt-4">
+        <h6><i class="fas fa-info-circle me-2" style="color: var(--primary-color);"></i>Información</h6>
         <p class="mb-0">
             Desde este panel puedes gestionar todas las funciones administrativas de la barbería.
             Cada sección está diseñada para facilitar la gestión diaria del negocio.

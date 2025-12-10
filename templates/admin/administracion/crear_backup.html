@@ -1,0 +1,97 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | {{ site_title|default:"Django site admin" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Inicio</a>
+    &rsaquo; <a href="{% url 'admin:administracion_backupbasedatos_changelist' %}">Backups de Base de Datos</a>
+    &rsaquo; {{ title }}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="module aligned">
+    <h2>Crear Nuevo Backup de la Base de Datos</h2>
+    
+    <div class="form-row">
+        <div class="help">
+            <p><strong>⚠️ Importante:</strong> La creación de backups puede tomar varios minutos dependiendo del tamaño de la base de datos.</p>
+            <ul>
+                <li><strong>JSON:</strong> Exporta solo los datos en formato fixtures (ideal para migrar entre versiones de Django)</li>
+                <li><strong>SQLite:</strong> Copia completa de la base de datos (más rápido para restaurar)</li>
+                <li><strong>Completo:</strong> Incluye tanto JSON como SQLite en un archivo ZIP (recomendado)</li>
+            </ul>
+        </div>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <fieldset class="module aligned">
+            <div class="form-row">
+                <div>
+                    <label for="id_nombre" class="required">Nombre del backup:</label>
+                    <input type="text" name="nombre" id="id_nombre" required 
+                           value="Backup manual {{ now|date:'d/m/Y H:i' }}" class="vTextField">
+                    <p class="help">Nombre descriptivo para identificar este backup</p>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label for="id_tipo_backup" class="required">Tipo de backup:</label>
+                    <select name="tipo_backup" id="id_tipo_backup" class="vSelectField">
+                        <option value="full" selected>Completo (ZIP)</option>
+                        <option value="json">JSON (Fixtures)</option>
+                        <option value="sqlite">SQLite (Base de datos)</option>
+                    </select>
+                    <p class="help">Selecciona el formato del backup</p>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label for="id_incluir_media">
+                        <input type="checkbox" name="incluir_media" id="id_incluir_media">
+                        Incluir archivos media
+                    </label>
+                    <p class="help">⚠️ Incluir archivos media aumentará significativamente el tamaño del backup</p>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label for="id_descripcion">Descripción:</label>
+                    <textarea name="descripcion" id="id_descripcion" rows="3" cols="40" class="vLargeTextField"></textarea>
+                    <p class="help">Descripción opcional del contenido o propósito de este backup</p>
+                </div>
+            </div>
+        </fieldset>
+        
+        <div class="submit-row">
+            <input type="submit" value="Crear Backup" class="default" name="_save">
+            <a href="{% url 'admin:administracion_backupbasedatos_changelist' %}" class="button cancel-link">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = form.querySelector('input[type="submit"]');
+    
+    form.addEventListener('submit', function() {
+        submitButton.value = 'Creando backup...';
+        submitButton.disabled = true;
+        
+        // Mostrar mensaje de espera
+        const message = document.createElement('div');
+        message.className = 'messagelist';
+        message.innerHTML = '<div class="info">⏳ Creando backup, por favor espere...</div>';
+        form.insertBefore(message, form.firstChild);
+    });
+});
+</script>
+{% endblock %}

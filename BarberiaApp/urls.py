@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 from django.views.generic import TemplateView
-from usuarios.views import barberos_list, barbero_perfil, cargar_trabajo_barbero, eliminar_trabajo_barbero, registrar_barbero, editar_barbero, eliminar_barbero
+from usuarios.views import barberos_list, barbero_perfil, cargar_trabajo_barbero, eliminar_trabajo_barbero, registrar_barbero, editar_barbero, eliminar_barbero, reordenar_barberos
 from turnos.views import reservar_turno, reservar_turno_form
 from django.contrib.auth.views import LoginView, LogoutView
 from usuarios.views import perfil_usuario
@@ -27,6 +27,7 @@ from servicios import views as servicios_views
 from django.conf import settings
 from django.conf.urls.static import static
 from productos.models import Producto
+from productos.views import reordenar_productos
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from BarberiaApp.views import index, editar_carrusel, admin_panel
@@ -53,6 +54,7 @@ urlpatterns = [
     path('api/', include('administracion.urls')),
     path('barberos/', barberos_list, name='barberos-list'),
     path('barberos/<int:pk>/', barbero_perfil, name='barbero-perfil'),
+    path('barberos/reordenar/', reordenar_barberos, name='reordenar-barberos'),
     path('turnos/', reservar_turno_form, name='turnos-reserva-form'),
     path('perfil/', perfil_usuario, name='perfil-usuario'),
     path('turnos/reservar/<int:turno_id>/', reservar_turno, name='reservar-turno'),
@@ -70,10 +72,13 @@ urlpatterns = [
     path('barberos/<int:pk>/eliminar/', eliminar_barbero, name='eliminar-barbero'),
     path('usuarios/', include('usuarios.urls')),  # Asegura inclusión de rutas de usuarios
     path('productos/', productos_list, name='productos-list'),
+    path('productos/reordenar/', reordenar_productos, name='reordenar-productos'),
     path('administracion/', include('administracion.urls')),  # Asegura inclusión de rutas de administración
     path('carrusel/editar/', editar_carrusel, name='editar-carrusel'),
     path('admin-panel/', admin_panel, name='admin-panel'),
     path('cursos/', include('cursos.urls')),
+    path('test-navbar/', TemplateView.as_view(template_name='test_navbar.html'), name='test-navbar'),
+    path('debug-navbar/', TemplateView.as_view(template_name='debug_navbar_fixed.html'), name='debug-navbar'),
 ]
 
 # Servir archivos media solo en desarrollo

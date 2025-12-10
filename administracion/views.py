@@ -227,12 +227,23 @@ def cancelar_turno_admin(request):
 def cambiar_estado_turno_admin(request):
     turno_id = request.POST.get('turno_id')
     nuevo_estado = request.POST.get('estado')
+    
     if turno_id and nuevo_estado:
         from turnos.models import Turno
         turno = Turno.objects.filter(id=turno_id).first()
         if turno and turno.estado != nuevo_estado:
             turno.estado = nuevo_estado
             turno.save()
+            
+            # Si es una petición AJAX, responder con JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'nuevo_estado': nuevo_estado,
+                    'turno_id': turno_id
+                })
+    
+    # Para peticiones normales (no AJAX), mantener el redirect
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/administracion/turnos/'))
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -254,9 +265,9 @@ def archivar_turnos_vista(request):
             dias = request.POST.get('dias', 30)
             estados_seleccionados = request.POST.getlist('estados')
             
-            # Si no se seleccionó ningún estado, usar por defecto ocupado y completado
+            # Si no se seleccionó ningún estado, usar por defecto ocupado, completado y expirado
             if not estados_seleccionados:
-                estados_seleccionados = ['ocupado', 'completado']
+                estados_seleccionados = ['ocupado', 'completado', 'expirado']
             
             # Ejecutar el comando con los parámetros correctos
             call_command('archivar_turnos', 
@@ -284,8 +295,8 @@ def archivar_turnos_vista(request):
     
     estados_solicitados = request.GET.getlist('estados')
     if not estados_solicitados:
-        # Por defecto: ocupados, completados y cancelados (excluir disponibles)
-        estados_solicitados = ['ocupado', 'completado', 'cancelado']
+        # Por defecto: ocupados, completados, cancelados y expirados (excluir disponibles)
+        estados_solicitados = ['ocupado', 'completado', 'cancelado', 'expirado']
     
     fecha_limite = timezone.now() - timedelta(days=dias_solicitados)
     
@@ -307,87 +318,102 @@ def archivar_turnos_vista(request):
         'dias_por_defecto': dias_solicitados,
         'estados_seleccionados': estados_solicitados,
         'turnos_sample': turnos_expirados[:10],  # Muestra de 10 turnos
-        'todos_los_estados': ['disponible', 'ocupado', 'cancelado', 'completado']
+        'todos_los_estados': ['disponible', 'ocupado', 'cancelado', 'completado', 'expirado']
     }
     
     return render(request, 'archivar_turnos.html', context)
 
 @user_passes_test(lambda u: u.is_superuser)
 def listar_archivos_excel(request):
-    """Vista para listar todos los archivos Excel de turnos archivados"""
+    """Vista para listar todos los archivos Excel de turnos archivados desde la base de datos"""
+    from administracion.models import ArchivoExcel
+    
+    # Obtener archivos desde la base de datos
+    archivos_bd = ArchivoExcel.objects.all().order_by('-fecha_creacion')
+    
+    # Convertir a formato compatible con la plantilla
+    archivos_info = []
+    
+    for archivo in archivos_bd:
+        archivos_info.append({
+            'id': archivo.id,
+            'nombre': archivo.nombre_archivo,
+            'fecha_creacion': archivo.fecha_creacion,
+            'tamaño': archivo.tamaño_bytes,
+            'tamaño_mb': archivo.get_tamaño_mb(),
+            'tipo': archivo.get_tipo_archivo_display(),
+            'descripcion': archivo.descripcion or archivo.get_descripcion_completa(),
+            'cantidad_turnos': archivo.cantidad_turnos,
+            'periodo_inicio': archivo.fecha_periodo_inicio,
+            'periodo_fin': archivo.fecha_periodo_fin,
+            'version': archivo.version,
+            'tiene_archivo': archivo.has_archivo_excel(),
+        })
+    
+    # También obtener archivos locales si existen (para compatibilidad durante la transición)
     import os
     from datetime import datetime
     from django.conf import settings
     
     archivos_dir = os.path.join(settings.MEDIA_ROOT, 'archivos_turnos')
-    archivos_info = []
+    archivos_locales = []
     
     if os.path.exists(archivos_dir):
-        # Obtener todos los archivos .xlsx
         archivos = [f for f in os.listdir(archivos_dir) if f.endswith('.xlsx')]
         
         for archivo in archivos:
-            ruta_completa = os.path.join(archivos_dir, archivo)
-            
-            # Obtener información del archivo
-            stat = os.stat(ruta_completa)
-            fecha_creacion = datetime.fromtimestamp(stat.st_ctime)
-            tamaño = stat.st_size
-            
-            # Determinar tipo de archivo
-            if 'historial' in archivo.lower():
-                tipo = 'Historial Maestro'
-                descripcion = 'Archivo que contiene todos los turnos archivados históricamente'
-            else:
-                tipo = 'Archivo Individual'
-                # Extraer información del nombre si sigue nuestro formato
-                if '--' in archivo and archivo.count('--') >= 3:
-                    partes = archivo.replace('.xlsx', '').split('--')
-                    if len(partes) >= 4:
-                        descripcion = f"Archivado el {partes[1]} a las {partes[2].replace('-', ':')} - {partes[3]}"
-                    else:
-                        descripcion = 'Archivo de archivado individual'
-                else:
-                    descripcion = 'Archivo de archivado individual (formato anterior)'
-            
-            archivos_info.append({
-                'nombre': archivo,
-                'ruta_relativa': f'archivos_turnos/{archivo}',
-                'fecha_creacion': fecha_creacion,
-                'tamaño': tamaño,
-                'tamaño_mb': round(tamaño / (1024 * 1024), 2),
-                'tipo': tipo,
-                'descripcion': descripcion
-            })
-        
-        # Ordenar por fecha de creación (más reciente primero)
-        archivos_info.sort(key=lambda x: x['fecha_creacion'], reverse=True)
+            # Verificar si ya está en BD
+            if not ArchivoExcel.objects.filter(nombre_archivo=archivo).exists():
+                ruta_completa = os.path.join(archivos_dir, archivo)
+                stat = os.stat(ruta_completa)
+                fecha_creacion = datetime.fromtimestamp(stat.st_ctime)
+                
+                archivos_locales.append({
+                    'nombre': archivo,
+                    'ruta_relativa': f'archivos_turnos/{archivo}',
+                    'fecha_creacion': fecha_creacion,
+                    'tamaño': stat.st_size,
+                    'tamaño_mb': round(stat.st_size / (1024 * 1024), 2),
+                    'tipo': 'Historial Maestro' if 'historial' in archivo.lower() else 'Archivo Individual',
+                    'descripcion': 'Archivo local (no migrado a BD)',
+                    'es_local': True,
+                })
     
     context = {
         'archivos': archivos_info,
-        'total_archivos': len(archivos_info)
+        'archivos_locales': archivos_locales,
+        'total_archivos': len(archivos_info),
+        'total_locales': len(archivos_locales),
     }
     
     return render(request, 'listar_archivos_excel.html', context)
 
 @user_passes_test(lambda u: u.is_superuser)
 def descargar_archivo_excel(request, nombre_archivo):
-    """Vista para descargar un archivo Excel específico"""
+    """Vista para descargar un archivo Excel específico desde la base de datos o archivos locales"""
+    from django.http import Http404
+    from administracion.models import ArchivoExcel
+    
+    # Primero intentar desde la base de datos
+    try:
+        archivo_bd = ArchivoExcel.objects.get(nombre_archivo=nombre_archivo)
+        if archivo_bd.has_archivo_excel():
+            return archivo_bd.descargar_como_response()
+    except ArchivoExcel.DoesNotExist:
+        pass
+    
+    # Si no está en BD, intentar desde archivos locales (fallback)
     import os
-    from django.http import FileResponse, Http404
+    from django.http import FileResponse
     from django.conf import settings
     
-    # Construir la ruta del archivo
     archivo_path = os.path.join(settings.MEDIA_ROOT, 'archivos_turnos', nombre_archivo)
     
-    # Verificar que el archivo existe y es un Excel
-    if not os.path.exists(archivo_path) or not nombre_archivo.endswith('.xlsx'):
-        raise Http404("Archivo no encontrado")
-    
-    # Retornar el archivo como descarga
-    response = FileResponse(
-        open(archivo_path, 'rb'),
-        as_attachment=True,
+    if os.path.exists(archivo_path) and nombre_archivo.endswith('.xlsx'):
+        # Retornar el archivo local como descarga
+        response = FileResponse(
+            open(archivo_path, 'rb'),
+            as_attachment=True,
         filename=nombre_archivo,
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )

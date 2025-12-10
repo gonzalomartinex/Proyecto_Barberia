@@ -1,88 +1,471 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Perfil de {{ barbero.nombre }} | BarberíaApp{% endblock %}
+{% block title %}Perfil de {{ barbero.nombre }} | Cortes Con Historia{% endblock %}
+
+{% block extra_head %}
+<style>
+.barbero-profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+.barbero-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.barbero-header h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.barbero-subtitle {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+.profile-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px var(--card-shadow);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.barbero-image {
+    width: 100%;
+    max-width: 300px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 15px;
+    border: 4px solid var(--primary-color);
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.barbero-image:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+}
+
+.info-list {
+    background: var(--form-section-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.info-value {
+    color: var(--text-muted);
+}
+
+.redes-section {
+    background: var(--form-section-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.redes-title {
+    color: var(--text-primary);
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.red-social-link {
+    display: inline-block;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: #1565c0;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    text-decoration: none;
+    margin: 0.25rem;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.red-social-link:hover {
+    background: #1565c0;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(21, 101, 192, 0.3);
+}
+
+.admin-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.admin-btn {
+    border-radius: 25px;
+    font-weight: bold;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.admin-btn:hover {
+    transform: translateY(-2px);
+}
+
+.bio-section {
+    background: var(--form-section-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.bio-title {
+    color: var(--text-primary);
+    font-weight: bold;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.bio-text {
+    color: var(--text-primary);
+    line-height: 1.7;
+    word-break: break-word;
+    white-space: pre-line;
+    overflow-wrap: break-word;
+}
+
+.gallery-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px var(--card-shadow);
+    padding: 2rem;
+}
+
+.gallery-title {
+    color: var(--text-primary);
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.trabajo-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px var(--card-shadow);
+}
+
+.trabajo-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px var(--card-shadow);
+}
+
+.trabajo-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.trabajo-card:hover .trabajo-image {
+    transform: scale(1.05);
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .barbero-profile-container {
+        padding: 1.5rem 0;
+    }
+    
+    .barbero-header h1 {
+        font-size: 2.2rem;
+    }
+    
+    .profile-card {
+        padding: 1.5rem;
+    }
+    
+    .barbero-image {
+        max-width: 250px;
+        height: 250px;
+    }
+    
+    .bio-section,
+    .gallery-section {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .barbero-header h1 {
+        font-size: 2rem;
+    }
+    
+    .barbero-profile-container {
+        padding: 1rem 0;
+    }
+    
+    .profile-card {
+        padding: 1.25rem;
+    }
+    
+    .barbero-image {
+        max-width: 200px;
+        height: 200px;
+        margin: 0 auto 1.5rem;
+        display: block;
+    }
+    
+    .info-list {
+        padding: 1.25rem;
+    }
+    
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+    
+    .info-value {
+        margin-top: 0.25rem;
+    }
+    
+    .redes-section {
+        padding: 1.25rem;
+    }
+    
+    .red-social-link {
+        display: block;
+        margin: 0.5rem 0;
+    }
+    
+    .bio-section,
+    .gallery-section {
+        padding: 1.25rem;
+    }
+    
+    .trabajo-image {
+        height: 150px;
+    }
+}
+
+@media (max-width: 576px) {
+    .barbero-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .profile-card {
+        padding: 1rem;
+    }
+    
+    .barbero-image {
+        max-width: 150px;
+        height: 150px;
+    }
+    
+    .info-list {
+        padding: 1rem;
+    }
+    
+    .redes-section {
+        padding: 1rem;
+    }
+    
+    .bio-section,
+    .gallery-section {
+        padding: 1rem;
+    }
+    
+    .trabajo-image {
+        height: 120px;
+    }
+    
+    .admin-btn {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-md-4">
-        {% if barbero.foto %}
-        <img src="{{ barbero.foto.url }}" class="img-fluid rounded mb-3" alt="{{ barbero.nombre }}">
-        {% else %}
-        <img src="{% static 'Default/noimage.png' %}" class="img-fluid rounded mb-3" alt="{{ barbero.nombre }}">
-        {% endif %}
-        <ul class="list-group">
-            <li class="list-group-item"><strong>Nombre:</strong> {{ barbero.nombre }}</li>
-            {% if user.is_authenticated and user.is_staff %}
-                <li class="list-group-item"><strong>Fecha de nacimiento:</strong> {{ barbero.fecha_nacimiento }}</li>
-                <li class="list-group-item"><strong>Teléfono:</strong> {{ barbero.telefono }}</li>
-                <li class="list-group-item"><strong>DNI:</strong> {{ barbero.dni }}</li>
-            {% endif %}
-        </ul>
-        {% with redes=barbero.redes_sociales.all|dictsort:"orden" %}
-        {% if redes %}
-        <div class="text-center mt-3">
-            <h5 class="mb-2" style="font-weight:600;">Redes:</h5>
-            <ul class="list-unstyled">
-                {% for red in redes %}
-                <li class="mb-1">
-                    <a href="{{ red.url }}" target="_blank" rel="noopener" class="link-primary">
-                        {{ red.nombre|default:red.url }}
-                    </a>
-                </li>
-                {% endfor %}
-            </ul>
+<div class="container">
+    <div class="barbero-profile-container">
+        <div class="barbero-header">
+            <h1><i class="fas fa-user-tie me-2"></i>{{ barbero.nombre }}</h1>
+            <div class="barbero-subtitle">Perfil del Barbero</div>
         </div>
-        {% endif %}
-        {% endwith %}
-        {% if user.is_authenticated and user.is_staff %}
-        <a href="{% url 'gestionar-redes-barbero' barbero.id %}" class="btn btn-info w-100 mt-3">Gestionar redes sociales</a>
-        <a href="{% url 'editar-barbero' barbero.id %}" class="btn btn-warning w-100 mt-3">Editar información</a>
-        <a href="{% url 'eliminar-barbero' barbero.id %}" class="btn btn-danger w-100 mt-2">Eliminar barbero</a>
-        <a href="{% url 'cargar-trabajo-barbero' barbero.id %}" class="btn btn-success w-100 mt-2">Cargar imagen de trabajo</a>
-        {% endif %}
-    </div>
-    <div class="col-md-8">
-        <h2>{{ barbero.nombre }}</h2>
-        <div style="max-width: 800px;">
-          <p style="word-break: break-word; white-space: pre-line; overflow-wrap: break-word;">{{ barbero.bio }}</p>
-        </div>
-        <h4>Galería de trabajos</h4>
-        <div class="row g-3">
-            {% for trabajo in barbero.trabajos.all %}
-            <div class="col-6 col-md-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="ratio ratio-4x3 position-relative" style="overflow:hidden;cursor:pointer;">
-                        {% if user.is_authenticated and user.is_staff %}
-                        <a href="{{ trabajo.imagen.url }}" target="_blank" data-bs-toggle="modal" data-bs-target="#modalImagen{{ trabajo.id }}">
-                            <img src="{{ trabajo.imagen.url }}" class="card-img-top object-fit-cover" alt="Trabajo de {{ barbero.nombre }}" style="width:100%;height:100%;object-fit:cover;object-position:center;">
-                        </a>
-                        <!-- Modal -->
-                        <div class="modal fade" id="modalImagen{{ trabajo.id }}" tabindex="-1" aria-labelledby="modalLabel{{ trabajo.id }}" aria-hidden="true">
-                          <div class="modal-dialog modal-dialog-centered modal-lg">
-                            <div class="modal-content">
-                              <div class="modal-body p-0">
-                                <img src="{{ trabajo.imagen.url }}" class="w-100" style="object-fit:contain;max-height:70vh;">
-                              </div>
-                              <div class="modal-footer justify-content-between">
-                                <a href="{{ trabajo.imagen.url }}" target="_blank" class="btn btn-outline-secondary">Ver tamaño completo</a>
-                                <form method="post" action="{% url 'eliminar-trabajo-barbero' trabajo.id %}" onsubmit="return confirm('¿Seguro que deseas eliminar esta imagen?');">
-                                  {% csrf_token %}
-                                  <button type="submit" class="btn btn-danger">Eliminar</button>
-                                </form>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+        
+        <div class="row">
+            <div class="col-12 col-lg-4">
+                <div class="profile-card">
+                    <div class="text-center">
+                        {% if barbero.foto %}
+                            <img src="{{ barbero.foto }}" class="barbero-image" alt="{{ barbero.nombre }}">
                         {% else %}
-                        <img src="{{ trabajo.imagen.url }}" class="card-img-top object-fit-cover" alt="Trabajo de {{ barbero.nombre }}" style="width:100%;height:100%;object-fit:cover;object-position:center;">
+                            <img src="{% static 'Default/noimage.png' %}" class="barbero-image" alt="{{ barbero.nombre }}">
                         {% endif %}
+                    </div>
+                    
+                    <div class="info-list">
+                        <div class="info-item">
+                            <span class="info-label"><i class="fas fa-user me-2"></i>Nombre:</span>
+                            <span class="info-value">{{ barbero.nombre }}</span>
+                        </div>
+                        {% if user.is_authenticated and user.is_staff %}
+                            <div class="info-item">
+                                <span class="info-label"><i class="fas fa-calendar me-2"></i>Fecha de nacimiento:</span>
+                                <span class="info-value">{{ barbero.fecha_nacimiento }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label"><i class="fas fa-phone me-2"></i>Teléfono:</span>
+                                <span class="info-value">{{ barbero.telefono }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label"><i class="fas fa-id-card me-2"></i>DNI:</span>
+                                <span class="info-value">{{ barbero.dni }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% with redes=barbero.redes_sociales.all|dictsort:"orden" %}
+                    {% if redes %}
+                    <div class="redes-section">
+                        <h5 class="redes-title"><i class="fas fa-share-alt me-2"></i>Redes Sociales</h5>
+                        {% for red in redes %}
+                            <a href="{{ red.url }}" target="_blank" rel="noopener" class="red-social-link">
+                                <i class="fas fa-external-link-alt me-1"></i>{{ red.nombre|default:red.url }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                    
+                    {% if user.is_authenticated and user.is_staff %}
+                    <div class="admin-actions">
+                        <a href="{% url 'gestionar-redes-barbero' barbero.id %}" class="btn btn-info admin-btn">
+                            <i class="fas fa-share-alt me-2"></i>Gestionar redes sociales
+                        </a>
+                        <a href="{% url 'editar-barbero' barbero.id %}" class="btn btn-warning admin-btn">
+                            <i class="fas fa-edit me-2"></i>Editar información
+                        </a>
+                        <a href="{% url 'eliminar-barbero' barbero.id %}" class="btn btn-danger admin-btn">
+                            <i class="fas fa-trash me-2"></i>Eliminar barbero
+                        </a>
+                        <a href="{% url 'cargar-trabajo-barbero' barbero.id %}" class="btn btn-success admin-btn">
+                            <i class="fas fa-plus me-2"></i>Cargar imagen de trabajo
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-12 col-lg-8">
+                <div class="bio-section">
+                    <h4 class="bio-title"><i class="fas fa-info-circle me-2"></i>Biografía</h4>
+                    <div class="bio-text">{{ barbero.bio }}</div>
+                </div>
+                
+                <div class="gallery-section">
+                    <h4 class="gallery-title"><i class="fas fa-images me-2"></i>Galería de trabajos</h4>
+                    <div class="row g-3">
+                        {% for trabajo in barbero.trabajos.all %}
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="trabajo-card card h-100">
+                                <div class="position-relative" style="overflow:hidden;cursor:pointer;">
+                                    {% if user.is_authenticated and user.is_staff %}
+                                    <div onclick="openImageModal({{ trabajo.id }}, '{{ trabajo.imagen|escapejs }}')">
+                                        <img src="{{ trabajo.imagen }}" class="trabajo-image" alt="Trabajo de {{ barbero.nombre }}" loading="lazy">
+                                    </div>
+                                    {% else %}
+                                    <img src="{{ trabajo.imagen }}" class="trabajo-image" alt="Trabajo de {{ barbero.nombre }}" loading="lazy">
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="text-center py-5">
+                                <i class="fas fa-images fa-3x mb-3" style="color: var(--text-muted);"></i>
+                                <h5 style="color: var(--text-muted);">No hay trabajos cargados aún</h5>
+                                <p style="color: var(--text-muted);">Las imágenes de trabajos aparecerán aquí cuando se carguen.</p>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
-            {% empty %}
-            <div class="col-12 text-muted">No hay trabajos cargados aún.</div>
-            {% endfor %}
         </div>
     </div>
 </div>
+
+<!-- Modal único para todas las imágenes -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background: var(--card-bg); border: 1px solid var(--border-color);">
+            <div class="modal-body p-0">
+                <img id="modalImage" src="" class="w-100" style="object-fit:contain;max-height:70vh;">
+            </div>
+            <div class="modal-footer justify-content-between" style="border-color: var(--border-color);">
+                <a id="modalImageLink" href="#" target="_blank" class="btn btn-outline-secondary">Ver tamaño completo</a>
+                <form id="deleteForm" method="post" action="" onsubmit="return confirm('¿Seguro que deseas eliminar esta imagen?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openImageModal(trabajoId, imagenSrc) {
+    // Actualizar la imagen del modal
+    const modalImage = document.getElementById('modalImage');
+    const modalImageLink = document.getElementById('modalImageLink');
+    const deleteForm = document.getElementById('deleteForm');
+    
+    modalImage.src = imagenSrc;
+    modalImageLink.href = imagenSrc;
+    deleteForm.action = '/barberos/trabajo/' + trabajoId + '/eliminar/';
+    
+    // Mostrar el modal
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+}
+</script>
+
 {% endblock %}

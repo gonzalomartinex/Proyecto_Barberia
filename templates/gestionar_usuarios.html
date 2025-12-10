@@ -5,23 +5,24 @@
 <style>
 .usuario-card {
     transition: all 0.3s ease;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
     cursor: pointer;
     text-decoration: none;
-    color: inherit;
+    color: var(--text-primary);
 }
 
 .usuario-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    border-color: #ffd700;
+    box-shadow: 0 4px 15px var(--card-shadow);
+    border-color: var(--accent-color);
     text-decoration: none;
-    color: inherit;
+    color: var(--text-primary);
 }
 
 a.usuario-card:hover {
     text-decoration: none;
-    color: inherit;
+    color: var(--text-primary);
 }
 
 .foto-usuario {
@@ -84,10 +85,148 @@ a.usuario-card:hover {
 }
 
 .filtros-section {
-    background-color: #f8f9fa;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
     padding: 1.5rem;
     border-radius: 10px;
     margin-bottom: 2rem;
+}
+
+/* Estilos para modo oscuro en filtros */
+.filtros-section h5 {
+    color: var(--text-primary);
+}
+
+.filtros-section .form-label {
+    color: var(--text-primary);
+}
+
+.filtros-section .form-control,
+.filtros-section .form-select {
+    background-color: var(--form-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.filtros-section .form-control:focus,
+.filtros-section .form-select:focus {
+    background-color: var(--form-bg);
+    border-color: var(--accent-color);
+    color: var(--text-primary);
+    box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+}
+
+.filtros-section .form-control::placeholder {
+    color: var(--text-muted);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .stats-number {
+        font-size: 1.8rem;
+    }
+    
+    .stats-label {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .container-fluid {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .stats-card {
+        margin-bottom: 0.75rem;
+    }
+    
+    .filtros-section {
+        padding: 1.25rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-number {
+        font-size: 1.5rem;
+    }
+    
+    .stats-label {
+        font-size: 0.8rem;
+    }
+    
+    .filtros-section {
+        padding: 1rem;
+    }
+    
+    .filtros-section .row.g-3 {
+        margin: 0;
+    }
+    
+    .filtros-section .col-md-3,
+    .filtros-section .col-md-2 {
+        padding: 0.25rem;
+    }
+    
+    .usuario-card .card-body {
+        padding: 0.75rem;
+    }
+    
+    .foto-usuario {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .contador-faltas {
+        font-size: 0.8rem;
+        padding: 0.2rem 0.4rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .filtros-section {
+        padding: 0.75rem;
+    }
+    
+    .filtros-section h5 {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn.me-2 {
+        margin-right: 0 !important;
+    }
+    
+    .usuario-card .d-flex {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .usuario-card .me-3 {
+        margin-right: 0 !important;
+        margin-bottom: 1rem;
+        align-self: center;
+    }
+    
+    .usuario-card .flex-grow-1 {
+        text-align: left;
+    }
+    
+    .alert {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
 }
 </style>
 {% endblock %}
@@ -215,7 +354,7 @@ a.usuario-card:hover {
                                     </span>
                                 </div>
                                 <div class="mt-2">
-                                    <small class="text-muted">
+                                    <small style="color: var(--text-muted);">
                                         <i class="fas fa-calendar"></i> 
                                         Registrado: {{ usuario.fecha_registro|date:"d/m/Y" }}
                                     </small>

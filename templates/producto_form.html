@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container mt-4">
   <h2>{% if object %}Editar Producto{% else %}Agregar Producto{% endif %}</h2>
-  <form method="post" enctype="multipart/form-data" class="p-4 rounded shadow-sm bg-white" style="max-width: 500px; margin: auto;">
+  <form method="post" enctype="multipart/form-data" class="p-4 rounded shadow-sm" style="max-width: 500px; margin: auto; background: var(--card-bg);">
     {% csrf_token %}
     {% for field in form %}
       <div class="mb-3">

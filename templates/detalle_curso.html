@@ -1,91 +1,386 @@
 {% extends 'base.html' %}
 {% block title %}{{ curso.titulo }} | Cortes Con Historia{% endblock %}
 
+{% block extra_head %}
+<style>
+.course-detail-container {
+    padding: 2rem 0;
+}
+
+.course-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px var(--card-shadow);
+}
+
+.course-image {
+    height: 400px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.course-placeholder {
+    height: 400px;
+    background: var(--form-section-bg);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.course-content {
+    padding: 2.5rem;
+}
+
+.course-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.course-description h5 {
+    color: var(--text-primary);
+}
+
+.course-divider {
+    border: none;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    margin: 1.5rem auto;
+    width: 25%;
+}
+
+.info-box {
+    background: var(--form-section-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 1.5rem;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.info-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px var(--card-shadow);
+}
+
+.info-box h5 {
+    color: var(--text-primary);
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.info-box h5 i {
+    color: var(--primary-color);
+    margin-right: 0.5rem;
+}
+
+.info-box p {
+    color: var(--text-primary);
+}
+
+.price-box {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #ffed4a 100%);
+    color: #222;
+    text-align: center;
+    border-radius: 15px;
+    padding: 2rem;
+    margin: 2rem 0;
+}
+
+.price-box h5 {
+    color: #222;
+    font-weight: bold;
+}
+
+.price-box .h4 {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.description-box {
+    background: var(--form-section-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 2rem;
+    margin: 2rem 0;
+}
+
+.description-box h5 {
+    color: var(--text-primary);
+}
+
+.description-box p {
+    line-height: 1.8;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.stats-box {
+    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.inscription-section {
+    text-align: center;
+    padding: 2rem;
+    background: var(--form-section-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    margin: 2rem 0;
+}
+
+.btn-course {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-course:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.btn-success.btn-course {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.btn-danger.btn-course {
+    background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+}
+
+.admin-section {
+    background: var(--form-section-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.admin-section h5 {
+    color: var(--text-primary);
+}
+
+.course-description h5 {
+    color: var(--text-primary);
+}
+
+.emails-list {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .course-title {
+        font-size: 2.2rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .course-title {
+        font-size: 2rem;
+    }
+    
+    .course-image,
+    .course-placeholder {
+        height: 350px;
+    }
+    
+    .course-content {
+        padding: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .course-detail-container {
+        padding: 1rem 0;
+    }
+    
+    .course-title {
+        font-size: 1.8rem;
+    }
+    
+    .course-image,
+    .course-placeholder {
+        height: 300px;
+    }
+    
+    .course-content {
+        padding: 1.5rem;
+    }
+    
+    .info-box {
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    
+    .price-box {
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+    }
+    
+    .price-box .h4 {
+        font-size: 2rem;
+    }
+    
+    .description-box {
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+    }
+    
+    .inscription-section {
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+    }
+    
+    .btn-course {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .course-title {
+        font-size: 1.5rem;
+    }
+    
+    .course-image,
+    .course-placeholder {
+        height: 250px;
+    }
+    
+    .course-content {
+        padding: 1rem;
+    }
+    
+    .info-box {
+        padding: 1rem;
+    }
+    
+    .price-box {
+        padding: 1rem;
+    }
+    
+    .price-box .h4 {
+        font-size: 1.8rem;
+    }
+    
+    .description-box {
+        padding: 1rem;
+    }
+    
+    .inscription-section {
+        padding: 1rem;
+    }
+    
+    .btn-course {
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <div class="card shadow-lg">
+<div class="container course-detail-container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-8">
+            <div class="card course-card">
                 {% if curso.imagen %}
-                    <img src="{{ curso.imagen.url }}" class="card-img-top" style="height: 400px; object-fit: cover;" alt="{{ curso.titulo }}">
+                    <img src="{{ curso.imagen }}" class="course-image" alt="{{ curso.titulo }}">
                 {% else %}
-                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 400px;">
-                        <i class="fas fa-graduation-cap fa-5x text-muted"></i>
+                    <div class="course-placeholder">
+                        <i class="fas fa-graduation-cap fa-5x" style="color: var(--text-muted);"></i>
                     </div>
                 {% endif %}
                 
-                <div class="card-body">
-                    <div class="text-center mb-4">
-                        <h1 class="card-title text-primary">{{ curso.titulo }}</h1>
-                        <hr class="w-25 mx-auto" style="border: 2px solid #ffd700;">
+                <div class="course-content">
+                    <div class="text-center">
+                        <h1 class="course-title">{{ curso.titulo }}</h1>
+                        <hr class="course-divider">
                     </div>
                     
                     <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="info-box p-3 bg-light rounded">
-                                <h5 class="text-primary"><i class="fas fa-calendar-alt"></i> Fecha del Curso</h5>
+                        <div class="col-12 col-md-6 mb-3 mb-md-0">
+                            <div class="info-box">
+                                <h5><i class="fas fa-calendar-alt"></i>Fecha del Curso</h5>
                                 <p class="mb-0 h6">{{ curso.dia_formateado }}</p>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="info-box p-3 bg-light rounded">
-                                <h5 class="text-primary"><i class="fas fa-clock"></i> Horario</h5>
+                        <div class="col-12 col-md-6">
+                            <div class="info-box">
+                                <h5><i class="fas fa-clock"></i>Horario</h5>
                                 <p class="mb-0 h6">{{ curso.hora|time:"H:i" }} hrs</p>
                             </div>
                         </div>
                     </div>
                     
                     {% if curso.precio %}
-                    <div class="row mb-4">
-                        <div class="col-md-12">
-                            <div class="info-box p-3 bg-warning rounded text-center">
-                                <h5 class="text-dark"><i class="fas fa-tag"></i> Precio del Curso</h5>
-                                <p class="mb-0 h4 text-dark">${{ curso.precio|floatformat:0 }}</p>
-                            </div>
-                        </div>
+                    <div class="price-box">
+                        <h5><i class="fas fa-tag"></i> Precio del Curso</h5>
+                        <p class="mb-0 h4">${{ curso.precio|floatformat:0 }}</p>
                     </div>
                     {% endif %}
                     
                     <div class="course-description">
-                        <h5 class="text-primary mb-3"><i class="fas fa-info-circle"></i> Descripción del Curso</h5>
-                        <div class="p-3 border rounded bg-light">
-                            <p class="mb-0" style="line-height: 1.8; white-space: pre-line;">{{ curso.descripcion }}</p>
+                        <h5 class="text-center mb-3"><i class="fas fa-info-circle"></i> Descripción del Curso</h5>
+                        <div class="description-box">
+                            <p class="mb-0">{{ curso.descripcion }}</p>
                         </div>
                     </div>
                     
                     <!-- Información de inscriptos -->
-                    <div class="mt-4">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="info-box p-3 bg-info text-white rounded">
-                                    <h6><i class="fas fa-users"></i> Inscriptos</h6>
-                                    <p class="mb-0 h5" id="total-inscriptos">{{ total_inscriptos }} persona{{ total_inscriptos|pluralize }}</p>
-                                </div>
+                    <div class="row">
+                        <div class="col-12 col-md-6 mx-auto">
+                            <div class="stats-box">
+                                <h6><i class="fas fa-users"></i> Inscriptos</h6>
+                                <p class="mb-0 h5" id="total-inscriptos">{{ total_inscriptos }} persona{{ total_inscriptos|pluralize }}</p>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Botones de inscripción para usuarios autenticados -->
                     {% if user.is_authenticated and not user.is_superuser %}
-                        <div class="text-center mt-4 mb-4">
+                        <div class="inscription-section">
                             {% if curso_ya_paso %}
-                                <div class="alert alert-warning" role="alert">
-                                    <i class="fas fa-clock"></i> Este curso ya ha finalizado
+                                <div style="background: rgba(255, 193, 7, 0.1); border: 2px solid #ffc107; border-radius: 10px; padding: 1rem; color: var(--text-primary);" role="alert">
+                                    <i class="fas fa-clock" style="color: #ffc107;"></i> Este curso ya ha finalizado
                                 </div>
-                                <button class="btn btn-secondary btn-lg" disabled>
+                                <button style="background: var(--form-section-bg); border: 1px solid var(--border-color); color: var(--text-muted); cursor: not-allowed;" class="btn btn-course" disabled>
                                     <i class="fas fa-clock"></i> Curso Finalizado
                                 </button>
                             {% else %}
                                 <div id="inscripcion-buttons">
                                     {% if esta_inscripto %}
-                                        <button class="btn btn-danger btn-lg" onclick="desinscribirse({{ curso.pk }})">
+                                        <button class="btn btn-danger btn-course" onclick="desinscribirse({{ curso.pk }})">
                                             <i class="fas fa-user-minus"></i> Desinscribirse del Curso
                                         </button>
-                                        <p class="text-success mt-2">
+                                        <p style="color: #28a745; margin-top: 1rem;">
                                             <i class="fas fa-check-circle"></i> Ya estás inscripto en este curso
                                         </p>
                                     {% else %}
-                                        <button class="btn btn-success btn-lg" onclick="inscribirse({{ curso.pk }})">
+                                        <button class="btn btn-success btn-course" onclick="inscribirse({{ curso.pk }})">
                                             <i class="fas fa-user-plus"></i> Inscribirse al Curso
                                         </button>
                                     {% endif %}
@@ -96,27 +391,32 @@
                     
                     <!-- Lista de emails para administradores -->
                     {% if user.is_authenticated and user.is_superuser and emails_inscriptos %}
-                        <div class="mt-4">
-                            <div class="card border-warning">
-                                <div class="card-header bg-warning text-dark">
+                        <div class="admin-section">
+                            <div style="background: var(--card-bg); border: 2px solid var(--primary-color); border-radius: 15px; overflow: hidden;">
+                                <div style="background: var(--primary-color); color: #222; padding: 1rem;">
                                     <h5 class="mb-0">
                                         <i class="fas fa-envelope"></i> Emails de Inscriptos 
-                                        <span class="badge bg-dark">{{ emails_inscriptos|length }}</span>
+                                        <span style="background: rgba(0,0,0,0.2); color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">{{ emails_inscriptos|length }}</span>
                                     </h5>
                                 </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        {% for email in emails_inscriptos %}
-                                            <div class="col-md-6 mb-2">
-                                                <span class="badge bg-light text-dark p-2">
-                                                    <i class="fas fa-envelope me-1"></i>{{ email }}
-                                                </span>
-                                            </div>
-                                        {% endfor %}
+                                <div style="padding: 1.5rem;">
+                                    <div class="emails-list">
+                                        <div class="row">
+                                            {% for email in emails_inscriptos %}
+                                                <div class="col-12 col-md-6 mb-2">
+                                                    <span style="background: var(--form-section-bg); color: var(--text-primary); border: 1px solid var(--border-color); padding: 0.5rem; border-radius: 8px; display: block; width: 100%; font-size: 0.9rem;">
+                                                        <i class="fas fa-envelope me-1" style="color: var(--primary-color);"></i>{{ email }}
+                                                    </span>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
                                     </div>
-                                    <hr>
+                                    <hr style="border-color: var(--border-color);">
                                     <div class="text-center">
-                                        <button class="btn btn-outline-warning btn-sm" onclick="copiarEmails()">
+                                        <button style="background: transparent; border: 2px solid var(--primary-color); color: var(--primary-color); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; transition: all 0.3s ease;" 
+                                                class="copy-emails-btn" onclick="copiarEmails()" 
+                                                onmouseover="this.style.background='var(--primary-color)'; this.style.color='#222';"
+                                                onmouseout="this.style.background='transparent'; this.style.color='var(--primary-color)';">
                                             <i class="fas fa-copy"></i> Copiar todos los emails
                                         </button>
                                     </div>
@@ -126,18 +426,12 @@
                     {% endif %}
                     
                     <div class="text-center mt-4">
-                        <a href="{% url 'cursos-list' %}" class="btn btn-outline-primary btn-lg me-3">
+                        <a href="{% url 'cursos-list' %}" style="background: transparent; border: 2px solid var(--primary-color); color: var(--primary-color); text-decoration: none; transition: all 0.3s ease;" 
+                           class="btn btn-course"
+                           onmouseover="this.style.background='var(--primary-color)'; this.style.color='#222';"
+                           onmouseout="this.style.background='transparent'; this.style.color='var(--primary-color)';">
                             <i class="fas fa-arrow-left"></i> Volver a Cursos
                         </a>
-                        
-                        {% if user.is_authenticated and user.is_superuser %}
-                            <a href="{% url 'editar-curso' curso.pk %}" class="btn btn-warning me-2">
-                                <i class="fas fa-edit"></i> Editar
-                            </a>
-                            <a href="{% url 'eliminar-curso' curso.pk %}" class="btn btn-danger">
-                                <i class="fas fa-trash"></i> Eliminar
-                            </a>
-                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -145,40 +439,6 @@
     </div>
 </div>
 
-<style>
-.info-box {
-    border: 1px solid #e0e0e0;
-    transition: transform 0.2s ease;
-}
-
-.info-box:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.course-description {
-    margin-top: 2rem;
-}
-
-.text-primary {
-    color: #ffd700 !important;
-}
-
-.btn-outline-primary {
-    border-color: #ffd700;
-    color: #ffd700;
-}
-
-.btn-outline-primary:hover {
-    background-color: #ffd700;
-    border-color: #ffd700;
-    color: #000;
-}
-
-.badge {
-    font-size: 0.9em;
-}
-</style>
 
 <script>
 function inscribirse(cursoId) {
@@ -207,7 +467,7 @@ function inscribirse(cursoId) {
             
             // Agregar mensaje de éxito
             const container = document.getElementById('inscripcion-buttons');
-            container.innerHTML += '<p class="text-success mt-2"><i class="fas fa-check-circle"></i> Ya estás inscripto en este curso</p>';
+            container.innerHTML += '<p style="color: #28a745; margin-top: 1rem;"><i class="fas fa-check-circle"></i> Ya estás inscripto en este curso</p>';
             
             // Actualizar contador
             document.getElementById('total-inscriptos').textContent = `${data.total_inscriptos} persona${data.total_inscriptos !== 1 ? 's' : ''}`;
@@ -256,7 +516,7 @@ function desinscribirse(cursoId) {
             button.innerHTML = '<i class="fas fa-user-plus"></i> Inscribirse al Curso';
             
             // Quitar mensaje de inscripto
-            const successMsg = document.querySelector('.text-success');
+            const successMsg = document.querySelector('p[style*="color: #28a745"]');
             if (successMsg) {
                 successMsg.remove();
             }
@@ -301,11 +561,31 @@ function copiarEmails() {
 function mostrarMensaje(mensaje, tipo) {
     // Crear elemento de mensaje
     const alert = document.createElement('div');
-    alert.className = `alert alert-${tipo === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
-    alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    const bgColor = tipo === 'success' ? 'rgba(40, 167, 69, 0.15)' : 'rgba(220, 53, 69, 0.15)';
+    const borderColor = tipo === 'success' ? '#28a745' : '#dc3545';
+    const textColor = tipo === 'success' ? '#28a745' : '#dc3545';
+    
+    alert.style.cssText = `
+        position: fixed; 
+        top: 20px; 
+        right: 20px; 
+        z-index: 9999; 
+        min-width: 300px;
+        background: ${bgColor};
+        border: 2px solid ${borderColor};
+        color: ${textColor};
+        padding: 1rem;
+        border-radius: 10px;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `;
     alert.innerHTML = `
-        ${mensaje}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span>${mensaje}</span>
+            <button type="button" style="background: none; border: none; font-size: 1.2rem; color: ${textColor}; cursor: pointer; margin-left: 1rem;" onclick="this.parentElement.parentElement.remove()">
+                ×
+            </button>
+        </div>
     `;
     
     document.body.appendChild(alert);

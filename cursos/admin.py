@@ -1,8 +1,10 @@
 from django.contrib import admin
 from .models import Curso, InscripcionCurso
+from utils.forms import CursoForm
 
 @admin.register(Curso)
 class CursoAdmin(admin.ModelAdmin):
+    form = CursoForm
     list_display = ('titulo', 'dia', 'hora', 'total_inscriptos', 'estado_curso')
     list_filter = ('dia',)
     search_fields = ('titulo', 'descripcion')
@@ -13,10 +15,13 @@ class CursoAdmin(admin.ModelAdmin):
     total_inscriptos.short_description = 'Inscriptos'
     
     def estado_curso(self, obj):
-        if obj.curso_pasado():
-            return "✅ Finalizado"
-        else:
-            return "🟡 Activo"
+        try:
+            if obj.pk and obj.curso_pasado():  # Solo verificar si el objeto ya está guardado
+                return "✅ Finalizado"
+            else:
+                return "🟡 Activo"
+        except (AttributeError, TypeError, ValueError):
+            return "⚪ Pendiente"
     estado_curso.short_description = 'Estado'
 
 @admin.register(InscripcionCurso)

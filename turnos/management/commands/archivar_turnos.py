@@ -1,11 +1,14 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from django.db import models
 from datetime import datetime, timedelta
 from turnos.models import Turno
 import pandas as pd
 import os
 from django.conf import settings
 from pathlib import Path
+from administracion.models import ArchivoExcel
+from utils.binary_excel_fields import store_excel_file
 
 class Command(BaseCommand):
     help = 'Archiva turnos expirados en Excel y los elimina de la base de datos'
@@ -220,8 +223,72 @@ class Command(BaseCommand):
                 self.style.SUCCESS(f'Archivo individual creado: {ruta_archivo}')
             )
             
-            # Eliminar turnos de la base de datos
+            # === OBTENER METADATOS ANTES DE ELIMINAR ===
+            # Determinar rango de fechas y cantidad ANTES de eliminar
+            fecha_inicio = turnos_expirados.aggregate(min_fecha=models.Min('fecha_hora'))['min_fecha']
+            fecha_fin = turnos_expirados.aggregate(max_fecha=models.Max('fecha_hora'))['max_fecha']
             cantidad_eliminados = turnos_expirados.count()
+            
+            # === GUARDAR ARCHIVOS EN BASE DE DATOS ===
+            try:
+                # 1. Guardar archivo individual en BD
+                if ruta_archivo.exists():
+                    with open(ruta_archivo, 'rb') as f:
+                        archivo_base64 = store_excel_file(f.read(), ruta_archivo.name)
+                    
+                    archivo_individual = ArchivoExcel.objects.create(
+                        nombre_archivo=ruta_archivo.name,
+                        tipo_archivo=ArchivoExcel.TIPO_INDIVIDUAL,
+                        archivo_excel=archivo_base64,
+                        cantidad_turnos=cantidad_eliminados,
+                        fecha_periodo_inicio=fecha_inicio.date() if fecha_inicio else None,
+                        fecha_periodo_fin=fecha_fin.date() if fecha_fin else None,
+                        descripcion=f"Archivado automático del {fecha_inicio.strftime('%d/%m/%Y') if fecha_inicio else 'N/A'} al {fecha_fin.strftime('%d/%m/%Y') if fecha_fin else 'N/A'} - {cantidad_eliminados} turnos"
+                    )
+                    
+                    self.stdout.write(
+                        self.style.SUCCESS(f'✅ Archivo individual guardado en BD (ID: {archivo_individual.id})')
+                    )
+                
+                # 2. Guardar archivo maestro en BD
+                if archivo_maestro.exists():
+                    with open(archivo_maestro, 'rb') as f:
+                        maestro_base64 = store_excel_file(f.read(), archivo_maestro.name)
+                    
+                    # Verificar si ya existe un archivo maestro en BD
+                    archivo_maestro_bd, created = ArchivoExcel.objects.get_or_create(
+                        nombre_archivo=archivo_maestro.name,
+                        tipo_archivo=ArchivoExcel.TIPO_HISTORIAL,
+                        defaults={
+                            'archivo_excel': maestro_base64,
+                            'descripcion': 'Historial maestro de todos los turnos archivados',
+                            'archivo_padre': archivo_individual if 'archivo_individual' in locals() else None,
+                        }
+                    )
+                    
+                    if not created:
+                        # Actualizar archivo maestro existente
+                        archivo_maestro_bd.archivo_excel = maestro_base64
+                        archivo_maestro_bd.fecha_creacion = timezone.now()
+                        archivo_maestro_bd.save()
+                        
+                        self.stdout.write(
+                            self.style.SUCCESS(f'✅ Archivo maestro actualizado en BD (ID: {archivo_maestro_bd.id})')
+                        )
+                    else:
+                        self.stdout.write(
+                            self.style.SUCCESS(f'✅ Archivo maestro creado en BD (ID: {archivo_maestro_bd.id})')
+                        )
+                        
+            except Exception as e:
+                self.stdout.write(
+                    self.style.WARNING(f'⚠️  Error guardando archivos en BD: {str(e)}')
+                )
+                self.stdout.write(
+                    self.style.WARNING('Los archivos locales se crearon correctamente.')
+                )
+            
+            # Eliminar turnos de la base de datos
             turnos_expirados.delete()
             
             self.stdout.write(

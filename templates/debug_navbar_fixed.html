@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Debug Navbar Fixed{% endblock %}
+
+{% block extra_head %}
+<style>
+    .debug-info {
+        position: fixed;
+        top: 80px;
+        right: 10px;
+        background: #fff;
+        padding: 15px;
+        border: 2px solid #333;
+        border-radius: 5px;
+        font-family: monospace;
+        font-size: 12px;
+        z-index: 9999;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        max-width: 250px;
+    }
+    
+    .test-content {
+        margin-top: 100px;
+        padding: 20px;
+        text-align: center;
+    }
+    
+    /* Override para asegurar que el collapse funcione */
+    .navbar-collapse {
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
+        background: #222 !important;
+        z-index: 1000 !important;
+        padding: 1rem !important;
+        display: none !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+        border-top: 1px solid #333 !important;
+    }
+    
+    .navbar-collapse.show {
+        display: block !important;
+    }
+    
+    .navbar-collapse .navbar-menu {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        display: flex !important;
+    }
+    
+    .navbar-collapse .navbar-menu button {
+        width: 100% !important;
+        text-align: left !important;
+        padding: 0.75rem 1rem !important;
+        border-radius: 4px !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="debug-info">
+    <strong>🔧 DEBUG NAVBAR:</strong><br>
+    Screen: <span id="screenWidth"></span>px<br>
+    Toggle visible: <span id="toggleVisible"></span><br>
+    Menu open: <span id="menuVisible"></span><br>
+    <hr style="margin: 8px 0;">
+    <button class="btn btn-sm btn-primary" onclick="forceToggle()">Toggle</button><br>
+    <button class="btn btn-sm btn-secondary mt-1" onclick="updateDebug()">Update</button>
+</div>
+
+<div class="test-content">
+    <h1>🔧 Debug Navbar - Versión Corregida</h1>
+    <p>Esta página tiene CSS override para forzar que la navbar funcione.</p>
+    
+    <div class="alert alert-warning">
+        <strong>Instrucciones:</strong><br>
+        1. Redimensiona la ventana a menos de 992px<br>
+        2. Debe aparecer el botón ☰ en la navbar<br>
+        3. Haz clic en ☰ para abrir/cerrar el menú<br>
+        4. Usa los botones de debug para diagnosticar
+    </div>
+    
+    <div class="mt-4">
+        <button class="btn btn-primary" onclick="testToggleFunction()">Test Toggle Function</button>
+        <button class="btn btn-info" onclick="manualToggle()">Manual Toggle</button>
+        <button class="btn btn-success" onclick="fixNavbar()">Fix Navbar</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let debugUpdateInterval;
+    
+    function updateDebug() {
+        const collapse = document.getElementById('navbarCollapse');
+        const toggler = document.querySelector('.navbar-toggler');
+        const screenWidth = window.innerWidth;
+        
+        document.getElementById('screenWidth').textContent = screenWidth;
+        document.getElementById('toggleVisible').textContent = toggler ? (window.getComputedStyle(toggler).display !== 'none' ? 'YES' : 'NO') : 'NULL';
+        document.getElementById('menuVisible').textContent = collapse ? (collapse.classList.contains('show') ? 'YES' : 'NO') : 'NULL';
+    }
+    
+    function forceToggle() {
+        const collapse = document.getElementById('navbarCollapse');
+        if (collapse) {
+            collapse.classList.toggle('show');
+            console.log('🔄 Forced toggle, show class:', collapse.classList.contains('show'));
+            updateDebug();
+        } else {
+            console.error('❌ Collapse element not found');
+        }
+    }
+    
+    function testToggleFunction() {
+        if (typeof toggleNavbar === 'function') {
+            console.log('🧪 Testing original toggleNavbar function');
+            toggleNavbar();
+            setTimeout(updateDebug, 100);
+        } else {
+            alert('❌ toggleNavbar function not found!');
+        }
+    }
+    
+    function manualToggle() {
+        console.log('🛠️ Manual toggle implementation');
+        const collapse = document.getElementById('navbarCollapse');
+        if (collapse) {
+            const isShown = collapse.classList.contains('show');
+            if (isShown) {
+                collapse.classList.remove('show');
+                console.log('📱 Menu closed manually');
+            } else {
+                collapse.classList.add('show');
+                console.log('📱 Menu opened manually');
+            }
+            updateDebug();
+        }
+    }
+    
+    function fixNavbar() {
+        console.log('🔧 Attempting to fix navbar...');
+        
+        // Reemplazar la función toggleNavbar globalmente
+        window.toggleNavbar = function() {
+            console.log('🔧 Fixed toggleNavbar() called');
+            const collapse = document.getElementById('navbarCollapse');
+            if (collapse) {
+                const isShown = collapse.classList.contains('show');
+                if (isShown) {
+                    collapse.classList.remove('show');
+                    console.log('📱 Menu closed (fixed)');
+                } else {
+                    collapse.classList.add('show');
+                    console.log('📱 Menu opened (fixed)');
+                }
+                updateDebug();
+            } else {
+                console.error('❌ navbarCollapse element not found');
+            }
+        };
+        
+        alert('✅ Navbar function fixed! Try clicking the ☰ button now.');
+        console.log('✅ toggleNavbar function has been replaced with fixed version');
+    }
+    
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 Debug navbar loaded');
+        updateDebug();
+        
+        // Auto-update cada 2 segundos
+        debugUpdateInterval = setInterval(updateDebug, 2000);
+        
+        // Update on resize
+        window.addEventListener('resize', updateDebug);
+        
+        // Fix automático después de 1 segundo
+        setTimeout(fixNavbar, 1000);
+    });
+</script>
+{% endblock %}

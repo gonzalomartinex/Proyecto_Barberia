@@ -3,6 +3,9 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 from rest_framework import generics, permissions
 from .models import Servicio
 from .serializers import ServicioSerializer
@@ -47,3 +50,26 @@ class ServicioDeleteView(DeleteView):
     model = Servicio
     template_name = 'servicio_confirm_delete.html'
     success_url = reverse_lazy('servicio-lista')
+
+@csrf_exempt
+@login_required
+def reordenar_servicios(request):
+    """Vista AJAX para reordenar servicios"""
+    if not request.user.is_staff:
+        return JsonResponse({'success': False, 'error': 'Permisos insuficientes'})
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            orden_ids = data.get('orden', [])
+            
+            # Actualizar el orden de cada servicio
+            for index, servicio_id in enumerate(orden_ids):
+                Servicio.objects.filter(id=servicio_id).update(orden=index)
+            
+            return JsonResponse({'success': True})
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})

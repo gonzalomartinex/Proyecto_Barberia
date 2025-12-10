@@ -1,0 +1,1199 @@
+{% extends 'base.html' %}
+{% block title %}Administración de Turnos | Cortes Con Historia{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ==========================================
+   ESTILOS RESPONSIVOS PARA ADMINISTRACIÓN DE TURNOS
+   ========================================== */
+
+/* Contenedor principal responsivo */
+.administracion-turnos-container {
+  padding: 15px;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Filtros responsivos */
+.filtros-container .form-control,
+.filtros-container .form-select {
+  font-size: 14px;
+  min-height: 38px;
+}
+
+/* Campos de horario responsivos */
+.input-group-responsive {
+  flex-wrap: nowrap;
+}
+
+.form-control-responsive {
+  min-width: 0;
+  flex: 1;
+}
+
+/* Estilos para tabla de turnos */
+.turnos-table {
+  font-size: 14px;
+}
+
+.turnos-table th,
+.turnos-table td {
+  padding: 8px 6px;
+  vertical-align: middle;
+}
+
+/* Estados de turnos - Botones */
+.estado-confirmado {
+  background-color: #198754 !important;
+  color: white !important;
+  border-color: #198754 !important;
+}
+
+.estado-cancelado {
+  background-color: #dc3545 !important;
+  color: white !important;
+  border-color: #dc3545 !important;
+}
+
+.estado-completado {
+  background-color: #0d6efd !important;
+  color: white !important;
+  border-color: #0d6efd !important;
+}
+
+.estado-no_asistio {
+  background-color: #fd7e14 !important;
+  color: white !important;
+  border-color: #fd7e14 !important;
+}
+
+/* Hover effects */
+.estado-confirmado:hover { background-color: #157347 !important; }
+.estado-cancelado:hover { background-color: #bb2d3b !important; }
+.estado-completado:hover { background-color: #0b5ed7 !important; }
+.estado-no_asistio:hover { background-color: #fd6c13 !important; }
+
+/* Responsividad móvil */
+@media (max-width: 768px) {
+  .administracion-turnos-container {
+    padding: 10px;
+  }
+  
+  /* Filtros en móvil */
+  .filtros-container .row > div {
+    margin-bottom: 15px;
+  }
+  
+  .form-control,
+  .form-select {
+    font-size: 16px !important; /* Evita zoom en iOS */
+    min-height: 44px; /* Touch target mínimo */
+    border-radius: 8px;
+  }
+  
+  /* Input groups en móvil */
+  .input-group {
+    flex-wrap: wrap;
+  }
+  
+  .input-group .form-control {
+    min-width: 120px;
+    margin-bottom: 5px;
+  }
+  
+  .input-group-text {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  
+  /* Tabla responsiva */
+  .table-responsive {
+    border: none;
+    font-size: 12px;
+  }
+  
+  .turnos-table th,
+  .turnos-table td {
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+  
+  /* Botones de estado más pequeños en móvil */
+  .acciones-cell .btn {
+    font-size: 10px;
+    padding: 3px 6px;
+    margin: 1px;
+    min-height: 32px;
+  }
+  
+  /* Badges de estado */
+  .badge {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  /* Móvil muy pequeño */
+  .col-md-3 {
+    flex: 0 0 100%;
+    max-width: 100%;
+    margin-bottom: 15px;
+  }
+  
+  .input-group {
+    flex-direction: column;
+  }
+  
+  .input-group .form-control {
+    margin-bottom: 8px;
+    width: 100%;
+  }
+  
+  .input-group-text {
+    display: none; /* Ocultar "a" en móviles muy pequeños */
+  }
+  
+  /* Stack buttons vertical en móviles pequeños */
+  .acciones-cell {
+    white-space: normal;
+  }
+  
+  .acciones-cell .btn {
+    display: block;
+    width: 100%;
+    margin: 2px 0;
+    font-size: 11px;
+  }
+}
+
+/* Dark mode support */
+[data-bs-theme="dark"] .estado-completado {
+  background-color: #4dabf7 !important; /* Azul más claro para dark mode */
+  border-color: #4dabf7 !important;
+}
+
+[data-bs-theme="dark"] .estado-completado:hover {
+  background-color: #339af0 !important;
+}
+
+/* Notificaciones */
+.notification-toast {
+  animation: slideIn 0.3s ease-out;
+  transition: all 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* iOS Safari específico - Prevenir zoom automático */
+@supports (-webkit-touch-callout: none) {
+  select,
+  input[type="date"],
+  input[type="time"] {
+    font-size: 16px !important;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="administracion-turnos-container">
+  <h1 class="mb-4">Administración de Turnos</h1>
+  <div class="card mb-4 filtros-container">
+    <div class="card-body">
+      <form id="filtro-turnos" class="row g-3" method="get">
+        <div class="col-md-3">
+          <label class="form-label">Barbero</label>
+          <select class="form-select form-control-responsive" name="barbero" id="filtro-barbero">
+            <option value="">Todos</option>
+            {% for b in barberos %}
+            <option value="{{ b.id }}" {% if request.GET.barbero|default:'' == b.id|stringformat:'s' %}selected{% endif %}>{{ b.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Día</label>
+          <input type="date" class="form-control form-control-responsive" name="dia" id="filtro-dia" value="{{ request.GET.dia|default:'' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Rango horario</label>
+          <div class="input-group input-group-responsive">
+            <input type="time" class="form-control form-control-responsive" name="hora_inicio" id="filtro-hora-inicio" value="{{ request.GET.hora_inicio|default:'' }}">
+            <span class="input-group-text">a</span>
+            <input type="time" class="form-control form-control-responsive" name="hora_fin" id="filtro-hora-fin" value="{{ request.GET.hora_fin|default:'' }}">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Disponibilidad</label>
+          <select class="form-select form-control-responsive" name="estado" id="filtro-estado">
+            <option value="" {% if not request.GET.estado %}selected{% endif %}>Todos</option>
+            <option value="confirmado" {% if request.GET.estado == 'confirmado' %}selected{% endif %}>Confirmado</option>
+            <option value="cancelado" {% if request.GET.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+            <option value="completado" {% if request.GET.estado == 'completado' %}selected{% endif %}>Completado</option>
+            <option value="no_asistio" {% if request.GET.estado == 'no_asistio' %}selected{% endif %}>No asistió</option>
+          </select>
+        </div>
+        <div class="col-12 text-end">
+          <button type="submit" class="btn btn-primary">Filtrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+<div class="mb-4 d-flex justify-content-between">
+  <div>
+    <a href="{% url 'admin-panel' %}" class="btn btn-outline-secondary me-2">
+      <i class="bi bi-arrow-left"></i> Volver a Gestión Admin
+    </a>
+    <a href="{% url 'archivar-turnos' %}" class="btn btn-warning">
+      <i class="bi bi-archive"></i> Archivar Turnos Antiguos
+    </a>
+  </div>
+  <div>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarTurnos">
+      <i class="bi bi-plus-circle"></i> Agregar Turnos
+    </button>
+  </div>
+</div>
+<!-- Modal Agregar Turnos -->
+<div class="modal fade" id="modalAgregarTurnos" tabindex="-1" aria-labelledby="modalAgregarTurnosLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="form-agregar-turnos" method="post" action="{% url 'agregar-turnos' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalAgregarTurnosLabel">Agregar Turnos</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Barberos</label>
+            <div class="d-flex flex-wrap gap-2" id="barberos-casillas">
+              {% for b in barberos %}
+              <button type="button" class="btn btn-outline-primary barbero-casilla" data-id="{{ b.id }}">{{ b.nombre }}</button>
+              <input type="checkbox" name="barberos" value="{{ b.id }}" class="d-none barbero-checkbox">
+              {% endfor %}
+            </div>
+            <small class="text-muted">Selecciona uno o varios barberos</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Día</label>
+            <input type="date" class="form-control" name="dia" id="dia-turno" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Hora de inicio</label>
+            <div class="input-group">
+              <input type="time" class="form-control" name="hora_inicio" id="hora-inicio" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Duración de cada turno (minutos)</label>
+            <input type="number" class="form-control" name="duracion" id="duracion-turno" min="1" value="45" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Cantidad de turnos</label>
+            <div class="input-group" style="max-width: 200px;">
+              <button type="button" class="btn btn-outline-secondary" id="btn-menos-turnos">-</button>
+              <input type="number" class="form-control text-center" name="cantidad_turnos" id="cantidad-turnos-input" value="1" min="1" readonly required>
+              <button type="button" class="btn btn-outline-secondary" id="btn-mas-turnos">+</button>
+            </div>
+            <div id="mensaje-limite-turnos" class="text-danger mt-1" style="display:none;"></div>
+            <small class="text-muted">El máximo depende de la duración y la hora de inicio</small>
+          </div>
+          <div class="mb-3">
+            <div id="hora-fin-calculada" class="fw-bold mb-2"></div>
+            <div id="preview-turnos" class="d-flex flex-wrap gap-2"></div>
+          </div>
+          <div class="mb-3">
+            <div id="cantidad-turnos" class="fw-bold"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-crear-turnos">
+            <span class="btn-text">Crear Turnos</span>
+            <span class="btn-loading d-none">
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Creando...
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div id="agenda-turnos">
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle turnos-table">
+      <thead class="table-light">
+        <tr>
+          <th>Día</th>
+          <th>Hora</th>
+          <th>Barbero</th>
+          <th>Servicio</th>
+          <th>Estado</th>
+          <th>Cliente</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for turno in turnos %}
+        <tr class="turno-row">
+          <td class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+            <span>{{ turno.fecha_hora|date:"d/m/Y" }}</span>
+            <span class="text-muted small">{{ turno.fecha_hora|date:"l"|capfirst }}</span>
+          </td>
+          <td>{{ turno.fecha_hora|time:"H:i" }}</td>
+          <td>{{ turno.barbero.nombre }}</td>
+          <td>{{ turno.servicio.nombre|default:"Sin servicio" }}</td>
+          <td class="estado-cell text-center">
+            <span class="badge bg-{% if turno.estado == 'confirmado' %}success{% elif turno.estado == 'cancelado' %}danger{% elif turno.estado == 'completado' %}primary{% elif turno.estado == 'no_asistio' %}warning{% else %}secondary{% endif %}">
+              {{ turno.estado|capfirst }}
+            </span>
+          </td>
+          <td class="acciones-cell text-center">
+            {% csrf_token %}
+            {% if turno.estado != 'confirmado' %}
+              <button type="button" class="btn btn-sm me-1 estado-confirmado" onclick="cambiarEstadoAjax('{{ turno.id }}', 'confirmado', this)">Confirmado</button>
+            {% endif %}
+            {% if turno.estado != 'cancelado' %}
+              <button type="button" class="btn btn-sm me-1 estado-cancelado" onclick="cambiarEstadoAjax('{{ turno.id }}', 'cancelado', this)">Cancelado</button>
+            {% endif %}
+            {% if turno.estado != 'completado' %}
+              <button type="button" class="btn btn-sm me-1 estado-completado" onclick="cambiarEstadoAjax('{{ turno.id }}', 'completado', this)">Completado</button>
+            {% endif %}
+            {% if turno.estado != 'no_asistio' %}
+              <button type="button" class="btn btn-sm me-1 estado-no_asistio" onclick="cambiarEstadoAjax('{{ turno.id }}', 'no_asistio', this)">No asistió</button>
+            {% endif %}
+          </td>
+          <td>{% if turno.cliente %}{{ turno.cliente.nombre }} {{ turno.cliente.apellido }}{% else %}-{% endif %}</td>
+          <td class="text-center">
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="editarTurno({{ turno.id }})" title="Editar turno">
+              <i class="bi bi-pencil"></i>
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr class="turno-row"><td colspan="7" class="text-center">No hay turnos para este día.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal para editar turno -->
+<div class="modal fade" id="modalEditarTurno" tabindex="-1" aria-labelledby="modalEditarTurnoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarTurnoLabel">Editar Turno</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="formEditarTurno" method="post">
+        {% csrf_token %}
+        <div class="modal-body">
+          <input type="hidden" id="edit-turno-id" name="turno_id">
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="edit-fecha" class="form-label">Fecha</label>
+                <input type="date" class="form-control" id="edit-fecha" name="fecha" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="edit-hora" class="form-label">Hora</label>
+                <input type="time" class="form-control" id="edit-hora" name="hora" required>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="edit-barbero" class="form-label">Barbero</label>
+                <select class="form-select" id="edit-barbero" name="barbero" required>
+                  {% for barbero in barberos %}
+                  <option value="{{ barbero.id }}">{{ barbero.nombre }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="edit-servicio" class="form-label">Servicio</label>
+                <select class="form-select" id="edit-servicio" name="servicio">
+                  <option value="">Sin servicio</option>
+                  {% for servicio in servicios %}
+                  <option value="{{ servicio.id }}" data-precio="{{ servicio.precio }}">{{ servicio.nombre }} - ${{ servicio.precio }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="edit-estado" class="form-label">Estado</label>
+                <select class="form-select" id="edit-estado" name="estado" required>
+                  <option value="disponible">Disponible</option>
+                  <option value="ocupado">Ocupado</option>
+                  <option value="completado">Completado</option>
+                  <option value="cancelado">Cancelado</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="edit-precio-final" class="form-label">Precio Final</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" step="0.01" class="form-control" id="edit-precio-final" name="precio_final" placeholder="0.00">
+                </div>
+                <small class="text-muted">Deja vacío para usar precio del servicio</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="edit-cliente" class="form-label">Cliente (Email)</label>
+            <input type="email" class="form-control" id="edit-cliente" name="cliente_email" placeholder="Deja vacío si no tiene cliente">
+            <small class="text-muted">Busca usuario por email. Deja vacío para turnos disponibles.</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_head %}
+{{ block.super }}
+<style>
+.btn-completado {
+  background-color: #145a32 !important;
+  color: #fff !important;
+  border-color: #145a32 !important;
+}
+
+#btn-crear-turnos:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-loading {
+  pointer-events: none;
+}
+
+/* Filas alternadas para mejor legibilidad - mayor especificidad */
+#agenda-turnos .table tbody .turno-row:nth-child(even) {
+  background-color: #f8f9fa !important;
+  box-shadow: inset 0 0 0 1000px #f8f9fa;
+}
+
+#agenda-turnos .table tbody .turno-row:nth-child(even) td {
+  background-color: #f8f9fa !important;
+}
+
+#agenda-turnos .table tbody .turno-row:nth-child(odd) {
+  background-color: #ffffff !important;
+  box-shadow: inset 0 0 0 1000px #ffffff;
+}
+
+#agenda-turnos .table tbody .turno-row:nth-child(odd) td {
+  background-color: #ffffff !important;
+}
+
+/* Hover effect para las filas */
+#agenda-turnos .table tbody .turno-row:hover {
+  background-color: #e3f2fd !important;
+  box-shadow: inset 0 0 0 1000px #e3f2fd !important;
+}
+
+#agenda-turnos .table tbody .turno-row:hover td {
+  background-color: #e3f2fd !important;
+  transition: background-color 0.2s ease;
+}
+
+/* Asegurar que los botones de estado mantengan su color */
+.turno-row .estado-btn {
+  position: relative;
+  z-index: 1;
+}
+
+/* Solucionar específicamente la primera columna con d-flex */
+#agenda-turnos .table tbody .turno-row td.d-flex {
+  border-bottom: none !important;
+  position: relative;
+}
+
+#agenda-turnos .table tbody .turno-row td.d-flex::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #dee2e6;
+  z-index: -1;
+}
+
+/* Asegurar que los spans dentro del flex no tengan bordes */
+#agenda-turnos .table tbody .turno-row td.d-flex span {
+  border: none !important;
+  background: transparent !important;
+}
+
+/* CORRECCIONES PREVIAS: Botones de estado y modo oscuro */
+.btn-completado {
+    background-color: #145a32 !important;
+    color: #ffffff !important;
+    border-color: #145a32 !important;
+}
+
+.btn-completado:hover,
+.btn-completado:focus,
+.btn-completado:active {
+    background-color: #1e7e42 !important;
+    color: #ffffff !important;
+    border-color: #1e7e42 !important;
+}
+
+[data-theme="dark"] .btn-completado {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+    border-color: #28a745 !important;
+}
+
+[data-theme="dark"] .btn-completado:hover,
+[data-theme="dark"] .btn-completado:focus,
+[data-theme="dark"] .btn-completado:active {
+    background-color: #34ce57 !important;
+    color: #ffffff !important;
+    border-color: #34ce57 !important;
+}
+
+.estado-menu {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary);
+}
+
+.btn-completado-menu {
+    background-color: #145a32 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-completado-menu {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+}
+
+.btn-completado-menu:hover {
+    background-color: #1e7e42 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-completado-menu:hover {
+    background-color: #34ce57 !important;
+    color: #ffffff !important;
+}
+
+/* CORRECCIONES RESPONSIVIDAD: Campos de horario */
+.input-group-responsive {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+}
+
+.form-control-responsive {
+    flex: 1;
+    min-width: 0;
+}
+
+.input-group-text-responsive {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-width: 35px;
+}
+
+.btn-responsive {
+    flex-shrink: 0;
+    min-width: 40px;
+}
+
+.cantidad-turnos-group {
+    max-width: 250px;
+    width: 100%;
+}
+
+@media (max-width: 576px) {
+    .input-group-responsive {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .input-group-responsive .form-control-responsive {
+        min-width: 100px;
+        flex: 1;
+    }
+    
+    .input-group-text-responsive {
+        order: 2;
+        min-width: 30px;
+        font-size: 0.9rem;
+        padding: 0.375rem 0.5rem;
+    }
+    
+    .cantidad-turnos-group {
+        max-width: 180px;
+    }
+    
+    .btn-responsive {
+        min-width: 35px;
+        padding: 0.375rem 0.5rem;
+    }
+    
+    input[type="time"] {
+        font-size: 14px;
+        padding: 0.375rem 0.5rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .cantidad-turnos-group {
+        max-width: 160px;
+    }
+    
+    .btn-responsive {
+        min-width: 32px;
+        padding: 0.375rem 0.4rem;
+        font-size: 0.85rem;
+    }
+    
+    input[type="time"] {
+        font-size: 13px;
+        padding: 0.35rem 0.4rem;
+    }
+    
+    .input-group-text-responsive {
+        font-size: 0.85rem;
+        padding: 0.35rem 0.4rem;
+        min-width: 28px;
+    }
+}
+
+/* CORRECCIONES MÓVILES: Filtros accesibles */
+.form-control, .form-select {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+}
+
+.form-label {
+    color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    .form-select {
+        -webkit-appearance: menulist;
+        -moz-appearance: menulist;
+        appearance: menulist;
+        font-size: 16px;
+        min-height: 44px;
+        position: relative;
+        z-index: 1000;
+    }
+    
+    input[type="date"],
+    input[type="time"] {
+        font-size: 16px;
+        min-height: 44px;
+        padding: 0.75rem 0.5rem;
+        position: relative;
+        z-index: 999;
+    }
+    
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        opacity: 1;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        color: transparent;
+        cursor: pointer;
+    }
+    
+    .filter-card {
+        overflow: visible;
+        z-index: 100;
+    }
+    
+    .col-12.col-md-6.col-lg-3 {
+        margin-bottom: 1rem;
+        z-index: auto;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    
+    .btn-primary {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 0.75rem 1.5rem;
+    }
+}
+
+@supports (-webkit-touch-callout: none) {
+    select,
+    input[type="date"],
+    input[type="time"] {
+        font-size: 16px !important;
+    }
+}
+</style>
+{% endblock %}
+
+</div> <!-- Cierre de administracion-turnos-container -->
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.querySelectorAll('.estado-btn').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    // Cerrar otros menús
+    document.querySelectorAll('.estado-menu').forEach(m => m.style.display = 'none');
+    // Abrir el menú de este botón
+    const menu = btn.parentElement.querySelector('.estado-menu');
+    if (menu) menu.style.display = 'block';
+  });
+});
+document.querySelectorAll('.estado-menu form').forEach(form => {
+  form.addEventListener('click', function(e) {
+    e.stopPropagation();
+  });
+});
+document.addEventListener('click', function() {
+  document.querySelectorAll('.estado-menu').forEach(m => m.style.display = 'none');
+});
+
+// Selección visual y lógica de barberos en el modal de agregar turnos
+const barberoBtns = document.querySelectorAll('#barberos-casillas .barbero-casilla');
+const barberoCheckboxes = document.querySelectorAll('#barberos-casillas .barbero-checkbox');
+barberoBtns.forEach((btn, idx) => {
+  btn.addEventListener('click', function() {
+    const checkbox = barberoCheckboxes[idx];
+    checkbox.checked = !checkbox.checked;
+    btn.classList.toggle('active', checkbox.checked);
+    btn.classList.toggle('btn-primary', checkbox.checked);
+    btn.classList.toggle('btn-outline-primary', !checkbox.checked);
+  });
+});
+
+// Lógica para sumar/restar cantidad de turnos y actualizar preview y hora fin
+const inputCantidad = document.getElementById('cantidad-turnos-input');
+const btnMas = document.getElementById('btn-mas-turnos');
+const btnMenos = document.getElementById('btn-menos-turnos');
+const inputHora = document.getElementById('hora-inicio');
+const inputDuracion = document.getElementById('duracion-turno');
+const previewTurnos = document.getElementById('preview-turnos');
+const horaFinCalculada = document.getElementById('hora-fin-calculada');
+const mensajeLimite = document.getElementById('mensaje-limite-turnos');
+
+function pad(n) { return n < 10 ? '0' + n : n; }
+
+function actualizarPreviewTurnos() {
+  const cantidad = parseInt(inputCantidad.value) || 1;
+  const horaInicio = inputHora.value;
+  const duracion = parseInt(inputDuracion.value) || 45;
+  previewTurnos.innerHTML = '';
+  horaFinCalculada.innerHTML = '';
+  mensajeLimite.style.display = 'none';
+  if (!horaInicio) return;
+  let [h, m] = horaInicio.split(':').map(Number);
+  let turnos = [];
+  let limite = false;
+  let endH = h, endM = m;
+  for (let i = 0; i < cantidad; i++) {
+    // Calcular hora de fin de este turno
+    let finH = endH, finM = endM + duracion;
+    while (finM >= 60) { finH++; finM -= 60; }
+    // Si la hora de fin de este turno supera 23:59, no permitir agregarlo
+    if (finH > 23 || (finH === 23 && finM > 59)) {
+      limite = true;
+      break;
+    }
+    // Agregar hora de inicio del turno
+    let horaStr = pad(endH) + ':' + pad(endM);
+    turnos.push(horaStr);
+    // Preparar para el siguiente turno
+    endM += duracion;
+    while (endM >= 60) { endH++; endM -= 60; }
+  }
+  // Mostrar preview
+  previewTurnos.innerHTML = turnos.map(t => `<span class='badge bg-primary'>${t}</span>`).join(' ');
+  // Calcular y mostrar hora de fin real
+  let finH = h, finM = m;
+  for (let i = 0; i < turnos.length; i++) {
+    finM += duracion;
+    while (finM >= 60) { finH++; finM -= 60; }
+  }
+  let finStr = (turnos.length === 0) ? '' : pad(finH) + ':' + pad(finM);
+  if (turnos.length > 0) {
+    horaFinCalculada.innerHTML = 'Hora de fin: <span class="text-success">' + finStr + '</span>';
+  }
+  // Bloquear suma si se supera el límite
+  if (limite) {
+    btnMas.disabled = true;
+    mensajeLimite.style.display = 'block';
+    mensajeLimite.textContent = 'No se pueden agregar más turnos: la hora de fin máxima es 23:59.';
+  } else {
+    btnMas.disabled = false;
+    mensajeLimite.style.display = 'none';
+  }
+  // Ajustar el input si el usuario puso un valor manualmente fuera de rango
+  inputCantidad.value = turnos.length;
+}
+
+[inputCantidad, inputHora, inputDuracion].forEach(el => {
+  el.addEventListener('input', actualizarPreviewTurnos);
+  el.addEventListener('change', actualizarPreviewTurnos);
+});
+btnMas.addEventListener('click', function() {
+  let val = parseInt(inputCantidad.value) || 1;
+  inputCantidad.value = val + 1;
+  actualizarPreviewTurnos();
+});
+btnMenos.addEventListener('click', function() {
+  let val = parseInt(inputCantidad.value) || 1;
+  if (val > 1) inputCantidad.value = val - 1;
+  actualizarPreviewTurnos();
+});
+// Inicializar preview al abrir modal
+if (inputCantidad && inputHora && inputDuracion) {
+  setTimeout(actualizarPreviewTurnos, 300);
+}
+
+// Prevenir dobles clics en el formulario de crear turnos
+const formAgregarTurnos = document.getElementById('form-agregar-turnos');
+const btnCrearTurnos = document.getElementById('btn-crear-turnos');
+let formularioEnviado = false;
+let ultimoEnvio = 0;
+
+if (formAgregarTurnos && btnCrearTurnos) {
+  formAgregarTurnos.addEventListener('submit', function(e) {
+    const ahora = Date.now();
+    
+    // Prevenir envío múltiple
+    if (formularioEnviado || (ahora - ultimoEnvio < 2000)) {
+      e.preventDefault();
+      return false;
+    }
+    
+    // Marcar como enviado
+    formularioEnviado = true;
+    ultimoEnvio = ahora;
+    
+    // Cambiar apariencia del botón
+    btnCrearTurnos.disabled = true;
+    btnCrearTurnos.querySelector('.btn-text').classList.add('d-none');
+    btnCrearTurnos.querySelector('.btn-loading').classList.remove('d-none');
+    
+    // Resetear después de un tiempo (por si hay error)
+    setTimeout(() => {
+      resetearBotonCrear();
+    }, 10000);
+  });
+  
+  function resetearBotonCrear() {
+    formularioEnviado = false;
+    btnCrearTurnos.disabled = false;
+    btnCrearTurnos.querySelector('.btn-text').classList.remove('d-none');
+    btnCrearTurnos.querySelector('.btn-loading').classList.add('d-none');
+  }
+  
+  // Resetear cuando se cierre el modal
+  const modal = document.getElementById('modalAgregarTurnos');
+  if (modal) {
+    modal.addEventListener('hidden.bs.modal', function() {
+      resetearBotonCrear();
+    });
+  }
+}
+
+// Función para actualizar precio de turno
+function actualizarPrecio(turnoId, nuevoPrecio) {
+  if (!nuevoPrecio || nuevoPrecio < 0) {
+    alert('Por favor ingresa un precio válido');
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('turno_id', turnoId);
+  formData.append('precio', nuevoPrecio);
+  formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+  
+  fetch('{% url "actualizar-precio-turno" %}', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Mostrar mensaje de éxito temporal
+      const input = document.querySelector(`input[data-turno-id="${turnoId}"]`);
+      const originalBorder = input.style.border;
+      input.style.border = '2px solid #28a745';
+      
+      setTimeout(() => {
+        input.style.border = originalBorder;
+      }, 2000);
+    } else {
+      alert('Error al actualizar precio: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error al actualizar precio');
+  });
+}
+
+// Función para abrir modal de edición
+function editarTurno(turnoId) {
+  // Hacer fetch para obtener datos del turno
+  fetch(`/administracion/turno/${turnoId}/datos/`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const turno = data.turno;
+        
+        // Llenar el formulario con los datos del turno
+        document.getElementById('edit-turno-id').value = turno.id;
+        document.getElementById('edit-fecha').value = turno.fecha;
+        document.getElementById('edit-hora').value = turno.hora;
+        document.getElementById('edit-barbero').value = turno.barbero_id;
+        document.getElementById('edit-servicio').value = turno.servicio_id || '';
+        document.getElementById('edit-estado').value = turno.estado;
+        document.getElementById('edit-precio-final').value = turno.precio_final || '';
+        document.getElementById('edit-cliente').value = turno.cliente_email || '';
+        
+        // Abrir modal
+        new bootstrap.Modal(document.getElementById('modalEditarTurno')).show();
+      } else {
+        alert('Error al cargar datos del turno: ' + data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error al cargar datos del turno');
+    });
+}
+
+// Manejar envío del formulario de edición
+document.getElementById('formEditarTurno').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(this);
+  
+  fetch('/administracion/turno/editar/', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Cerrar modal
+      bootstrap.Modal.getInstance(document.getElementById('modalEditarTurno')).hide();
+      
+      // Recargar página para mostrar cambios
+      location.reload();
+    } else {
+      alert('Error al guardar cambios: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error al guardar cambios');
+  });
+});
+
+// Auto-llenar precio cuando se selecciona servicio
+document.getElementById('edit-servicio').addEventListener('change', function() {
+  const selectedOption = this.options[this.selectedIndex];
+  const precio = selectedOption.getAttribute('data-precio');
+  
+  if (precio && !document.getElementById('edit-precio-final').value) {
+    document.getElementById('edit-precio-final').value = precio;
+  }
+});
+
+// ==========================================
+// SISTEMA AJAX PARA CAMBIO DE ESTADO SIN RECARGA
+// ==========================================
+
+// Función para obtener el token CSRF
+function getCSRFToken() {
+  return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+// Función principal para cambiar estado via AJAX
+function cambiarEstadoAjax(turnoId, nuevoEstado, btn) {
+  // Deshabilitar botón temporalmente
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = 'Cambiando...';
+  
+  fetch('/administracion/turnos/cambiar-estado/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-CSRFToken': getCSRFToken(),
+      'X-Requested-With': 'XMLHttpRequest'  // Identifica como AJAX
+    },
+    body: `turno_id=${turnoId}&estado=${nuevoEstado}`
+  })
+  .then(response => {
+    if (response.ok) {
+      return response.json();
+    }
+    throw new Error('Error en la respuesta del servidor');
+  })
+  .then(data => {
+    if (data.success) {
+      actualizarEstadoBoton(btn, nuevoEstado, turnoId);
+      mostrarNotificacion(`Estado cambiado a ${nuevoEstado}`, 'success');
+    } else {
+      throw new Error(data.message || 'Error al cambiar estado');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    mostrarNotificacion('Error al cambiar estado: ' + error.message, 'danger');
+    btn.textContent = originalText;
+  })
+  .finally(() => {
+    btn.disabled = false;
+  });
+}
+
+// Función para actualizar visualmente el botón de estado
+function actualizarEstadoBoton(btn, nuevoEstado, turnoId) {
+  const row = btn.closest('tr');
+  const estadoCell = row.querySelector('.estado-cell');
+  
+  // Actualizar clase y texto del botón
+  btn.className = `btn btn-sm me-1 estado-${nuevoEstado}`;
+  btn.textContent = nuevoEstado.charAt(0).toUpperCase() + nuevoEstado.slice(1);
+  
+  // Actualizar celda de estado
+  estadoCell.innerHTML = `<span class="badge bg-${getEstadoBadgeClass(nuevoEstado)}">${nuevoEstado}</span>`;
+  
+  // Recrear botones de acción
+  actualizarBotonesAccion(row, turnoId, nuevoEstado);
+}
+
+// Función para obtener la clase CSS del badge según el estado
+function getEstadoBadgeClass(estado) {
+  const clases = {
+    'confirmado': 'success',
+    'cancelado': 'danger',
+    'completado': 'primary',
+    'no_asistio': 'warning'
+  };
+  return clases[estado] || 'secondary';
+}
+
+// Función para recrear los botones de acción
+function actualizarBotonesAccion(row, turnoId, estadoActual) {
+  const accionesCell = row.querySelector('.acciones-cell');
+  const estados = ['confirmado', 'cancelado', 'completado', 'no_asistio'];
+  
+  let botonesHtml = '';
+  estados.forEach(estado => {
+    if (estado !== estadoActual) {
+      const claseBtn = `btn btn-sm me-1 estado-${estado}`;
+      const texto = estado.charAt(0).toUpperCase() + estado.slice(1).replace('_', ' ');
+      botonesHtml += `<button type="button" class="${claseBtn}" onclick="cambiarEstadoAjax('${turnoId}', '${estado}', this)">${texto}</button>`;
+    }
+  });
+  
+  accionesCell.innerHTML = botonesHtml;
+}
+
+// Función para mostrar notificaciones temporales
+function mostrarNotificacion(mensaje, tipo) {
+  // Crear elemento de notificación
+  const notif = document.createElement('div');
+  notif.className = `alert alert-${tipo} alert-dismissible notification-toast`;
+  notif.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 300px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  `;
+  
+  notif.innerHTML = `
+    ${mensaje}
+    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+  `;
+  
+  document.body.appendChild(notif);
+  
+  // Auto-eliminar después de 3 segundos
+  setTimeout(() => {
+    if (notif.parentElement) {
+      notif.remove();
+    }
+  }, 3000);
+}
+
+// Inicializar sistema AJAX al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('✅ Sistema AJAX para cambio de estado cargado');
+  
+  // Agregar clases CSS dinámicamente si no existen
+  const style = document.createElement('style');
+  style.textContent = `
+    .estado-confirmado { background-color: #198754; color: white; }
+    .estado-cancelado { background-color: #dc3545; color: white; }
+    .estado-completado { background-color: #0d6efd; color: white; }
+    .estado-no_asistio { background-color: #fd7e14; color: white; }
+    .notification-toast { animation: slideIn 0.3s ease-out; }
+    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  `;
+  document.head.appendChild(style);
+});
+</script>
+{% endblock %}

@@ -1,71 +1,187 @@
 {% extends 'base.html' %}
 {% block title %}Reservar Turno | Cortes Con Historia{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Estilos responsive para turnos */
+    @media (max-width: 768px) {
+        .table-responsive {
+            font-size: 0.875rem;
+        }
+        .table th, .table td {
+            padding: 0.5rem 0.25rem;
+            text-align: center;
+        }
+        .btn-sm {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .badge {
+            font-size: 0.7rem;
+        }
+        .turnos-header {
+            font-size: 1.5rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .table-responsive {
+            font-size: 0.8rem;
+        }
+        .table th, .table td {
+            padding: 0.4rem 0.2rem;
+        }
+        .turnos-header {
+            font-size: 1.25rem;
+        }
+        /* Ocultar columnas menos importantes en móviles muy pequeños */
+        .table th:nth-child(4), 
+        .table td:nth-child(4) {
+            display: none;
+        }
+    }
+    
+    /* Mejoras visuales para la tabla */
+    .table-responsive {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    
+    .filter-section {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1 class="mb-4">Reservar Turno</h1>
-<form method="get" class="row g-3 mb-4">
-    <div class="col-md-4">
-        <label for="barbero" class="form-label">Barbero</label>
-        <select name="barbero" id="barbero" class="form-select">
-            <option value="">Todos</option>
-            {% for b in barberos %}
-            <option value="{{ b.id }}" {% if b.id|stringformat:'s' == request.GET.barbero %}selected{% endif %}>{{ b.nombre }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="col-md-4">
-        <label for="semana" class="form-label">Semana</label>
-        <input type="week" name="semana" id="semana" class="form-control" value="{{ semana_actual }}">
-    </div>
-    <div class="col-md-4 align-self-end">
-        <button type="submit" class="btn btn-primary">Filtrar</button>
-    </div>
-</form>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="turnos-header mb-0">
+        <i class="bi bi-calendar-check me-2 text-primary"></i>Reservar Turno
+    </h1>
+</div>
+
+<div class="filter-section">
+    <form method="get" class="row g-3">
+        <div class="col-lg-4 col-md-6 col-sm-12">
+            <label for="barbero" class="form-label fw-bold">
+                <i class="bi bi-person me-1"></i>Barbero
+            </label>
+            <select name="barbero" id="barbero" class="form-select">
+                <option value="">Todos los barberos</option>
+                {% for b in barberos %}
+                <option value="{{ b.id }}" {% if b.id|stringformat:'s' == request.GET.barbero %}selected{% endif %}>{{ b.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-lg-4 col-md-6 col-sm-12">
+            <label for="semana" class="form-label fw-bold">
+                <i class="bi bi-calendar-week me-1"></i>Semana
+            </label>
+            <input type="week" name="semana" id="semana" class="form-control" value="{{ semana_actual }}">
+        </div>
+        <div class="col-lg-4 col-md-12 col-sm-12 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-funnel me-1"></i>Filtrar Turnos
+            </button>
+        </div>
+    </form>
+</div>
+
 <div class="table-responsive">
-    <table class="table table-bordered align-middle">
-        <thead class="table-light">
+    <table class="table table-hover table-bordered align-middle mb-0">
+        <thead class="table-primary">
             <tr>
-                <th>Día</th>
-                <th>Hora</th>
-                <th>Barbero</th>
-                <th>Servicio</th>
-                <th>Estado</th>
-                <th>Acción</th>
+                <th class="text-center">
+                    <i class="bi bi-calendar-day me-1"></i>Día
+                </th>
+                <th class="text-center">
+                    <i class="bi bi-clock me-1"></i>Hora
+                </th>
+                <th class="text-center">
+                    <i class="bi bi-person me-1"></i>Barbero
+                </th>
+                <th class="text-center d-none d-md-table-cell">
+                    <i class="bi bi-scissors me-1"></i>Servicio
+                </th>
+                <th class="text-center">
+                    <i class="bi bi-info-circle me-1"></i>Estado
+                </th>
+                <th class="text-center">
+                    <i class="bi bi-gear me-1"></i>Acción
+                </th>
             </tr>
         </thead>
         <tbody>
             {% for turno in turnos %}
             <tr>
-                <td>{{ turno.fecha_hora|date:"l d/m" }}</td>
-                <td>{{ turno.fecha_hora|time:"H:i" }}</td>
-                <td>{{ turno.barbero.nombre }}</td>
-                <td>{{ turno.servicio.nombre }}</td>
-                <td>
+                <td class="text-center fw-bold">{{ turno.fecha_hora|date:"D d/m" }}</td>
+                <td class="text-center">{{ turno.fecha_hora|time:"H:i" }}</td>
+                <td class="text-center">{{ turno.barbero.nombre }}</td>
+                <td class="text-center d-none d-md-table-cell">{{ turno.servicio.nombre }}</td>
+                <td class="text-center">
                     {% if turno.estado == 'disponible' %}
-                        <span class="badge bg-success">Disponible</span>
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle me-1"></i>Disponible
+                        </span>
                     {% elif turno.estado == 'ocupado' %}
-                        <span class="badge bg-warning text-dark">Ocupado</span>
+                        <span class="badge" style="background: #ffc107; color: #000;">
+                            <i class="bi bi-person-fill me-1"></i>Ocupado
+                        </span>
                     {% elif turno.estado == 'cancelado' %}
-                        <span class="badge bg-danger">Cancelado</span>
+                        <span class="badge bg-danger">
+                            <i class="bi bi-x-circle me-1"></i>Cancelado
+                        </span>
                     {% elif turno.estado == 'completado' %}
-                        <span class="badge bg-secondary">Completado</span>
+                        <span class="badge bg-secondary">
+                            <i class="bi bi-check-all me-1"></i>Completado
+                        </span>
                     {% elif turno.estado == 'expirado' %}
-                        <span class="badge bg-dark">Expirado</span>
+                        <span class="badge bg-dark">
+                            <i class="bi bi-clock-history me-1"></i>Expirado
+                        </span>
                     {% else %}
                         <span class="badge bg-secondary">{{ turno.estado|title }}</span>
                     {% endif %}
                 </td>
-                <td>
+                <td class="text-center">
                     {% if turno.estado == 'disponible' %}
-                    <a href="{% url 'reservar-turno' turno.id %}" class="btn btn-sm btn-primary">Reservar</a>
+                    <a href="{% url 'reservar-turno' turno.id %}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-calendar-plus me-1"></i>
+                        <span class="d-none d-sm-inline">Reservar</span>
+                    </a>
                     {% else %}
-                    <button class="btn btn-sm btn-secondary" disabled>No disponible</button>
+                    <button class="btn btn-sm btn-secondary" disabled>
+                        <i class="bi bi-x me-1"></i>
+                        <span class="d-none d-sm-inline">No disponible</span>
+                    </button>
                     {% endif %}
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="6" class="text-center">No hay turnos disponibles para la selección.</td></tr>
+            <tr>
+                <td colspan="6" class="text-center py-4">
+                    <div style="color: var(--text-muted);">
+                        <i class="bi bi-calendar-x display-4 d-block mb-3"></i>
+                        <h5>No hay turnos disponibles</h5>
+                        <p class="mb-0">Intenta cambiar los filtros o selecciona otra semana.</p>
+                    </div>
+                </td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
+{% if turnos %}
+<div class="mt-3 text-center">
+    <small style="color: var(--text-muted);">
+        <i class="bi bi-info-circle me-1"></i>
+        También atendemos por orden de llegada sin cita previa
+    </small>
+</div>
+{% endif %}
 {% endblock %}

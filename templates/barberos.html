@@ -1,37 +1,323 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Barberos | Cortes Con Historia{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Estilos responsive para barberos */
+    .barbero-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .barbero-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+    
+    .fab-button {
+        background: linear-gradient(45deg, #FFD700, #e6be00);
+        border: none;
+        color: #222;
+        transition: all 0.3s ease;
+    }
+    
+    .fab-button:hover {
+        background: linear-gradient(45deg, #e6be00, #ccaa00);
+        transform: scale(1.1);
+        color: #222;
+    }
+    
+    @media (max-width: 768px) {
+        .barberos-header {
+            font-size: 1.75rem;
+        }
+        .fab-button {
+            bottom: 20px !important;
+            right: 20px !important;
+            width: 56px !important;
+            height: 56px !important;
+            font-size: 1.5rem !important;
+        }
+        .card-text {
+            font-size: 0.9rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .barberos-header {
+            font-size: 1.5rem;
+        }
+        .fab-button {
+            bottom: 15px !important;
+            right: 15px !important;
+            width: 50px !important;
+            height: 50px !important;
+            font-size: 1.25rem !important;
+        }
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+    }
+    
+    /* Estilos para reordenamiento */
+    .reorder-mode .sortable-item {
+        cursor: move;
+        transition: all 0.3s ease;
+    }
+
+    .reorder-mode .sortable-item:hover {
+        opacity: 0.8;
+        transform: scale(1.02);
+    }
+
+    .sortable-item.sortable-drag {
+        opacity: 0.5;
+        transform: rotate(5deg);
+    }
+
+    .sortable-item.sortable-over {
+        border: 2px dashed #007bff;
+        background-color: rgba(0, 123, 255, 0.1);
+    }
+
+    .drag-handle {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: move;
+        display: none;
+        z-index: 10;
+    }
+
+    .reorder-mode .drag-handle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1 class="mb-4">Nuestros Barberos</h1>
-<div class="row">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="barberos-header mb-0">
+        <i class="bi bi-people me-2 text-primary"></i>Nuestros Barberos
+    </h1>
+    {% if user.is_authenticated and user.is_staff and barberos %}
+    <div>
+        <button id="toggle-reorder-barberos" class="btn btn-secondary">
+            <i class="fas fa-arrows-alt"></i> Reordenar
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+{% if user.is_authenticated and user.is_staff and barberos %}
+<div id="reorder-controls-barberos" class="mb-3" style="display: none;">
+    <button id="save-order-barberos" class="btn btn-success">
+        <i class="fas fa-save"></i> Guardar Orden
+    </button>
+    <button id="cancel-reorder-barberos" class="btn btn-outline-secondary ms-2">
+        <i class="fas fa-times"></i> Cancelar
+    </button>
+    <div class="alert alert-info mt-2" role="alert">
+        <i class="fas fa-info-circle"></i> Arrastra las tarjetas para reordenarlas
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-4" id="barberos-container">
     {% for barbero in barberos %}
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
+    <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 sortable-item" data-id="{{ barbero.id }}">
+        <div class="card h-100 barbero-card" style="position: relative;">
             <div class="ratio ratio-4x3" style="overflow:hidden;">
                 {% if barbero.foto %}
-                <img src="{{ barbero.foto.url }}" class="card-img-top object-fit-cover" alt="{{ barbero.nombre }}" style="width:100%;height:100%;object-fit:cover;object-position:center;">
+                <img src="{{ barbero.foto }}" 
+                     class="card-img-top object-fit-cover" 
+                     alt="{{ barbero.nombre }}" 
+                     style="width:100%;height:100%;object-fit:cover;object-position:center;"
+                     loading="lazy">
                 {% else %}
-                <img src="{% static 'Default/noimage.png' %}" class="card-img-top object-fit-cover" alt="{{ barbero.nombre }}" style="width:100%;height:100%;object-fit:cover;object-position:center;">
+                <img src="{% static 'Default/noimage.png' %}" 
+                     class="card-img-top object-fit-cover" 
+                     alt="{{ barbero.nombre }}" 
+                     style="width:100%;height:100%;object-fit:cover;object-position:center;"
+                     loading="lazy">
                 {% endif %}
             </div>
             <div class="card-body d-flex flex-column">
-                <h5 class="card-title">{{ barbero.nombre }}</h5>
-                <p class="card-text" style="max-height: 4.5em; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
-                  {{ barbero.bio|truncatechars:120 }}
-                  {% if barbero.bio|length > 120 %}
-                  <span class="text-muted" style="font-size:0.95em;">... (ver más)</span>
-                  {% endif %}
+                <h5 class="card-title text-primary">
+                    <i class="bi bi-person-badge me-2"></i>{{ barbero.nombre }}
+                </h5>
+                <p class="card-text flex-grow-1" style="max-height: 4.5em; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
+                    {% if barbero.bio %}
+                        {{ barbero.bio|truncatechars:120 }}
+                        {% if barbero.bio|length > 120 %}
+                        <span style="color: var(--text-muted); font-size:0.95em;">... (ver más)</span>
+                        {% endif %}
+                    {% else %}
+                        <span style="color: var(--text-muted);">Información del barbero próximamente...</span>
+                    {% endif %}
                 </p>
-                <a href="/barberos/{{ barbero.id }}/" class="btn btn-outline-primary mt-auto">Ver Perfil</a>
+                <div class="mt-auto">
+                    <a href="/barberos/{{ barbero.id }}/" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-eye me-2"></i>Ver Perfil Completo
+                    </a>
+                </div>
             </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="empty-state">
+            <i class="bi bi-people display-1 mb-3"></i>
+            <h3>No hay barberos registrados</h3>
+            <p class="lead">Actualmente no tenemos barberos registrados en el sistema.</p>
+            {% if user.is_authenticated and user.is_staff %}
+            <a href="{% url 'registrar-barbero' %}" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle me-2"></i>Registrar Primer Barbero
+            </a>
+            {% endif %}
         </div>
     </div>
     {% endfor %}
 </div>
-{% if user.is_authenticated and user.is_staff %}
-  <a href="{% url 'registrar-barbero' %}" class="btn btn-success position-fixed" style="bottom: 32px; right: 32px; z-index: 1050; border-radius: 50%; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-    <span class="visually-hidden">Registrar nuevo barbero</span>
-    <span style="font-size:2.2rem;line-height:1;">+</span>
-  </a>
+
+{% if barberos and user.is_authenticated and user.is_staff %}
+<a href="{% url 'registrar-barbero' %}" 
+   class="btn btn-success position-fixed fab-button d-flex align-items-center justify-content-center" 
+   style="bottom: 32px; right: 32px; z-index: 1050; border-radius: 50%; width: 64px; height: 64px; font-size: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"
+   title="Registrar nuevo barbero">
+    <i class="bi bi-plus-lg"></i>
+</a>
+{% endif %}
+
+{% if user.is_authenticated and user.is_staff and barberos %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggle-reorder-barberos');
+    const reorderControls = document.getElementById('reorder-controls-barberos');
+    const saveBtn = document.getElementById('save-order-barberos');
+    const cancelBtn = document.getElementById('cancel-reorder-barberos');
+    const container = document.getElementById('barberos-container');
+    let sortable = null;
+    let originalOrder = [];
+    
+    // Función para activar/desactivar modo reordenamiento
+    function toggleReorderMode(enable) {
+        if (enable) {
+            container.classList.add('reorder-mode');
+            reorderControls.style.display = 'block';
+            toggleBtn.style.display = 'none';
+            
+            // Guardar orden original
+            originalOrder = Array.from(container.children).map(item => item.dataset.id);
+            
+            // Inicializar Sortable
+            sortable = Sortable.create(container, {
+                animation: 150,
+                ghostClass: 'sortable-drag',
+                chosenClass: 'sortable-chosen',
+                dragClass: 'sortable-over'
+            });
+            
+            // Agregar indicadores de arrastre
+            container.querySelectorAll('.barbero-card').forEach(card => {
+                const handle = document.createElement('button');
+                handle.className = 'drag-handle';
+                handle.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+                card.appendChild(handle);
+            });
+            
+        } else {
+            container.classList.remove('reorder-mode');
+            reorderControls.style.display = 'none';
+            toggleBtn.style.display = 'inline-block';
+            
+            // Destruir Sortable
+            if (sortable) {
+                sortable.destroy();
+                sortable = null;
+            }
+            
+            // Remover indicadores de arrastre
+            container.querySelectorAll('.drag-handle').forEach(handle => handle.remove());
+        }
+    }
+    
+    // Event listeners
+    toggleBtn.addEventListener('click', () => toggleReorderMode(true));
+    cancelBtn.addEventListener('click', () => {
+        // Restaurar orden original
+        const items = Array.from(container.children);
+        originalOrder.forEach((id, index) => {
+            const item = items.find(item => item.dataset.id === id);
+            if (item) container.appendChild(item);
+        });
+        toggleReorderMode(false);
+    });
+    
+    saveBtn.addEventListener('click', function() {
+        const newOrder = Array.from(container.children).map(item => item.dataset.id);
+        
+        // Mostrar indicador de carga
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        saveBtn.disabled = true;
+        
+        // Enviar nuevo orden al servidor
+        fetch('{% url "reordenar-barberos" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                orden: newOrder
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                toggleReorderMode(false);
+                // Mostrar mensaje de éxito
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show mt-3';
+                alert.innerHTML = `
+                    <i class="fas fa-check-circle"></i> Orden guardado correctamente
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                container.parentNode.insertBefore(alert, container);
+                setTimeout(() => alert.remove(), 3000);
+            } else {
+                throw new Error(data.error || 'Error desconocido');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show mt-3';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i> Error al guardar el orden: ${error.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            container.parentNode.insertBefore(alert, container);
+        })
+        .finally(() => {
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Orden';
+            saveBtn.disabled = false;
+        });
+    });
+});
+</script>
 {% endif %}
 {% endblock %}

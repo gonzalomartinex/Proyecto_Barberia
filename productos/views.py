@@ -3,10 +3,13 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 from rest_framework import generics, permissions
 from .models import Producto
 from .serializers import ProductoSerializer
-from .forms import ProductoForm
+from utils.forms import ProductoForm
 
 # Create your views here.
 
@@ -31,12 +34,18 @@ class ProductoCreateView(CreateView):
     template_name = 'producto_form.html'
     success_url = reverse_lazy('producto-lista')
 
-@method_decorator(admin_required, name='dispatch')
+@method_decorator([admin_required, csrf_exempt], name='dispatch')
 class ProductoUpdateView(UpdateView):
     model = Producto
     form_class = ProductoForm
     template_name = 'producto_form.html'
     success_url = reverse_lazy('producto-lista')
+    
+    def post(self, request, *args, **kwargs):
+        """Handle both CSRF-protected and CSRF-exempt requests"""
+        # Si la petición viene con un token CSRF válido, procesarla normalmente
+        # Si no, permitirla igualmente (para uso como API)
+        return super().post(request, *args, **kwargs)
 
 @method_decorator(admin_required, name='dispatch')
 class ProductoDeleteView(DeleteView):
@@ -47,3 +56,26 @@ class ProductoDeleteView(DeleteView):
 def ProductoListView(request):
     productos = Producto.objects.all()
     return render(request, 'productos.html', {'productos': productos})
+
+@csrf_exempt
+@login_required
+def reordenar_productos(request):
+    """Vista AJAX para reordenar productos"""
+    if not request.user.is_staff:
+        return JsonResponse({'success': False, 'error': 'Permisos insuficientes'})
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            orden_ids = data.get('orden', [])
+            
+            # Actualizar el orden de cada producto
+            for index, producto_id in enumerate(orden_ids):
+                Producto.objects.filter(id=producto_id).update(orden=index)
+            
+            return JsonResponse({'success': True})
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})

@@ -1,0 +1,2780 @@
+{% extends 'base.html' %}
+{% block title %}Administración de Turnos | Cortes Con Historia{% endblock %}
+
+{% block extra_head %}
+<style>
+.admin-turnos-header {
+    margin-bottom: 2rem;
+}
+
+.admin-turnos-header h1 {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.filter-card {
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 5px 15px var(--card-shadow);
+    background: var(--card-bg);
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.btn-group-responsive {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.turnos-table-container {
+    overflow-x: auto;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px var(--card-shadow);
+    background: var(--card-bg);
+}
+
+.table-responsive-custom {
+    min-height: 200px;
+}
+
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 30px var(--card-shadow);
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+    color: #222;
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
+}
+
+.barbero-casilla {
+    border-radius: 20px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.barbero-casilla.active {
+    background: #ffd700;
+    border-color: #ffd700;
+    color: #222;
+}
+
+.barbero-casilla:hover {
+    border-color: #ffd700;
+    transform: translateY(-2px);
+}
+
+/* Estilos para modo oscuro */
+.table {
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.table th {
+    background: var(--secondary-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table td {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+    background: var(--form-section-bg);
+}
+
+.form-control, .form-select {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+}
+
+.form-label {
+    color: var(--text-primary);
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Estilos para botones de estado */
+.btn-completado {
+    background-color: #145a32 !important;
+    color: #ffffff !important;
+    border-color: #145a32 !important;
+}
+
+.btn-completado:hover,
+.btn-completado:focus,
+.btn-completado:active {
+    background-color: #1e7e42 !important;
+    color: #ffffff !important;
+    border-color: #1e7e42 !important;
+}
+
+/* Mejorar contraste en modo oscuro */
+[data-theme="dark"] .btn-completado {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+    border-color: #28a745 !important;
+}
+
+[data-theme="dark"] .btn-completado:hover,
+[data-theme="dark"] .btn-completado:focus,
+[data-theme="dark"] .btn-completado:active {
+    background-color: #34ce57 !important;
+    color: #ffffff !important;
+    border-color: #34ce57 !important;
+}
+
+/* Estilos para el menú desplegable de estados */
+.estado-menu {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary);
+}
+
+.estado-menu .dropdown-item {
+    color: var(--text-primary);
+    background: transparent;
+    border: none;
+    padding: 0.5rem 1rem;
+    width: 100%;
+    text-align: left;
+    display: block;
+}
+
+.estado-menu .dropdown-item:hover {
+    background: var(--secondary-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+.estado-menu .dropdown-item.text-success {
+    color: #28a745 !important;
+}
+
+.estado-menu .dropdown-item.text-warning {
+    color: #ffc107 !important;
+}
+
+.estado-menu .dropdown-item.text-danger {
+    color: #dc3545 !important;
+}
+
+.btn-completado-menu {
+    background-color: #145a32 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-completado-menu {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+}
+
+.btn-completado-menu:hover {
+    background-color: #1e7e42 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-completado-menu:hover {
+    background-color: #34ce57 !important;
+    color: #ffffff !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .admin-turnos-header h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .admin-turnos-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .btn-group-responsive {
+        justify-content: center;
+    }
+    
+    .col-md-3 {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .admin-turnos-header h1 {
+        font-size: 1.6rem;
+        text-align: center;
+    }
+    
+    .filter-card .card-body {
+        padding: 1rem;
+    }
+    
+    .action-buttons {
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-group-responsive {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-group-responsive .btn {
+        margin-bottom: 0.5rem;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group .form-control,
+    .input-group .input-group-text {
+        border-radius: 5px !important;
+        margin-bottom: 0.25rem;
+    }
+    
+    .input-group .input-group-text {
+        text-align: center;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .modal-dialog {
+        margin: 1rem;
+    }
+    
+    .barberos-casillas {
+        flex-direction: column;
+    }
+    
+    .barbero-casilla {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Correcciones para filtros en móviles */
+
+/* Asegurar que los select se mantengan dentro de la pantalla */
+.form-select {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Específico para móviles - forzar comportamiento nativo mejorado */
+@media (max-width: 768px) {
+    .form-select {
+        /* Forzar que el dropdown se abra hacia arriba si no hay espacio */
+        position: relative;
+        z-index: 1000;
+    }
+    
+    /* Asegurar que los campos date/time no se salgan de pantalla */
+    input[type="date"],
+    input[type="time"] {
+        max-width: 100%;
+        /* En móviles, usar el picker nativo del sistema */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        position: relative;
+        z-index: 999;
+    }
+    
+    /* Restaurar la apariencia nativa en móviles para mejor UX */
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        background: transparent;
+        bottom: 0;
+        color: transparent;
+        cursor: pointer;
+        height: auto;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: auto;
+        opacity: 1;
+    }
+    
+    /* Forzar que el modal de date/time se centre en la pantalla */
+    input[type="date"]:focus,
+    input[type="time"]:focus {
+        transform: none;
+        position: relative;
+    }
+}
+
+/* Solución específica para select en iOS/Android */
+@media (max-width: 768px) {
+    select {
+        /* Forzar el uso del selector nativo en móviles */
+        -webkit-appearance: menulist;
+        -moz-appearance: menulist;
+        appearance: menulist;
+        background: var(--form-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        padding: 0.375rem 2rem 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--text-primary);
+    }
+    
+    /* Asegurar que el dropdown nativo se vea bien */
+    select:focus {
+        border-color: var(--accent-color);
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+    }
+}
+
+/* Corrección adicional para contenedores de filtros */
+.filter-card {
+    position: relative;
+    overflow: visible;
+    z-index: 10;
+}
+
+.filter-card .card-body {
+    position: relative;
+    z-index: 11;
+}
+
+/* Asegurar que los filtros no se corten */
+@media (max-width: 576px) {
+    .col-12.col-md-6.col-lg-3 {
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: auto;
+    }
+    
+    /* Dar más espacio vertical entre filtros */
+    .row.g-3 {
+        gap: 1rem;
+    }
+    
+    /* Asegurar que los labels sean visibles */
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+        color: var(--text-primary);
+    }
+}
+
+/* Solución para cuando el teclado aparece en móvil */
+@media (max-width: 768px) and (max-height: 600px) {
+    .filter-card {
+        position: sticky;
+        top: 0;
+        z-index: 1020;
+        background: var(--card-bg);
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 1rem;
+    }
+}
+
+/* Mejoras específicas para campos de fecha/hora en móvil */
+@media (max-width: 576px) {
+    input[type="date"],
+    input[type="time"] {
+        font-size: 16px; /* Evita zoom en iOS */
+        padding: 0.75rem 0.5rem;
+        min-height: 44px; /* Touch target size recomendado */
+    }
+    
+    .form-select {
+        font-size: 16px; /* Evita zoom en iOS */
+        min-height: 44px; /* Touch target size recomendado */
+        padding: 0.75rem 2rem 0.75rem 0.75rem;
+    }
+    
+    /* Asegurar que el botón de filtrar sea accesible */
+    .btn-primary {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 0.75rem 1.5rem;
+    }
+}
+
+.admin-turnos-header {
+    margin-bottom: 2rem;
+}
+
+.admin-turnos-header h1 {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.filter-card {
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 5px 15px var(--card-shadow);
+    background: var(--card-bg);
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.btn-group-responsive {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.turnos-table-container {
+    overflow-x: auto;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px var(--card-shadow);
+    background: var(--card-bg);
+}
+
+.table-responsive-custom {
+    min-height: 200px;
+}
+
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 30px var(--card-shadow);
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+    color: #222;
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
+}
+
+.barbero-casilla {
+    border-radius: 20px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.barbero-casilla.active {
+    background: #ffd700;
+    border-color: #ffd700;
+    color: #222;
+}
+
+.barbero-casilla:hover {
+    border-color: #ffd700;
+    transform: translateY(-2px);
+}
+
+/* Estilos para modo oscuro */
+.table {
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.table th {
+    background: var(--secondary-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table td {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+    background: var(--form-section-bg);
+}
+
+.form-control, .form-select {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+}
+
+.form-label {
+    color: var(--text-primary);
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Estilos para botones de estado */
+.btn-completado {
+    background-color: #145a32 !important;
+    color: #ffffff !important;
+    border-color: #145a32 !important;
+}
+
+.btn-completado:hover,
+.btn-completado:focus,
+.btn-completado:active {
+    background-color: #1e7e42 !important;
+    color: #ffffff !important;
+    border-color: #1e7e42 !important;
+}
+
+/* Mejorar contraste en modo oscuro */
+[data-theme="dark"] .btn-completado {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+    border-color: #28a745 !important;
+}
+
+[data-theme="dark"] .btn-completado:hover,
+[data-theme="dark"] .btn-completado:focus,
+[data-theme="dark"] .btn-completado:active {
+    background-color: #34ce57 !important;
+    color: #ffffff !important;
+    border-color: #34ce57 !important;
+}
+
+/* Estilos para el menú desplegable de estados */
+.estado-menu {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary);
+}
+
+.estado-menu .dropdown-item {
+    color: var(--text-primary);
+    background: transparent;
+    border: none;
+    padding: 0.5rem 1rem;
+    width: 100%;
+    text-align: left;
+    display: block;
+}
+
+.estado-menu .dropdown-item:hover {
+    background: var(--secondary-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+.estado-menu .dropdown-item.text-success {
+    color: #28a745 !important;
+}
+
+.estado-menu .dropdown-item.text-warning {
+    color: #ffc107 !important;
+}
+
+.estado-menu .dropdown-item.text-danger {
+    color: #dc3545 !important;
+}
+
+.btn-completado-menu {
+    background-color: #145a32 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-completado-menu {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+}
+
+.btn-completado-menu:hover {
+    background-color: #1e7e42 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-completado-menu:hover {
+    background-color: #34ce57 !important;
+    color: #ffffff !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .admin-turnos-header h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .admin-turnos-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .btn-group-responsive {
+        justify-content: center;
+    }
+    
+    .col-md-3 {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .admin-turnos-header h1 {
+        font-size: 1.6rem;
+        text-align: center;
+    }
+    
+    .filter-card .card-body {
+        padding: 1rem;
+    }
+    
+    .action-buttons {
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-group-responsive {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-group-responsive .btn {
+        margin-bottom: 0.5rem;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group .form-control,
+    .input-group .input-group-text {
+        border-radius: 5px !important;
+        margin-bottom: 0.25rem;
+    }
+    
+    .input-group .input-group-text {
+        text-align: center;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .modal-dialog {
+        margin: 1rem;
+    }
+    
+    .barberos-casillas {
+        flex-direction: column;
+    }
+    
+    .barbero-casilla {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Correcciones para filtros en móviles */
+
+/* Asegurar que los select se mantengan dentro de la pantalla */
+.form-select {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Específico para móviles - forzar comportamiento nativo mejorado */
+@media (max-width: 768px) {
+    .form-select {
+        /* Forzar que el dropdown se abra hacia arriba si no hay espacio */
+        position: relative;
+        z-index: 1000;
+    }
+    
+    /* Asegurar que los campos date/time no se salgan de pantalla */
+    input[type="date"],
+    input[type="time"] {
+        max-width: 100%;
+        /* En móviles, usar el picker nativo del sistema */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        position: relative;
+        z-index: 999;
+    }
+    
+    /* Restaurar la apariencia nativa en móviles para mejor UX */
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        background: transparent;
+        bottom: 0;
+        color: transparent;
+        cursor: pointer;
+        height: auto;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: auto;
+        opacity: 1;
+    }
+    
+    /* Forzar que el modal de date/time se centre en la pantalla */
+    input[type="date"]:focus,
+    input[type="time"]:focus {
+        transform: none;
+        position: relative;
+    }
+}
+
+/* Solución específica para select en iOS/Android */
+@media (max-width: 768px) {
+    select {
+        /* Forzar el uso del selector nativo en móviles */
+        -webkit-appearance: menulist;
+        -moz-appearance: menulist;
+        appearance: menulist;
+        background: var(--form-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        padding: 0.375rem 2rem 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--text-primary);
+    }
+    
+    /* Asegurar que el dropdown nativo se vea bien */
+    select:focus {
+        border-color: var(--accent-color);
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+    }
+}
+
+/* Corrección adicional para contenedores de filtros */
+.filter-card {
+    position: relative;
+    overflow: visible;
+    z-index: 10;
+}
+
+.filter-card .card-body {
+    position: relative;
+    z-index: 11;
+}
+
+/* Asegurar que los filtros no se corten */
+@media (max-width: 576px) {
+    .col-12.col-md-6.col-lg-3 {
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: auto;
+    }
+    
+    /* Dar más espacio vertical entre filtros */
+    .row.g-3 {
+        gap: 1rem;
+    }
+    
+    /* Asegurar que los labels sean visibles */
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+        color: var(--text-primary);
+    }
+}
+
+/* Solución para cuando el teclado aparece en móvil */
+@media (max-width: 768px) and (max-height: 600px) {
+    .filter-card {
+        position: sticky;
+        top: 0;
+        z-index: 1020;
+        background: var(--card-bg);
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 1rem;
+    }
+}
+
+/* Mejoras específicas para campos de fecha/hora en móvil */
+@media (max-width: 576px) {
+    input[type="date"],
+    input[type="time"] {
+        font-size: 16px; /* Evita zoom en iOS */
+        padding: 0.75rem 0.5rem;
+        min-height: 44px; /* Touch target size recomendado */
+    }
+    
+    .form-select {
+        font-size: 16px; /* Evita zoom en iOS */
+        min-height: 44px; /* Touch target size recomendado */
+        padding: 0.75rem 2rem 0.75rem 0.75rem;
+    }
+    
+    /* Asegurar que el botón de filtrar sea accesible */
+    .btn-primary {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 0.75rem 1.5rem;
+    }
+}
+
+.admin-turnos-header {
+    margin-bottom: 2rem;
+}
+
+.admin-turnos-header h1 {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.filter-card {
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 5px 15px var(--card-shadow);
+    background: var(--card-bg);
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.btn-group-responsive {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.turnos-table-container {
+    overflow-x: auto;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px var(--card-shadow);
+    background: var(--card-bg);
+}
+
+.table-responsive-custom {
+    min-height: 200px;
+}
+
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 30px var(--card-shadow);
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+    color: #222;
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
+}
+
+.barbero-casilla {
+    border-radius: 20px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.barbero-casilla.active {
+    background: #ffd700;
+    border-color: #ffd700;
+    color: #222;
+}
+
+.barbero-casilla:hover {
+    border-color: #ffd700;
+    transform: translateY(-2px);
+}
+
+/* Estilos para modo oscuro */
+.table {
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.table th {
+    background: var(--secondary-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table td {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+    background: var(--form-section-bg);
+}
+
+.form-control, .form-select {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+}
+
+.form-label {
+    color: var(--text-primary);
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Estilos para botones de estado */
+.btn-completado {
+    background-color: #145a32 !important;
+    color: #ffffff !important;
+    border-color: #145a32 !important;
+}
+
+.btn-completado:hover,
+.btn-completado:focus,
+.btn-completado:active {
+    background-color: #1e7e42 !important;
+    color: #ffffff !important;
+    border-color: #1e7e42 !important;
+}
+
+/* Mejorar contraste en modo oscuro */
+[data-theme="dark"] .btn-completado {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+    border-color: #28a745 !important;
+}
+
+[data-theme="dark"] .btn-completado:hover,
+[data-theme="dark"] .btn-completado:focus,
+[data-theme="dark"] .btn-completado:active {
+    background-color: #34ce57 !important;
+    color: #ffffff !important;
+    border-color: #34ce57 !important;
+}
+
+/* Estilos para el menú desplegable de estados */
+.estado-menu {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary);
+}
+
+.estado-menu .dropdown-item {
+    color: var(--text-primary);
+    background: transparent;
+    border: none;
+    padding: 0.5rem 1rem;
+    width: 100%;
+    text-align: left;
+    display: block;
+}
+
+.estado-menu .dropdown-item:hover {
+    background: var(--secondary-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+.estado-menu .dropdown-item.text-success {
+    color: #28a745 !important;
+}
+
+.estado-menu .dropdown-item.text-warning {
+    color: #ffc107 !important;
+}
+
+.estado-menu .dropdown-item.text-danger {
+    color: #dc3545 !important;
+}
+
+.btn-completado-menu {
+    background-color: #145a32 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-completado-menu {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+}
+
+.btn-completado-menu:hover {
+    background-color: #1e7e42 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-completado-menu:hover {
+    background-color: #34ce57 !important;
+    color: #ffffff !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .admin-turnos-header h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .admin-turnos-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .btn-group-responsive {
+        justify-content: center;
+    }
+    
+    .col-md-3 {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .admin-turnos-header h1 {
+        font-size: 1.6rem;
+        text-align: center;
+    }
+    
+    .filter-card .card-body {
+        padding: 1rem;
+    }
+    
+    .action-buttons {
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-group-responsive {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-group-responsive .btn {
+        margin-bottom: 0.5rem;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group .form-control,
+    .input-group .input-group-text {
+        border-radius: 5px !important;
+        margin-bottom: 0.25rem;
+    }
+    
+    .input-group .input-group-text {
+        text-align: center;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .modal-dialog {
+        margin: 1rem;
+    }
+    
+    .barberos-casillas {
+        flex-direction: column;
+    }
+    
+    .barbero-casilla {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Correcciones para filtros en móviles */
+
+/* Asegurar que los select se mantengan dentro de la pantalla */
+.form-select {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Específico para móviles - forzar comportamiento nativo mejorado */
+@media (max-width: 768px) {
+    .form-select {
+        /* Forzar que el dropdown se abra hacia arriba si no hay espacio */
+        position: relative;
+        z-index: 1000;
+    }
+    
+    /* Asegurar que los campos date/time no se salgan de pantalla */
+    input[type="date"],
+    input[type="time"] {
+        max-width: 100%;
+        /* En móviles, usar el picker nativo del sistema */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        position: relative;
+        z-index: 999;
+    }
+    
+    /* Restaurar la apariencia nativa en móviles para mejor UX */
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        background: transparent;
+        bottom: 0;
+        color: transparent;
+        cursor: pointer;
+        height: auto;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: auto;
+        opacity: 1;
+    }
+    
+    /* Forzar que el modal de date/time se centre en la pantalla */
+    input[type="date"]:focus,
+    input[type="time"]:focus {
+        transform: none;
+        position: relative;
+    }
+}
+
+/* Solución específica para select en iOS/Android */
+@media (max-width: 768px) {
+    select {
+        /* Forzar el uso del selector nativo en móviles */
+        -webkit-appearance: menulist;
+        -moz-appearance: menulist;
+        appearance: menulist;
+        background: var(--form-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        padding: 0.375rem 2rem 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--text-primary);
+    }
+    
+    /* Asegurar que el dropdown nativo se vea bien */
+    select:focus {
+        border-color: var(--accent-color);
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+    }
+}
+
+/* Corrección adicional para contenedores de filtros */
+.filter-card {
+    position: relative;
+    overflow: visible;
+    z-index: 10;
+}
+
+.filter-card .card-body {
+    position: relative;
+    z-index: 11;
+}
+
+/* Asegurar que los filtros no se corten */
+@media (max-width: 576px) {
+    .col-12.col-md-6.col-lg-3 {
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: auto;
+    }
+    
+    /* Dar más espacio vertical entre filtros */
+    .row.g-3 {
+        gap: 1rem;
+    }
+    
+    /* Asegurar que los labels sean visibles */
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+        color: var(--text-primary);
+    }
+}
+
+/* Solución para cuando el teclado aparece en móvil */
+@media (max-width: 768px) and (max-height: 600px) {
+    .filter-card {
+        position: sticky;
+        top: 0;
+        z-index: 1020;
+        background: var(--card-bg);
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 1rem;
+    }
+}
+
+/* Mejoras específicas para campos de fecha/hora en móvil */
+@media (max-width: 576px) {
+    input[type="date"],
+    input[type="time"] {
+        font-size: 16px; /* Evita zoom en iOS */
+        padding: 0.75rem 0.5rem;
+        min-height: 44px; /* Touch target size recomendado */
+    }
+    
+    .form-select {
+        font-size: 16px; /* Evita zoom en iOS */
+        min-height: 44px; /* Touch target size recomendado */
+        padding: 0.75rem 2rem 0.75rem 0.75rem;
+    }
+    
+    /* Asegurar que el botón de filtrar sea accesible */
+    .btn-primary {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 0.75rem 1.5rem;
+    }
+}
+
+.admin-turnos-header {
+    margin-bottom: 2rem;
+}
+
+.admin-turnos-header h1 {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.filter-card {
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 5px 15px var(--card-shadow);
+    background: var(--card-bg);
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.btn-group-responsive {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.turnos-table-container {
+    overflow-x: auto;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px var(--card-shadow);
+    background: var(--card-bg);
+}
+
+.table-responsive-custom {
+    min-height: 200px;
+}
+
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 30px var(--card-shadow);
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+    color: #222;
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
+}
+
+.barbero-casilla {
+    border-radius: 20px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.barbero-casilla.active {
+    background: #ffd700;
+    border-color: #ffd700;
+    color: #222;
+}
+
+.barbero-casilla:hover {
+    border-color: #ffd700;
+    transform: translateY(-2px);
+}
+
+/* Estilos para modo oscuro */
+.table {
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.table th {
+    background: var(--secondary-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table td {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+    background: var(--form-section-bg);
+}
+
+.form-control, .form-select {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+}
+
+.form-label {
+    color: var(--text-primary);
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Estilos para botones de estado */
+.btn-completado {
+    background-color: #145a32 !important;
+    color: #ffffff !important;
+    border-color: #145a32 !important;
+}
+
+.btn-completado:hover,
+.btn-completado:focus,
+.btn-completado:active {
+    background-color: #1e7e42 !important;
+    color: #ffffff !important;
+    border-color: #1e7e42 !important;
+}
+
+/* Mejorar contraste en modo oscuro */
+[data-theme="dark"] .btn-completado {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+    border-color: #28a745 !important;
+}
+
+[data-theme="dark"] .btn-completado:hover,
+[data-theme="dark"] .btn-completado:focus,
+[data-theme="dark"] .btn-completado:active {
+    background-color: #34ce57 !important;
+    color: #ffffff !important;
+    border-color: #34ce57 !important;
+}
+
+/* Estilos para el menú desplegable de estados */
+.estado-menu {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary);
+}
+
+.estado-menu .dropdown-item {
+    color: var(--text-primary);
+    background: transparent;
+    border: none;
+    padding: 0.5rem 1rem;
+    width: 100%;
+    text-align: left;
+    display: block;
+}
+
+.estado-menu .dropdown-item:hover {
+    background: var(--secondary-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+.estado-menu .dropdown-item.text-success {
+    color: #28a745 !important;
+}
+
+.estado-menu .dropdown-item.text-warning {
+    color: #ffc107 !important;
+}
+
+.estado-menu .dropdown-item.text-danger {
+    color: #dc3545 !important;
+}
+
+.btn-completado-menu {
+    background-color: #145a32 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-completado-menu {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+}
+
+.btn-completado-menu:hover {
+    background-color: #1e7e42 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-completado-menu:hover {
+    background-color: #34ce57 !important;
+    color: #ffffff !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .admin-turnos-header h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .admin-turnos-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .btn-group-responsive {
+        justify-content: center;
+    }
+    
+    .col-md-3 {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .admin-turnos-header h1 {
+        font-size: 1.6rem;
+        text-align: center;
+    }
+    
+    .filter-card .card-body {
+        padding: 1rem;
+    }
+    
+    .action-buttons {
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-group-responsive {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-group-responsive .btn {
+        margin-bottom: 0.5rem;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group .form-control,
+    .input-group .input-group-text {
+        border-radius: 5px !important;
+        margin-bottom: 0.25rem;
+    }
+    
+    .input-group .input-group-text {
+        text-align: center;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .modal-dialog {
+        margin: 1rem;
+    }
+    
+    .barberos-casillas {
+        flex-direction: column;
+    }
+    
+    .barbero-casilla {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Correcciones para filtros en móviles */
+
+/* Asegurar que los select se mantengan dentro de la pantalla */
+.form-select {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Específico para móviles - forzar comportamiento nativo mejorado */
+@media (max-width: 768px) {
+    .form-select {
+        /* Forzar que el dropdown se abra hacia arriba si no hay espacio */
+        position: relative;
+        z-index: 1000;
+    }
+    
+    /* Asegurar que los campos date/time no se salgan de pantalla */
+    input[type="date"],
+    input[type="time"] {
+        max-width: 100%;
+        /* En móviles, usar el picker nativo del sistema */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        position: relative;
+        z-index: 999;
+    }
+    
+    /* Restaurar la apariencia nativa en móviles para mejor UX */
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        background: transparent;
+        bottom: 0;
+        color: transparent;
+        cursor: pointer;
+        height: auto;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: auto;
+        opacity: 1;
+    }
+    
+    /* Forzar que el modal de date/time se centre en la pantalla */
+    input[type="date"]:focus,
+    input[type="time"]:focus {
+        transform: none;
+        position: relative;
+    }
+}
+
+/* Solución específica para select en iOS/Android */
+@media (max-width: 768px) {
+    select {
+        /* Forzar el uso del selector nativo en móviles */
+        -webkit-appearance: menulist;
+        -moz-appearance: menulist;
+        appearance: menulist;
+        background: var(--form-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        padding: 0.375rem 2rem 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--text-primary);
+    }
+    
+    /* Asegurar que el dropdown nativo se vea bien */
+    select:focus {
+        border-color: var(--accent-color);
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+    }
+}
+
+/* Corrección adicional para contenedores de filtros */
+.filter-card {
+    position: relative;
+    overflow: visible;
+    z-index: 10;
+}
+
+.filter-card .card-body {
+    position: relative;
+    z-index: 11;
+}
+
+/* Asegurar que los filtros no se corten */
+@media (max-width: 576px) {
+    .col-12.col-md-6.col-lg-3 {
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: auto;
+    }
+    
+    /* Dar más espacio vertical entre filtros */
+    .row.g-3 {
+        gap: 1rem;
+    }
+    
+    /* Asegurar que los labels sean visibles */
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+        color: var(--text-primary);
+    }
+}
+
+/* Solución para cuando el teclado aparece en móvil */
+@media (max-width: 768px) and (max-height: 600px) {
+    .filter-card {
+        position: sticky;
+        top: 0;
+        z-index: 1020;
+        background: var(--card-bg);
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 1rem;
+    }
+}
+
+/* Mejoras específicas para campos de fecha/hora en móvil */
+@media (max-width: 576px) {
+    input[type="date"],
+    input[type="time"] {
+        font-size: 16px; /* Evita zoom en iOS */
+        padding: 0.75rem 0.5rem;
+        min-height: 44px; /* Touch target size recomendado */
+    }
+    
+    .form-select {
+        font-size: 16px; /* Evita zoom en iOS */
+        min-height: 44px; /* Touch target size recomendado */
+        padding: 0.75rem 2rem 0.75rem 0.75rem;
+    }
+    
+    /* Asegurar que el botón de filtrar sea accesible */
+    .btn-primary {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 0.75rem 1.5rem;
+    }
+}
+
+.admin-turnos-header {
+    margin-bottom: 2rem;
+}
+
+.admin-turnos-header h1 {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.filter-card {
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 5px 15px var(--card-shadow);
+    background: var(--card-bg);
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.btn-group-responsive {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.turnos-table-container {
+    overflow-x: auto;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px var(--card-shadow);
+    background: var(--card-bg);
+}
+
+.table-responsive-custom {
+    min-height: 200px;
+}
+
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 30px var(--card-shadow);
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+    color: #222;
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
+}
+
+.barbero-casilla {
+    border-radius: 20px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.barbero-casilla.active {
+    background: #ffd700;
+    border-color: #ffd700;
+    color: #222;
+}
+
+.barbero-casilla:hover {
+    border-color: #ffd700;
+    transform: translateY(-2px);
+}
+
+/* Estilos para modo oscuro */
+.table {
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.table th {
+    background: var(--secondary-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table td {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+    background: var(--form-section-bg);
+}
+
+.form-control, .form-select {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+}
+
+.form-label {
+    color: var(--text-primary);
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Estilos para botones de estado */
+.btn-completado {
+    background-color: #145a32 !important;
+    color: #ffffff !important;
+    border-color: #145a32 !important;
+}
+
+.btn-completado:hover,
+.btn-completado:focus,
+.btn-completado:active {
+    background-color: #1e7e42 !important;
+    color: #ffffff !important;
+    border-color: #1e7e42 !important;
+}
+
+/* Mejorar contraste en modo oscuro */
+[data-theme="dark"] .btn-completado {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+    border-color: #28a745 !important;
+}
+
+[data-theme="dark"] .btn-completado:hover,
+[data-theme="dark"] .btn-completado:focus,
+[data-theme="dark"] .btn-completado:active {
+    background-color: #34ce57 !important;
+    color: #ffffff !important;
+    border-color: #34ce57 !important;
+}
+
+/* Estilos para el menú desplegable de estados */
+.estado-menu {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary);
+}
+
+.estado-menu .dropdown-item {
+    color: var(--text-primary);
+    background: transparent;
+    border: none;
+    padding: 0.5rem 1rem;
+    width: 100%;
+    text-align: left;
+    display: block;
+}
+
+.estado-menu .dropdown-item:hover {
+    background: var(--secondary-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+.estado-menu .dropdown-item.text-success {
+    color: #28a745 !important;
+}
+
+.estado-menu .dropdown-item.text-warning {
+    color: #ffc107 !important;
+}
+
+.estado-menu .dropdown-item.text-danger {
+    color: #dc3545 !important;
+}
+
+.btn-completado-menu {
+    background-color: #145a32 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-completado-menu {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+}
+
+.btn-completado-menu:hover {
+    background-color: #1e7e42 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-completado-menu:hover {
+    background-color: #34ce57 !important;
+    color: #ffffff !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .admin-turnos-header h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .admin-turnos-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .btn-group-responsive {
+        justify-content: center;
+    }
+    
+    .col-md-3 {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .admin-turnos-header h1 {
+        font-size: 1.6rem;
+        text-align: center;
+    }
+    
+    .filter-card .card-body {
+        padding: 1rem;
+    }
+    
+    .action-buttons {
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-group-responsive {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-group-responsive .btn {
+        margin-bottom: 0.5rem;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group .form-control,
+    .input-group .input-group-text {
+        border-radius: 5px !important;
+        margin-bottom: 0.25rem;
+    }
+    
+    .input-group .input-group-text {
+        text-align: center;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .modal-dialog {
+        margin: 1rem;
+    }
+    
+    .barberos-casillas {
+        flex-direction: column;
+    }
+    
+    .barbero-casilla {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Correcciones para filtros en móviles */
+
+/* Asegurar que los select se mantengan dentro de la pantalla */
+.form-select {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Específico para móviles - forzar comportamiento nativo mejorado */
+@media (max-width: 768px) {
+    .form-select {
+        /* Forzar que el dropdown se abra hacia arriba si no hay espacio */
+        position: relative;
+        z-index: 1000;
+    }
+    
+    /* Asegurar que los campos date/time no se salgan de pantalla */
+    input[type="date"],
+    input[type="time"] {
+        max-width: 100%;
+        /* En móviles, usar el picker nativo del sistema */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        position: relative;
+        z-index: 999;
+    }
+    
+    /* Restaurar la apariencia nativa en móviles para mejor UX */
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        background: transparent;
+        bottom: 0;
+        color: transparent;
+        cursor: pointer;
+        height: auto;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: auto;
+        opacity: 1;
+    }
+    
+    /* Forzar que el modal de date/time se centre en la pantalla */
+    input[type="date"]:focus,
+    input[type="time"]:focus {
+        transform: none;
+        position: relative;
+    }
+}
+
+/* Solución específica para select en iOS/Android */
+@media (max-width: 768px) {
+    select {
+        /* Forzar el uso del selector nativo en móviles */
+        -webkit-appearance: menulist;
+        -moz-appearance: menulist;
+        appearance: menulist;
+        background: var(--form-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        padding: 0.375rem 2rem 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--text-primary);
+    }
+    
+    /* Asegurar que el dropdown nativo se vea bien */
+    select:focus {
+        border-color: var(--accent-color);
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+    }
+}
+
+/* Corrección adicional para contenedores de filtros */
+.filter-card {
+    position: relative;
+    overflow: visible;
+    z-index: 10;
+}
+
+.filter-card .card-body {
+    position: relative;
+    z-index: 11;
+}
+
+/* Asegurar que los filtros no se corten */
+@media (max-width: 576px) {
+    .col-12.col-md-6.col-lg-3 {
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: auto;
+    }
+    
+    /* Dar más espacio vertical entre filtros */
+    .row.g-3 {
+        gap: 1rem;
+    }
+    
+    /* Asegurar que los labels sean visibles */
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+        color: var(--text-primary);
+    }
+}
+
+/* Solución para cuando el teclado aparece en móvil */
+@media (max-width: 768px) and (max-height: 600px) {
+    .filter-card {
+        position: sticky;
+        top: 0;
+        z-index: 1020;
+        background: var(--card-bg);
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 1rem;
+    }
+}
+
+/* Mejoras específicas para campos de fecha/hora en móvil */
+@media (max-width: 576px) {
+    input[type="date"],
+    input[type="time"] {
+        font-size: 16px; /* Evita zoom en iOS */
+        padding: 0.75rem 0.5rem;
+        min-height: 44px; /* Touch target size recomendado */
+    }
+    
+    .form-select {
+        font-size: 16px; /* Evita zoom en iOS */
+        min-height: 44px; /* Touch target size recomendado */
+        padding: 0.75rem 2rem 0.75rem 0.75rem;
+    }
+    
+    /* Asegurar que el botón de filtrar sea accesible */
+    .btn-primary {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 0.75rem 1.5rem;
+    }
+}
+
+.admin-turnos-header {
+    margin-bottom: 2rem;
+}
+
+.admin-turnos-header h1 {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.filter-card {
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 5px 15px var(--card-shadow);
+    background: var(--card-bg);
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.btn-group-responsive {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.turnos-table-container {
+    overflow-x: auto;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px var(--card-shadow);
+    background: var(--card-bg);
+}
+
+.table-responsive-custom {
+    min-height: 200px;
+}
+
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 30px var(--card-shadow);
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+    color: #222;
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
+}
+
+.barbero-casilla {
+    border-radius: 20px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.barbero-casilla.active {
+    background: #ffd700;
+    border-color: #ffd700;
+    color: #222;
+}
+
+.barbero-casilla:hover {
+    border-color: #ffd700;
+    transform: translateY(-2px);
+}
+
+/* Estilos para modo oscuro */
+.table {
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.table th {
+    background: var(--secondary-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table td {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+    background: var(--form-section-bg);
+}
+
+.form-control, .form-select {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+}
+
+.form-label {
+    color: var(--text-primary);
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Estilos para botones de estado */
+.btn-completado {
+    background-color: #145a32 !important;
+    color: #ffffff !important;
+    border-color: #145a32 !important;
+}
+
+.btn-completado:hover,
+.btn-completado:focus,
+.btn-completado:active {
+    background-color: #1e7e42 !important;
+    color: #ffffff !important;
+    border-color: #1e7e42 !important;
+}
+
+/* Mejorar contraste en modo oscuro */
+[data-theme="dark"] .btn-completado {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+    border-color: #28a745 !important;
+}
+
+[data-theme="dark"] .btn-completado:hover,
+[data-theme="dark"] .btn-completado:focus,
+[data-theme="dark"] .btn-completado:active {
+    background-color: #34ce57 !important;
+    color: #ffffff !important;
+    border-color: #34ce57 !important;
+}
+
+/* Estilos para el menú desplegable de estados */
+.estado-menu {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary);
+}
+
+.estado-menu .dropdown-item {
+    color: var(--text-primary);
+    background: transparent;
+    border: none;
+    padding: 0.5rem 1rem;
+    width: 100%;
+    text-align: left;
+    display: block;
+}
+
+.estado-menu .dropdown-item:hover {
+    background: var(--secondary-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+.estado-menu .dropdown-item.text-success {
+    color: #28a745 !important;
+}
+
+.estado-menu .dropdown-item.text-warning {
+    color: #ffc107 !important;
+}
+
+.estado-menu .dropdown-item.text-danger {
+    color: #dc3545 !important;
+}
+
+.btn-completado-menu {
+    background-color: #145a32 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-completado-menu {
+    background-color: #28a745 !important;
+    color: #ffffff !important;
+}
+
+.btn-completado-menu:hover {
+    background-color: #1e7e42 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-completado-menu:hover {
+    background-color: #34ce57 !important;
+    color: #ffffff !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .admin-turnos-header h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .admin-turnos-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .btn-group-responsive {
+        justify-content: center;
+    }
+    
+    .col-md-3 {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .admin-turnos-header h1 {
+        font-size: 1.6rem;
+        text-align: center;
+    }
+    
+    .filter-card .card-body {
+        padding: 1rem;
+    }
+    
+    .action-buttons {
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-group-responsive {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-group-responsive .btn {
+        margin-bottom: 0.5rem;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group .form-control,
+    .input-group .input-group-text {
+        border-radius: 5px !important;
+        margin-bottom: 0.25rem;
+    }
+    
+    .input-group .input-group-text {
+        text-align: center;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .modal-dialog {
+        margin: 1rem;
+    }
+    
+    .barberos-casillas {
+        flex-direction: column;
+    }
+    
+    .barbero-casilla {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Correcciones para filtros en móviles */
+
+/* Asegurar que los select se mantengan dentro de la pantalla */
+.form-select {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Específico para móviles - forzar comportamiento nativo mejorado */
+@media (max-width: 768px) {
+    .form-select {
+        /* Forzar que el dropdown se abra hacia arriba si no hay espacio */
+        position: relative;
+        z-index: 1000;
+    }
+    
+    /* Asegurar que los campos date/time no se salgan de pantalla */
+    input[type="date"],
+    input[type="time"] {
+        max-width: 100%;
+        /* En móviles, usar el picker nativo del sistema */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        position: relative;
+        z-index: 999;
+    }
+    
+    /* Restaurar la apariencia nativa en móviles para mejor UX */
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        background: transparent;
+        bottom: 0;
+        color: transparent;
+        cursor: pointer;
+        height: auto;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: auto;
+        opacity: 1;
+    }
+    
+    /* Forzar que el modal de date/time se centre en la pantalla */
+    input[type="date"]:focus,
+    input[type="time"]:focus {
+        transform: none;
+        position: relative;
+    }
+}
+
+/* Solución específica para select en iOS/Android */
+@media (max-width: 768px) {
+    select {
+        /* Forzar el uso del selector nativo en móviles */
+        -webkit-appearance: menulist;
+        -moz-appearance: menulist;
+        appearance: menulist;
+        background: var(--form-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        padding: 0.375rem 2rem 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--text-primary);
+    }
+    
+    /* Asegurar que el dropdown nativo se vea bien */
+    select:focus {
+        border-color: var(--accent-color);
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+    }
+}
+
+/* Corrección adicional para contenedores de filtros */
+.filter-card {
+    position: relative;
+    overflow: visible;
+    z-index: 10;
+}
+
+.filter-card .card-body {
+    position: relative;
+    z-index: 11;
+}
+
+/* Asegurar que los filtros no se corten */
+@media (max-width: 576px) {
+    .col-12.col-md-6.col-lg-3 {
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: auto;
+    }
+    
+    /* Dar más espacio vertical entre filtros */
+    .row.g-3 {
+        gap: 1rem;
+    }
+    
+    /* Asegurar que los labels sean visibles */
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+        color: var(--text-primary);
+    }
+}
+
+/* Solución para cuando el teclado aparece en móvil */
+@media (max-width: 768px) and (max-height: 600px) {
+    .filter-card {
+        position: sticky;
+        top: 0;
+        z-index: 1020;
+        background: var(--card-bg);
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 1rem;
+    }
+}
+
+/* Mejoras específicas para campos de fecha/hora en móvil */
+@media (max-width: 576px) {
+    input[type="date"],
+    input[type="time"] {
+        font-size: 16px; /* Evita zoom en iOS */
+        padding: 0.75rem 0.5rem;
+        min-height: 44px; /* Touch target size recomendado */
+    }
+    
+    .form-select {
+        font-size: 16px; /* Evita zoom en iOS */
+        min-height: 44px; /* Touch target size recomendado */
+        padding: 0.75rem 2rem 0.75rem 0.75rem;
+    }
+    
+    /* Asegurar que el botón de filtrar sea accesible */
+    .btn-primary {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 0.75rem 1.5rem;
+    }
+}
+
+.admin-turnos-header {
+    margin-bottom: 2rem;
+}
+
+.admin-turnos-header h1 {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.filter-card {
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 5px 15px var(--card-shadow);
+    background: var(--card-bg);
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.btn-group-responsive {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.turnos-table-container {
+    overflow-x: auto;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px var(--card-shadow);
+    background: var(--card-bg);
+}
+
+.table-responsive-custom {
+    min-height: 200px;
+}
+
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 30px var(--card-shadow);
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+    color: #222;
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
+}
+
+.barbero-casilla {
+    border-radius: 20px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.barbero-casilla.active {
+    background: #ffd700;
+    border-color: #ffd700;
+    color: #222;
+}
+
+.barbero-casilla:hover {
+    border-color: #ffd700;
+    transform: translateY(-2px);
+}
+
+/* Estilos para modo oscuro */
+.table {
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.table th {
+    background: var(--secondary-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table td {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+    background: var(--form-section-bg);
+}
+
+.form-control, .form-select {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--form-bg);
+    color: var(--text-primary);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+}
+
+.form-label {
+    color: var(--text-primary);
+}
+
+/* CORRECCIONES PARA FILTROS EN MÓVILES */
+@media (max-width: 768px) {
+    .form-select {
+        -webkit-appearance: menulist;
+        -moz-appearance: menulist;
+        appearance: menulist;
+        font-size: 16px;
+        min-height: 44px;
+        position: relative;
+        z-index: 1000;
+    }
+    
+    input[type="date"],
+    input[type="time"] {
+        font-size: 16px;
+        min-height: 44px;
+        padding: 0.75rem 0.5rem;
+        position: relative;
+        z-index: 999;
+    }
+    
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        opacity: 1;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        color: transparent;
+        cursor: pointer;
+    }
+    
+    .filter-card {
+        overflow: visible;
+        z-index: 100;
+    }
+    
+    .col-12.col-md-6.col-lg-3 {
+        margin-bottom: 1rem;
+        z-index: auto;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    
+    .btn-primary {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 0.75rem 1.5rem;
+    }
+}
+
+@supports (-webkit-touch-callout: none) {
+    select,
+    input[type="date"],
+    input[type="time"] {
+        font-size: 16px !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}

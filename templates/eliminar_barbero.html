@@ -9,7 +9,7 @@
         <p class="text-center">¿Estás seguro que deseas eliminar a <strong>{{ barbero.nombre }}</strong>? Esta acción no se puede deshacer.</p>
         {% if barbero.foto %}
           <div class="text-center mb-3">
-            <img src="{{ barbero.foto.url }}" class="img-fluid rounded" style="max-height:120px;">
+            <img src="{{ barbero.foto }}" class="img-fluid rounded" style="max-height:120px;">
           </div>
         {% endif %}
         <form method="post">

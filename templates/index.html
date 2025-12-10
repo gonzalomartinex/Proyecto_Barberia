@@ -1,17 +1,75 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Inicio | Cortes Con Historia{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Adaptación para modo oscuro */
+    .card {
+        background: var(--card-bg) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    .card-title {
+        color: var(--text-primary) !important;
+    }
+    
+    .card-text {
+        color: var(--text-secondary) !important;
+    }
+    
+    /* Estilos responsive para la página de inicio */
+    @media (max-width: 768px) {
+        .display-4 {
+            font-size: 2rem !important;
+        }
+        .lead {
+            font-size: 1rem !important;
+        }
+        .hero-logo img {
+            height: 50px !important;
+        }
+        .carousel-container {
+            margin-top: 2rem;
+        }
+        .cards-section {
+            margin-top: 3rem !important;
+        }
+        .card {
+            margin-bottom: 1rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .display-4 {
+            font-size: 1.5rem !important;
+        }
+        .hero-section {
+            padding: 1rem 0;
+        }
+        .hero-logo img {
+            height: 40px !important;
+        }
+        .btn-lg {
+            font-size: 1rem !important;
+            padding: 0.75rem 1.5rem !important;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row align-items-center mb-4">
-    <div class="col-md-6 d-flex flex-column justify-content-center align-items-center text-center">
+    <div class="col-lg-6 col-md-12 d-flex flex-column justify-content-center align-items-center text-center hero-section mb-4 mb-lg-0">
         <h1 class="display-4 mb-3 fw-bold" style="letter-spacing:1px;">Bienvenido a</h1>
-        <div class="mb-4">
-            <img src="{% static 'logo/logo.png' %}" alt="Cortes Con Historia" style="height:70px;max-width:100%;">
+        <div class="mb-4 hero-logo">
+            <img id="hero-logo" src="{% static 'logo/logo.svg' %}" alt="Cortes Con Historia" class="img-fluid" style="height:70px;max-width:100%;">
         </div>
-        <p class="lead mb-4">Tu barbería de confianza. Reserva tu turno, conoce a nuestros barberos y descubre los mejores servicios y productos. También atendemos por orden de llegada.</p>
+        <p class="lead mb-4 px-3">Tu barbería de confianza. Reserva tu turno, conoce a nuestros barberos y descubre los mejores servicios y productos. También atendemos por orden de llegada.</p>
         <a href="/turnos/" class="btn btn-primary btn-lg">Reservar Turno</a>
     </div>
-    <div class="col-md-6">
+    <div class="col-lg-6 col-md-12 carousel-container">
         <div id="carouselInicio" class="carousel slide" data-bs-ride="carousel">
             <div class="carousel-inner">
                 {% for img in carousel_images %}
@@ -32,39 +90,85 @@
             </button>
         </div>
         {% if user.is_authenticated and user.is_superuser %}
-        <div class="mb-4 text-end">
-            <a href="{% url 'editar-carrusel' %}" class="btn btn-warning">Administrar Carrusel</a>
+        <div class="mt-3 text-center text-lg-end">
+            <a href="{% url 'editar-carrusel' %}" class="btn btn-warning btn-sm">Administrar Carrusel</a>
         </div>
         {% endif %}
     </div>
 </div>
-<div class="row mt-5">
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Servicios Destacados</h5>
-                <p class="card-text">Cortes, afeitados, perfilados y más. Conocé todos nuestros servicios.</p>
-                <a href="/servicios/" class="btn btn-outline-primary">Ver Servicios</a>
+
+<div class="row cards-section mt-5">
+    <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title text-center">
+                    <i class="bi bi-scissors me-2 text-primary"></i>Servicios Destacados
+                </h5>
+                <p class="card-text flex-grow-1">Cortes, afeitados, perfilados y más. Conocé todos nuestros servicios.</p>
+                <a href="/servicios/" class="btn btn-outline-primary mt-auto">Ver Servicios</a>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Nuestros Barberos</h5>
-                <p class="card-text">Conocé a nuestro staff, su experiencia y trabajos destacados.</p>
-                <a href="/barberos/" class="btn btn-outline-primary">Ver Barberos</a>
+    <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title text-center">
+                    <i class="bi bi-people me-2 text-primary"></i>Nuestros Barberos
+                </h5>
+                <p class="card-text flex-grow-1">Conocé a nuestro staff, su experiencia y trabajos destacados.</p>
+                <a href="/barberos/" class="btn btn-outline-primary mt-auto">Ver Barberos</a>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Productos</h5>
-                <p class="card-text">Descubrí los productos que usamos y recomendamos en Cortes Con Historia.</p>
-                <a href="/productos/" class="btn btn-outline-primary">Ver Productos</a>
+    <div class="col-lg-4 col-md-12 col-sm-12 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title text-center">
+                    <i class="bi bi-box me-2 text-primary"></i>Productos
+                </h5>
+                <p class="card-text flex-grow-1">Descubrí los productos que usamos y recomendamos en Cortes Con Historia.</p>
+                <a href="/productos/" class="btn btn-outline-primary mt-auto">Ver Productos</a>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const heroLogo = document.getElementById('hero-logo');
+    
+    // Función para actualizar el logo según el tema
+    function updateHeroLogo(theme) {
+        if (heroLogo) {
+            const logoSrc = theme === 'dark' 
+                ? "{% static 'logo/logoblanco.svg' %}" 
+                : "{% static 'logo/logo.svg' %}";
+            heroLogo.src = logoSrc;
+            console.log(`🖼️ Hero logo updated for ${theme} theme (SVG)`);
+        }
+    }
+    
+    // Actualizar logo al cargar la página
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    updateHeroLogo(currentTheme);
+    
+    // Escuchar cambios de tema
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                const newTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                updateHeroLogo(newTheme);
+            }
+        });
+    });
+    
+    // Observar cambios en el atributo data-theme del elemento html
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme']
+    });
+});
+</script>
 {% endblock %}

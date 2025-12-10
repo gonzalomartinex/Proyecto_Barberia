@@ -1,55 +1,267 @@
 {% extends 'base.html' %}
-{% block title %}Registro de usuario | BarberíaApp{% endblock %}
+{% block title %}Registro de usuario | Cortes Con Historia{% endblock %}
+
+{% block extra_head %}
+<style>
+.registro-container {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+}
+
+.registro-card {
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border: none;
+    overflow: hidden;
+}
+
+.registro-header {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+    color: #222;
+    padding: 2rem;
+    text-align: center;
+    border-radius: 15px 15px 0 0;
+}
+
+.registro-header h3 {
+    font-weight: bold;
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.registro-body {
+    padding: 2rem;
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #ffd700;
+    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.form-label i {
+    color: #ffd700;
+    margin-right: 0.5rem;
+}
+
+.input-group .form-control:first-child {
+    border-radius: 10px 0 0 10px;
+}
+
+.input-group .form-control:last-child {
+    border-radius: 0 10px 10px 0;
+}
+
+.btn-registro {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+    border: none;
+    color: #222;
+    font-weight: bold;
+    padding: 0.75rem;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.btn-registro:hover {
+    background: linear-gradient(135deg, #e6be00 0%, #e6d441 100%);
+    color: #222;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+}
+
+.warning-note {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+.auth-link {
+    color: #ffd700;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.auth-link:hover {
+    color: #e6be00;
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .registro-container {
+        min-height: auto;
+        padding: 1rem 0;
+    }
+    
+    .registro-header {
+        padding: 1.5rem;
+    }
+    
+    .registro-header h3 {
+        font-size: 1.5rem;
+    }
+    
+    .registro-body {
+        padding: 1.5rem;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group .form-control {
+        border-radius: 10px !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    .input-group .form-control:last-child {
+        margin-bottom: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .registro-header {
+        padding: 1rem;
+    }
+    
+    .registro-header h3 {
+        font-size: 1.3rem;
+    }
+    
+    .registro-body {
+        padding: 1rem;
+    }
+    
+    .warning-note {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center mt-5">
-  <div class="col-md-5">
-    <div class="card shadow">
-      <div class="card-body">
-        <h3 class="mb-4 text-center">Registro de usuario</h3>
-        <form method="post">
-          {% csrf_token %}
-          {{ form.non_field_errors }}
-          <div class="mb-3">
-            <label for="id_email" class="form-label">Correo electrónico</label>
-            <input type="email" name="email" id="id_email" class="form-control" value="{{ form.email.value|default:'' }}" required>
-          </div>
-          <div class="mb-3">
-            <label for="id_nombre" class="form-label">Nombre</label>
-            <input type="text" name="nombre" id="id_nombre" class="form-control" value="{{ form.nombre.value|default:'' }}" required>
-          </div>
-          <div class="mb-3">
-            <label for="id_apellido" class="form-label">Apellido</label>
-            <input type="text" name="apellido" id="id_apellido" class="form-control" value="{{ form.apellido.value|default:'' }}" required>
-          </div>
-          <div class="mb-3">
-            <label for="id_fecha_nacimiento" class="form-label">Fecha de nacimiento</label>
-            <input type="date" name="fecha_nacimiento" id="id_fecha_nacimiento" class="form-control" value="{{ form.fecha_nacimiento.value|default:'' }}" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Teléfono</label>
-            <div class="input-group">
-              <input type="text" name="codigo_pais" id="id_codigo_pais" class="form-control" style="max-width: 80px; min-width: 60px;" value="{{ form.codigo_pais.value|default:'+54' }}" placeholder="+54">
-              <input type="text" name="telefono_numero" id="id_telefono_numero" class="form-control" placeholder="3519998888" autocomplete="off">
+<div class="container">
+    <div class="registro-container">
+        <div class="row justify-content-center w-100">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+                <div class="card registro-card">
+                    <div class="registro-header">
+                        <h3><i class="fas fa-user-plus me-2"></i>Registro de usuario</h3>
+                    </div>
+                    <div class="registro-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            
+                            <div class="mb-3">
+                                <label for="id_email" class="form-label">
+                                    <i class="fas fa-envelope"></i>Correo electrónico
+                                </label>
+                                <input type="email" name="email" id="id_email" class="form-control" 
+                                       value="{{ form.email.value|default:'' }}" required 
+                                       placeholder="usuario@correo.com">
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12 col-md-6 mb-3">
+                                    <label for="id_nombre" class="form-label">
+                                        <i class="fas fa-user"></i>Nombre
+                                    </label>
+                                    <input type="text" name="nombre" id="id_nombre" class="form-control" 
+                                           value="{{ form.nombre.value|default:'' }}" required 
+                                           placeholder="Juan">
+                                </div>
+                                <div class="col-12 col-md-6 mb-3">
+                                    <label for="id_apellido" class="form-label">
+                                        <i class="fas fa-user"></i>Apellido
+                                    </label>
+                                    <input type="text" name="apellido" id="id_apellido" class="form-control" 
+                                           value="{{ form.apellido.value|default:'' }}" required 
+                                           placeholder="Pérez">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_fecha_nacimiento" class="form-label">
+                                    <i class="fas fa-calendar-alt"></i>Fecha de nacimiento
+                                </label>
+                                <input type="date" name="fecha_nacimiento" id="id_fecha_nacimiento" 
+                                       class="form-control" value="{{ form.fecha_nacimiento.value|default:'' }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-phone"></i>Teléfono
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" name="codigo_pais" id="id_codigo_pais" 
+                                           class="form-control" style="max-width: 80px; min-width: 60px;" 
+                                           value="{{ form.codigo_pais.value|default:'+54' }}" placeholder="+54">
+                                    <input type="text" name="telefono_numero" id="id_telefono_numero" 
+                                           class="form-control" placeholder="3519998888" autocomplete="off">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_password1" class="form-label">
+                                    <i class="fas fa-lock"></i>Contraseña
+                                </label>
+                                <input type="password" name="password1" id="id_password1" 
+                                       class="form-control" required placeholder="Contraseña">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_password2" class="form-label">
+                                    <i class="fas fa-lock"></i>Repetir contraseña
+                                </label>
+                                <input type="password" name="password2" id="id_password2" 
+                                       class="form-control" required placeholder="Repetir contraseña">
+                            </div>
+                            
+                            <div class="warning-note">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Importante:</strong> Un usuario nuevo permanece deshabilitado hasta que te presentes en la barbería
+                            </div>
+                            
+                            <button type="submit" class="btn btn-registro w-100">
+                                <i class="fas fa-user-plus me-2"></i>Registrarse
+                            </button>
+                        </form>
+                        
+                        <div class="mt-3 text-center">
+                            <a href="/login/" class="auth-link">
+                                <i class="fas fa-sign-in-alt me-1"></i>¿Ya tienes usuario? Inicia sesión
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-          <div class="mb-3">
-            <label for="id_password1" class="form-label">Contraseña</label>
-            <input type="password" name="password1" id="id_password1" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label for="id_password2" class="form-label">Repetir contraseña</label>
-            <input type="password" name="password2" id="id_password2" class="form-control" required>
-          </div>
-          <div class="mb-2">
-            <small class="text-danger">Recuerda que un usuario nuevo permanece deshabilitado hasta que te presentes en la barbería</small>
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Registrarse</button>
-        </form>
-        <div class="mt-3 text-center">
-          <a href="/login/">¿Ya tienes usuario? Inicia sesión</a>
         </div>
-      </div>
     </div>
-  </div>
 </div>
 {% endblock %}

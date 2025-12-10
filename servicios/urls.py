@@ -11,4 +11,6 @@ urlpatterns = [
     path('servicios/agregar/', views.ServicioCreateView.as_view(), name='servicio-create'),
     path('servicios/<int:pk>/editar/', views.ServicioUpdateView.as_view(), name='servicio-update'),
     path('servicios/<int:pk>/eliminar/', views.ServicioDeleteView.as_view(), name='servicio-delete'),
+    # Reordenamiento
+    path('servicios/reordenar/', views.reordenar_servicios, name='reordenar-servicios'),
 ]

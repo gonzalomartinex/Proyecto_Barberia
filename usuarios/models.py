@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
+from utils.binary_image_fields import PerfilBinaryImageField, BarberoBinaryImageField
+from utils.binary_image_mixin import BinaryImageMixin
 
 class UsuarioManager(BaseUserManager):
     def create_user(self, email, nombre, apellido, telefono, fecha_nacimiento, password=None, **extra_fields):
@@ -18,7 +20,7 @@ class UsuarioManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, nombre, apellido, telefono, fecha_nacimiento, password, **extra_fields)
 
-class Usuario(AbstractBaseUser, PermissionsMixin):
+class Usuario(AbstractBaseUser, PermissionsMixin, BinaryImageMixin):
     nombre = models.CharField(max_length=50)
     apellido = models.CharField(max_length=50)
     email = models.EmailField(unique=True)
@@ -28,7 +30,7 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     estado = models.BooleanField(default=True)  # Habilitado/deshabilitado
     contador_faltas = models.PositiveIntegerField(default=0)
     es_administrador = models.BooleanField(default=False)
-    foto_perfil = models.ImageField(upload_to='usuarios/perfiles/', blank=True, null=True)
+    foto_perfil = PerfilBinaryImageField(blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)  # Necesario para Django auth
     USERNAME_FIELD = 'email'
@@ -39,8 +41,8 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     def get_foto_perfil_url(self):
         """Retorna la URL de la foto de perfil o la imagen por defecto si no tiene"""
-        if self.foto_perfil and hasattr(self.foto_perfil, 'url'):
-            return self.foto_perfil.url
+        if self.has_image('foto_perfil'):
+            return self.get_image_data_url('foto_perfil')
         return '/static/Default/perfil_default.png'
 
     def deshabilitar_si_faltas(self):
@@ -53,19 +55,24 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
         self.contador_faltas = 0
         self.save()
 
-class Barbero(models.Model):
+class Barbero(models.Model, BinaryImageMixin):
     nombre = models.CharField(max_length=100)
-    foto = models.ImageField(upload_to='barberos/fotos/', blank=True, null=True)
+    foto = BarberoBinaryImageField(blank=True, null=True)
     fecha_nacimiento = models.DateField()
     bio = models.TextField(blank=True)
     telefono = models.CharField(max_length=20, blank=True)
     dni = models.CharField(max_length=20, unique=True)
+    orden = models.PositiveIntegerField(default=0, help_text="Orden de aparición en la página (menor número = aparece primero)")
+    
+    class Meta:
+        ordering = ['orden', 'nombre']
+        
     def __str__(self):
         return self.nombre
 
-class TrabajoBarbero(models.Model):
+class TrabajoBarbero(models.Model, BinaryImageMixin):
     barbero = models.ForeignKey(Barbero, on_delete=models.CASCADE, related_name='trabajos')
-    imagen = models.ImageField(upload_to='barberos/trabajos/')
+    imagen = BarberoBinaryImageField()
     fecha = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):

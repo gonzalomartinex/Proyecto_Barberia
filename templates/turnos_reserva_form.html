@@ -1,7 +1,361 @@
 {% extends 'base.html' %}
 {% block title %}Reservar Turno | Cortes Con Historia{% endblock %}
+
+{% block extra_head %}
+<style>
+.reserva-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+.reserva-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px var(--card-shadow);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.step-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.step-header h3 {
+    color: var(--text-primary);
+    font-weight: bold;
+    margin: 0;
+}
+
+.service-btn {
+    border-radius: 15px;
+    border: 2px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    padding: 1.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+.service-btn:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+    color: #222;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+}
+
+.service-btn strong {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.day-navigation {
+    background: var(--form-section-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
+
+.day-btn {
+    border-radius: 10px;
+    border: 2px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    min-width: 80px;
+    padding: 0.75rem 0.5rem;
+}
+
+.day-btn:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+    color: #222;
+}
+
+.day-btn.btn-primary {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #222;
+}
+
+.time-section {
+    margin-bottom: 2rem;
+}
+
+.time-section-title {
+    font-weight: bold;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.time-btn {
+    border-radius: 25px;
+    border: 2px solid #28a745;
+    background: var(--card-bg);
+    color: #28a745;
+    transition: all 0.3s ease;
+    min-width: 110px;
+    margin: 0.25rem;
+    padding: 0.5rem 1rem;
+}
+
+.time-btn:hover {
+    background: #28a745;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.barber-btn {
+    border-radius: 15px;
+    border: 2px solid #17a2b8;
+    background: var(--card-bg);
+    color: #17a2b8;
+    transition: all 0.3s ease;
+    padding: 1.5rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.barber-btn:hover {
+    background: #17a2b8;
+    color: white;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(23, 162, 184, 0.3);
+}
+
+.summary-card {
+    background: var(--form-section-bg);
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.summary-title {
+    color: var(--text-primary);
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.summary-list {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.summary-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.summary-item:last-child {
+    border-bottom: none;
+}
+
+.summary-item strong {
+    color: var(--text-primary);
+}
+
+.summary-item span {
+    color: var(--text-primary);
+}
+
+.confirm-btn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    color: white;
+    font-weight: bold;
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    width: 100%;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.confirm-btn:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ea896 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+}
+
+.alert-custom {
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    border: none;
+}
+
+.alert-info-custom {
+    background: rgba(23, 162, 184, 0.1);
+    border: 2px solid #17a2b8;
+    color: #17a2b8;
+}
+
+.alert-warning-custom {
+    background: rgba(255, 193, 7, 0.1);
+    border: 2px solid #ffc107;
+    color: var(--text-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .reserva-container {
+        padding: 1.5rem 0;
+    }
+    
+    .reserva-card {
+        padding: 1.5rem;
+    }
+    
+    .service-btn {
+        padding: 1.25rem;
+    }
+    
+    .service-btn strong {
+        font-size: 1.1rem;
+    }
+    
+    .day-btn {
+        min-width: 70px;
+        padding: 0.5rem 0.25rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .reserva-card {
+        padding: 1.25rem;
+    }
+    
+    .step-header h3 {
+        font-size: 1.5rem;
+    }
+    
+    .service-btn {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .day-navigation {
+        padding: 0.75rem;
+    }
+    
+    .day-btn {
+        min-width: 60px;
+        padding: 0.5rem 0.25rem;
+        font-size: 0.85rem;
+        margin: 0.125rem;
+    }
+    
+    .time-btn {
+        min-width: 100%;
+        margin: 0.25rem 0;
+    }
+    
+    .barber-btn {
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    
+    .summary-card {
+        padding: 1.5rem;
+    }
+    
+    .summary-item {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+}
+
+@media (max-width: 576px) {
+    .reserva-card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .step-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    .step-header h3 {
+        font-size: 1.3rem;
+    }
+    
+    .service-btn {
+        padding: 0.75rem;
+    }
+    
+    .service-btn strong {
+        font-size: 1rem;
+    }
+    
+    .day-navigation {
+        padding: 0.5rem;
+    }
+    
+    .day-btn {
+        min-width: 50px;
+        padding: 0.4rem 0.2rem;
+        font-size: 0.8rem;
+    }
+    
+    .time-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
+    
+    .barber-btn {
+        padding: 1rem;
+    }
+    
+    .summary-card {
+        padding: 1rem;
+    }
+    
+    .confirm-btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div id="reserva-form-app"></div>
+<div class="container">
+    <div class="reserva-container">
+        <div class="reserva-card">
+            <div id="reserva-form-app"></div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/locale/es.js"></script>
 <script>
@@ -18,13 +372,14 @@ let turnoSeleccionado = null;
 let barberoSeleccionado = null;
 
 function renderServicios() {
-    return `<div class='mb-4'><h3>¿Qué servicio deseas?</h3><div class='row g-3'>` +
+    return `<div class='step-header'><h3><i class="fas fa-cut me-2"></i>¿Qué servicio deseas?</h3></div><div class='row g-3'>` +
         servicios.map(s => `
-        <div class='col-md-4'>
-            <button class='btn btn-outline-primary w-100 py-3 mb-2' onclick='seleccionarServicio(${s.id})'>
-                <strong>${s.nombre}</strong><br><span class='text-muted'>$${s.precio}</span>
+        <div class='col-12 col-md-6 col-lg-4'>
+            <button class='service-btn w-100' onclick='seleccionarServicio(${s.id})'>
+                <div><strong>${s.nombre}</strong></div>
+                <div style='color: var(--text-price); font-size: 1.1rem; font-weight: bold;'>$${s.precio}</div>
             </button>
-        </div>`).join('') + '</div></div>';
+        </div>`).join('') + '</div>';
 }
 
 function renderDiasSemana() {
@@ -34,9 +389,13 @@ function renderDiasSemana() {
         let d = inicio.add(i, 'day');
         dias.push(d);
     }
-    return `<div class='d-flex align-items-center justify-content-between mb-3'>
-        <button class='btn btn-link' onclick='cambiarSemana(-1)'>&lt;</button>
-        <div class='flex-grow-1 d-flex justify-content-center gap-2'>` +
+    return `<div class='step-header'><h3><i class="fas fa-calendar me-2"></i>Selecciona el día</h3></div>
+        <div class='day-navigation'>
+            <div class='d-flex align-items-center justify-content-between'>
+                <button class='btn btn-link' onclick='cambiarSemana(-1)'>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class='flex-grow-1 d-flex justify-content-center flex-wrap gap-1'>` +
         dias.map(d => {
             // Verificar si hay turnos disponibles para este día
             const fechaDia = d.format('YYYY-MM-DD');
@@ -49,11 +408,16 @@ function renderDiasSemana() {
             const esPasado = d.isBefore(hoy, 'day');
             const disabled = esPasado || ((esDomingo || esLunes) && !hayTurnos);
             
-            return `<button class='btn btn-${diaSeleccionado && d.isSame(diaSeleccionado, 'day') ? 'primary' : 'outline-primary'}${disabled ? ' disabled text-muted' : ''}' ` +
+            return `<button class='day-btn btn btn-${diaSeleccionado && d.isSame(diaSeleccionado, 'day') ? 'primary' : 'outline-primary'}${disabled ? ' disabled text-muted' : ''}' ` +
                 (disabled ? 'disabled ' : '') +
                 `onclick='${disabled ? '' : `seleccionarDia(\"${d.format('YYYY-MM-DD')}\")`}' type='button'>${d.locale('es').format('ddd D')}</button>`;
         }).join('') +
-        `</div><button class='btn btn-link' onclick='cambiarSemana(1)'>&gt;</button></div>`;
+        `</div>
+                <button class='btn btn-link' onclick='cambiarSemana(1)'>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>`;
 }
 
 function renderTurnosDia() {
@@ -66,7 +430,7 @@ function renderTurnosDia() {
         // Solo mostrar el botón si hay al menos un turno disponible para cualquier barbero
         return turnos.length > 0;
     });
-    if (!horas.length) return '<div class="alert alert-info">No hay turnos disponibles para este día.</div>';
+    if (!horas.length) return '<div class="alert alert-info-custom alert-custom"><i class="fas fa-info-circle me-2"></i>No hay turnos disponibles para este día.</div>';
     // Agrupar por franja horaria
     let franjas = {manana: [], tarde: [], noche: []};
     horas.forEach(hora => {
@@ -77,11 +441,14 @@ function renderTurnosDia() {
     });
     function renderFranja(nombre, lista) {
         if (!lista.length) return '';
-        return `<div class='mb-2'><div class='fw-bold border-bottom mb-2'>${nombre}</div><div class='d-flex flex-wrap gap-2'>` +
-            lista.map(hora => `<button class='btn btn-outline-success' style='min-width:110px' onclick='seleccionarTurno("${hora}")'>${hora}</button>`).join('') +
+        return `<div class='time-section'>
+            <div class='time-section-title'><i class="fas fa-clock me-2"></i>${nombre}</div>
+            <div class='d-flex flex-wrap'>` +
+            lista.map(hora => `<button class='time-btn' onclick='seleccionarTurno("${hora}")'>${hora}</button>`).join('') +
             '</div></div>';
     }
-    return renderFranja('Mañana', franjas.manana) + renderFranja('Tarde', franjas.tarde) + renderFranja('Noche', franjas.noche);
+    return `<div class='step-header'><h3><i class="fas fa-clock me-2"></i>Selecciona la hora</h3></div>` +
+        renderFranja('Mañana', franjas.manana) + renderFranja('Tarde', franjas.tarde) + renderFranja('Noche', franjas.noche);
 }
 
 function renderBarberosDisponibles() {
@@ -89,14 +456,14 @@ function renderBarberosDisponibles() {
     let turnosDia = turnosPorDia[diaSeleccionado] || {};
     let barberosDisponibles = (turnosDia[turnoSeleccionado] || []).map(t => t.barbero_id);
     let barberosInfo = barberos.filter(b => barberosDisponibles.includes(b.id));
-    if (!barberosInfo.length) return '<div class="alert alert-warning">No hay barberos disponibles para este turno.</div>';
-    return `<div class='mb-4'><h4>¿Qué barbero prefieres?</h4><div class='row g-3'>` +
+    if (!barberosInfo.length) return '<div class="alert alert-warning-custom alert-custom"><i class="fas fa-exclamation-triangle me-2"></i>No hay barberos disponibles para este turno.</div>';
+    return `<div class='step-header'><h3><i class="fas fa-user-tie me-2"></i>¿Qué barbero prefieres?</h3></div><div class='row g-3'>` +
         barberosInfo.map(b => `
-        <div class='col-md-4'>
-            <button class='btn btn-outline-info w-100 py-3 mb-2' onclick='seleccionarBarbero(${b.id})'>
-                <strong>${b.nombre}</strong>
+        <div class='col-12 col-md-6 col-lg-4'>
+            <button class='barber-btn w-100' onclick='seleccionarBarbero(${b.id})'>
+                <strong><i class="fas fa-user me-2"></i>${b.nombre}</strong>
             </button>
-        </div>`).join('') + '</div></div>';
+        </div>`).join('') + '</div>';
 }
 
 function renderResumen() {
@@ -111,22 +478,40 @@ function renderResumen() {
         return '';
     }
     
-    return `<div class='card mt-4'><div class='card-body'>
-        <h5 class='card-title'>Confirmar Reserva</h5>
-        <ul class='list-group list-group-flush mb-3'>
-            <li class='list-group-item'><strong>Servicio:</strong> ${servicio.nombre}</li>
-            <li class='list-group-item'><strong>Día:</strong> ${dayjs(diaSeleccionado).locale('es').format('dddd D [de] MMMM')}</li>
-            <li class='list-group-item'><strong>Hora:</strong> ${turnoSeleccionado}</li>
-            <li class='list-group-item'><strong>Barbero:</strong> ${barbero.nombre}</li>
-        </ul>
+    return `<div class='summary-card'>
+        <h5 class='summary-title'><i class="fas fa-check-circle me-2"></i>Confirmar Reserva</h5>
+        <div class='summary-list'>
+            <div class='summary-item'>
+                <strong>Servicio:</strong>
+                <span>${servicio.nombre}</span>
+            </div>
+            <div class='summary-item'>
+                <strong>Día:</strong>
+                <span>${dayjs(diaSeleccionado).locale('es').format('dddd D [de] MMMM')}</span>
+            </div>
+            <div class='summary-item'>
+                <strong>Hora:</strong>
+                <span>${turnoSeleccionado}</span>
+            </div>
+            <div class='summary-item'>
+                <strong>Barbero:</strong>
+                <span>${barbero.nombre}</span>
+            </div>
+            <div class='summary-item'>
+                <strong>Precio:</strong>
+                <span class='fw-bold text-success'>$${servicio.precio}</span>
+            </div>
+        </div>
         <form method='post'>
             {% csrf_token %}
             <input type='hidden' name='servicio' value='${servicio.id}'>
             <input type='hidden' name='turno_id' value='${turno ? turno.id : ''}'>
             <input type='hidden' name='barbero_id' value='${barbero.id}'>
-            <button type='submit' class='btn btn-success'>Confirmar Reserva</button>
+            <button type='submit' class='confirm-btn'>
+                <i class="fas fa-calendar-check me-2"></i>Confirmar Reserva
+            </button>
         </form>
-    </div></div>`;
+    </div>`;
 }
 
 function renderPaso() {

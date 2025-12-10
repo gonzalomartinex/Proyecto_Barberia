@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Test Navbar Responsive{% endblock %}
+
+{% block extra_head %}
+<style>
+    .test-container {
+        background: #fff;
+        border-radius: 8px;
+        padding: 2rem;
+        margin: 2rem 0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+    }
+    
+    .status-success { background-color: #28a745; }
+    .status-warning { background-color: #ffc107; }
+    .status-danger { background-color: #dc3545; }
+    
+    .test-buttons {
+        margin-top: 1rem;
+    }
+    
+    .test-buttons button {
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .test-container {
+            margin: 1rem 0;
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="test-container">
+        <h1><i class="bi bi-phone"></i> Test Navbar Responsive</h1>
+        <p class="lead">Esta página prueba la funcionalidad responsive de la navbar de Cortes Con Historia</p>
+        
+        <div class="row">
+            <div class="col-lg-6">
+                <h3><i class="bi bi-list-check"></i> Instrucciones de Prueba</h3>
+                <ol>
+                    <li><strong>Desktop (>992px):</strong> El menú debe aparecer horizontalmente en la navbar</li>
+                    <li><strong>Mobile (≤992px):</strong> Debe aparecer solo el botón hamburguesa (☰)</li>
+                    <li><strong>Al hacer clic en ☰:</strong> Se debe desplegar el menú vertical</li>
+                    <li><strong>Al hacer clic fuera:</strong> El menú debe cerrarse automáticamente</li>
+                    <li><strong>Al hacer clic en un enlace móvil:</strong> El menú debe cerrarse</li>
+                    <li><strong>Hover en botones:</strong> Debe cambiar el color de fondo a dorado</li>
+                </ol>
+            </div>
+            <div class="col-lg-6">
+                <h3><i class="bi bi-info-circle"></i> Estado Actual</h3>
+                <div id="status-container">
+                    <p><span class="status-indicator" id="desktop-status"></span><span id="desktop-text">Verificando...</span></p>
+                    <p><span class="status-indicator" id="mobile-status"></span><span id="mobile-text">Verificando...</span></p>
+                    <p><span class="status-indicator" id="toggle-status"></span><span id="toggle-text">Verificando...</span></p>
+                    <p><strong>Ancho de pantalla:</strong> <span id="screen-width"></span>px</p>
+                    <p><strong>Modo actual:</strong> <span id="current-mode"></span></p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-buttons">
+            <h3><i class="bi bi-gear"></i> Controles de Prueba</h3>
+            <button class="btn btn-primary" onclick="testToggle()">
+                <i class="bi bi-toggle-on"></i> Probar Toggle Manual
+            </button>
+            <button class="btn btn-secondary" onclick="checkStatus()">
+                <i class="bi bi-arrow-clockwise"></i> Actualizar Estado
+            </button>
+            <button class="btn btn-info" onclick="forceClose()">
+                <i class="bi bi-x-circle"></i> Forzar Cierre Menú
+            </button>
+            <button class="btn btn-success" onclick="simulateClick()">
+                <i class="bi bi-hand-index"></i> Simular Clic Externo
+            </button>
+        </div>
+        
+        <div class="alert alert-info mt-3">
+            <strong><i class="bi bi-lightbulb"></i> Tip:</strong> 
+            Redimensiona la ventana del navegador para probar diferentes resoluciones. 
+            También puedes usar las herramientas de desarrollador del navegador (F12 → Responsive Mode).
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    console.log('🚀 Test navbar responsive cargado');
+    
+    // Función para probar toggle manual
+    function testToggle() {
+        console.log('🧪 Test toggle manual');
+        if (typeof toggleNavbar === 'function') {
+            toggleNavbar();
+        } else {
+            console.error('❌ Función toggleNavbar no encontrada');
+            alert('Error: Función toggleNavbar no encontrada');
+        }
+    }
+    
+    // Función para forzar cierre del menú
+    function forceClose() {
+        const collapse = document.getElementById('navbarCollapse');
+        if (collapse) {
+            collapse.classList.remove('show');
+            console.log('🔧 Menú cerrado forzadamente');
+        }
+    }
+    
+    // Función para simular clic externo
+    function simulateClick() {
+        const event = new Event('click', { bubbles: true });
+        document.body.dispatchEvent(event);
+        console.log('🖱️ Clic externo simulado');
+    }
+    
+    // Función para verificar el estado actual
+    function checkStatus() {
+        const screenWidth = window.innerWidth;
+        const desktopMenu = document.querySelector('.custom-navbar .navbar-menu');
+        const mobileToggler = document.querySelector('.navbar-toggler');
+        const mobileCollapse = document.getElementById('navbarCollapse');
+        
+        // Actualizar información básica
+        document.getElementById('screen-width').textContent = screenWidth;
+        document.getElementById('current-mode').textContent = screenWidth <= 992 ? 'Móvil' : 'Desktop';
+        
+        // Estado desktop menu
+        if (desktopMenu) {
+            const desktopVisible = window.getComputedStyle(desktopMenu).display !== 'none';
+            document.getElementById('desktop-status').className = 'status-indicator ' + (desktopVisible ? 'status-success' : 'status-warning');
+            document.getElementById('desktop-text').textContent = desktopVisible ? 'Menú desktop visible' : 'Menú desktop oculto';
+        } else {
+            document.getElementById('desktop-status').className = 'status-indicator status-danger';
+            document.getElementById('desktop-text').textContent = 'Menú desktop no encontrado';
+        }
+        
+        // Estado mobile toggler
+        if (mobileToggler) {
+            const togglerVisible = window.getComputedStyle(mobileToggler).display !== 'none';
+            document.getElementById('mobile-status').className = 'status-indicator ' + (togglerVisible ? 'status-success' : 'status-warning');
+            document.getElementById('mobile-text').textContent = togglerVisible ? 'Botón mobile visible' : 'Botón mobile oculto';
+        } else {
+            document.getElementById('mobile-status').className = 'status-indicator status-danger';
+            document.getElementById('mobile-text').textContent = 'Botón mobile no encontrado';
+        }
+        
+        // Estado toggle funcional
+        const toggleFunctional = mobileToggler && typeof toggleNavbar === 'function';
+        document.getElementById('toggle-status').className = 'status-indicator ' + (toggleFunctional ? 'status-success' : 'status-danger');
+        document.getElementById('toggle-text').textContent = toggleFunctional ? 'Toggle funcional' : 'Toggle no funcional';
+        
+        const collapseOpen = mobileCollapse && mobileCollapse.classList.contains('show');
+        
+        console.log('📊 Estado actual:', {
+            screenWidth,
+            desktopVisible: desktopMenu && window.getComputedStyle(desktopMenu).display !== 'none',
+            togglerVisible: mobileToggler && window.getComputedStyle(mobileToggler).display !== 'none',
+            toggleFunctional,
+            collapseOpen
+        });
+    }
+    
+    // Inicializar al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        checkStatus();
+        
+        // Actualizar estado al redimensionar
+        window.addEventListener('resize', function() {
+            setTimeout(checkStatus, 100); // Pequeño delay para que los CSS se apliquen
+        });
+        
+        console.log('✅ Test navbar inicializado');
+    });
+</script>
+{% endblock %}

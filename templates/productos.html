@@ -1,39 +1,387 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Productos | BarberíaApp{% endblock %}
+{% block title %}Productos | Cortes Con Historia{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Estilos responsive para productos */
+    .producto-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 2px 10px var(--card-shadow);
+    }
+    
+    .producto-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px var(--card-shadow);
+    }
+    
+
+    
+    @media (max-width: 768px) {
+        .productos-header {
+            font-size: 1.75rem;
+        }
+        .productos-subtitle {
+            font-size: 1rem;
+        }
+        .admin-buttons {
+            gap: 0.25rem !important;
+        }
+        .admin-buttons .btn {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .productos-header {
+            font-size: 1.5rem;
+        }
+        .productos-subtitle {
+            font-size: 0.9rem;
+        }
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-muted);
+    }
+    
+    /* Asegurar que los títulos se vean bien en ambos modos */
+    .productos-header {
+        color: var(--text-primary);
+    }
+    
+    .card-title {
+        color: var(--primary-color) !important;
+    }
+    
+    .header-section {
+        background: var(--form-section-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    /* Estilos para reordenamiento */
+    .reorder-mode .sortable-item {
+        cursor: move;
+        transition: all 0.3s ease;
+    }
+
+    .reorder-mode .sortable-item:hover {
+        opacity: 0.8;
+        transform: scale(1.02);
+    }
+
+    .sortable-item.sortable-drag {
+        opacity: 0.5;
+        transform: rotate(5deg);
+    }
+
+    .sortable-item.sortable-over {
+        border: 2px dashed #007bff;
+        background-color: rgba(0, 123, 255, 0.1);
+    }
+
+    .drag-handle {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: move;
+        display: none;
+        z-index: 10;
+    }
+
+    .reorder-mode .drag-handle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1 class="mb-4">Productos</h1>
-<p class="lead text-center mb-4">Consulta y compra cualquiera de estos productos en nuestro local</p>
-{% if user.is_authenticated and user.is_staff %}
-  <div class="mb-3 text-end">
-    <a href="{% url 'producto-create' %}" class="btn btn-primary">Agregar Producto</a>
-  </div>
+<div class="header-section">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+        <div>
+            <h1 class="productos-header mb-2">
+                <i class="bi bi-box me-2 text-primary"></i>Nuestros Productos
+            </h1>
+            <p class="productos-subtitle mb-0" style="color: var(--text-muted);">
+                <i class="bi bi-shop me-2"></i>Consulta y compra cualquiera de estos productos en nuestro local
+            </p>
+        </div>
+        {% if user.is_authenticated and user.is_staff %}
+        <div class="mt-3 mt-md-0 d-flex gap-2">
+            <a href="{% url 'producto-create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>Agregar Producto
+            </a>
+            {% if productos %}
+            <button id="toggle-reorder-productos" class="btn btn-secondary">
+                <i class="fas fa-arrows-alt"></i> Reordenar
+            </button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if user.is_authenticated and user.is_staff and productos %}
+<div id="reorder-controls-productos" class="mb-3" style="display: none;">
+    <button id="save-order-productos" class="btn btn-success">
+        <i class="fas fa-save"></i> Guardar Orden
+    </button>
+    <button id="cancel-reorder-productos" class="btn btn-outline-secondary ms-2">
+        <i class="fas fa-times"></i> Cancelar
+    </button>
+    <div class="alert alert-info mt-2" role="alert">
+        <i class="fas fa-info-circle"></i> Arrastra las tarjetas para reordenarlas
+    </div>
+</div>
 {% endif %}
-<div class="row">
+
+<div class="row g-4" id="productos-container">
     {% for producto in productos %}
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
+    <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 sortable-item" data-id="{{ producto.id }}">
+        <div class="card h-100 producto-card" style="position: relative;">
             <div class="ratio ratio-4x3" style="overflow:hidden;">
                 {% if producto.imagen %}
-                <img src="{{ producto.imagen.url }}" class="card-img-top object-fit-cover" alt="{{ producto.nombre }}" style="width:100%;height:100%;object-fit:cover;object-position:center;">
+                <img src="{{ producto.imagen }}" 
+                     class="card-img-top object-fit-cover" 
+                     alt="{{ producto.nombre }}" 
+                     style="width:100%;height:100%;object-fit:cover;object-position:center;"
+                     loading="lazy">
                 {% else %}
-                <img src="{% static 'Default/noimage.png' %}" class="card-img-top object-fit-cover" alt="{{ producto.nombre }}" style="width:100%;height:100%;object-fit:cover;object-position:center;">
+                <img src="{% static 'Default/noimage.png' %}" 
+                     class="card-img-top object-fit-cover" 
+                     alt="{{ producto.nombre }}" 
+                     style="width:100%;height:100%;object-fit:cover;object-position:center;"
+                     loading="lazy">
                 {% endif %}
             </div>
-            <div class="card-body">
-                <h5 class="card-title">{{ producto.nombre }}</h5>
-                <p class="card-text">Precio: ${{ producto.precio }}</p>
-                {% if user.is_authenticated and user.is_staff %}
-                <div class="mt-2 d-flex gap-2">
-                  <a href="{% url 'producto-update' producto.id %}" class="btn btn-outline-primary btn-sm">Editar</a>
-                  <a href="{% url 'producto-delete' producto.id %}" class="btn btn-outline-danger btn-sm">Eliminar</a>
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title text-primary">
+                    <i class="bi bi-box-seam me-2"></i>{{ producto.nombre }}
+                </h5>
+                <div class="mt-auto">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-primary fs-6">
+                            <i class="bi bi-cash me-1"></i>${{ producto.precio }}
+                        </span>
+                        {% if user.is_authenticated and user.is_staff %}
+                        <div class="admin-buttons d-flex gap-2">
+                            <a href="{% url 'producto-update' producto.id %}" 
+                               class="btn btn-outline-primary btn-sm" 
+                               title="Editar producto">
+                                <i class="bi bi-pencil"></i>
+                                <span class="d-none d-sm-inline ms-1">Editar</span>
+                            </a>
+                            <a href="{% url 'producto-delete' producto.id %}" 
+                               class="btn btn-outline-danger btn-sm" 
+                               title="Eliminar producto">
+                                <i class="bi bi-trash"></i>
+                                <span class="d-none d-sm-inline ms-1">Eliminar</span>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
     {% empty %}
-    <div class="col-12 text-muted">No hay productos registrados.</div>
+    <div class="col-12">
+        <div class="empty-state">
+            <i class="bi bi-box display-1 mb-3"></i>
+            <h3>No hay productos registrados</h3>
+            <p class="lead">Actualmente no tenemos productos en nuestro catálogo.</p>
+            {% if user.is_authenticated and user.is_staff %}
+            <a href="{% url 'producto-create' %}" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle me-2"></i>Agregar Primer Producto
+            </a>
+            {% endif %}
+        </div>
+    </div>
     {% endfor %}
 </div>
+
+{% if productos %}
+<div class="mt-4 text-center">
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>¿Interesado en algún producto?</strong> 
+        Visítanos en nuestro local o contáctanos por WhatsApp para más información.
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if user.is_authenticated and user.is_staff and productos %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggle-reorder-productos');
+    const reorderControls = document.getElementById('reorder-controls-productos');
+    const saveBtn = document.getElementById('save-order-productos');
+    const cancelBtn = document.getElementById('cancel-reorder-productos');
+    const container = document.getElementById('productos-container');
+    let sortable = null;
+    let originalOrder = [];
+    
+    // Obtener token CSRF
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+               document.querySelector('meta[name="csrf-token"]')?.content ||
+               getCookie('csrftoken');
+    }
+    
+    // Función para obtener cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Función para activar/desactivar modo reordenamiento
+    function toggleReorderMode(enable) {
+        if (enable) {
+            container.classList.add('reorder-mode');
+            reorderControls.style.display = 'block';
+            toggleBtn.style.display = 'none';
+            
+            // Guardar orden original
+            originalOrder = Array.from(container.children).map(item => item.dataset.id);
+            
+            // Inicializar Sortable
+            sortable = Sortable.create(container, {
+                animation: 150,
+                ghostClass: 'sortable-drag',
+                chosenClass: 'sortable-chosen',
+                dragClass: 'sortable-over'
+            });
+            
+            // Agregar indicadores de arrastre
+            container.querySelectorAll('.producto-card').forEach(card => {
+                const handle = document.createElement('button');
+                handle.className = 'drag-handle';
+                handle.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+                card.style.position = 'relative';
+                card.appendChild(handle);
+            });
+            
+        } else {
+            container.classList.remove('reorder-mode');
+            reorderControls.style.display = 'none';
+            toggleBtn.style.display = 'inline-block';
+            
+            // Destruir Sortable
+            if (sortable) {
+                sortable.destroy();
+                sortable = null;
+            }
+            
+            // Remover indicadores de arrastre
+            container.querySelectorAll('.drag-handle').forEach(handle => handle.remove());
+        }
+    }
+    
+    // Event listeners
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => toggleReorderMode(true));
+    }
+    
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            // Restaurar orden original
+            const items = Array.from(container.children);
+            originalOrder.forEach((id, index) => {
+                const item = items.find(item => item.dataset.id === id);
+                if (item) container.appendChild(item);
+            });
+            toggleReorderMode(false);
+        });
+    }
+    
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+            const newOrder = Array.from(container.children).map(item => item.dataset.id);
+            
+            // Mostrar indicador de carga
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            saveBtn.disabled = true;
+            
+            // Enviar nuevo orden al servidor
+            fetch('{% url "reordenar-productos" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    orden: newOrder
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    toggleReorderMode(false);
+                    // Mostrar mensaje de éxito
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success alert-dismissible fade show mt-3';
+                    alert.innerHTML = `
+                        <i class="fas fa-check-circle"></i> Orden guardado correctamente
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    container.parentNode.insertBefore(alert, container);
+                    setTimeout(() => alert.remove(), 3000);
+                } else {
+                    throw new Error(data.error || 'Error desconocido');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger alert-dismissible fade show mt-3';
+                alert.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i> Error al guardar el orden: ${error.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                container.parentNode.insertBefore(alert, container);
+            })
+            .finally(() => {
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Orden';
+                saveBtn.disabled = false;
+            });
+        });
+    }
+});
+</script>
+{% endif %}
 {% endblock %}

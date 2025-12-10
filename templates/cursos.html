@@ -3,91 +3,343 @@
 
 {% block extra_head %}
 <style>
+.cursos-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.cursos-header h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
 .curso-card {
-    min-height: 500px;
-    max-height: 500px;
-}
-
-.curso-card .card-body {
-    height: 250px;
-}
-
-.description-text {
+    background: var(--card-bg);
+    transition: all 0.3s ease;
+    border-radius: 15px;
     overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    line-height: 1.4;
-    max-height: 5.6em; /* 4 lines * 1.4 line-height */
-    text-overflow: ellipsis;
+    border: 1px solid var(--border-color);
+    height: 100%;
 }
 
-.curso-card .card-title {
-    min-height: 2.5rem;
-    line-height: 1.25;
+.curso-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px var(--card-shadow);
+    border-color: var(--primary-color);
+}
+
+.curso-card.finalizado {
+    opacity: 0.8;
+    border-color: var(--text-muted);
+}
+
+.curso-card.finalizado:hover {
+    border-color: var(--text-muted);
+}
+
+.curso-image-container {
+    position: relative;
+    height: 250px;
+    overflow: hidden;
+}
+
+.curso-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.curso-card:hover .curso-image {
+    transform: scale(1.05);
+}
+
+.curso-placeholder {
+    height: 100%;
+    background: var(--form-section-bg);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.finished-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(108, 117, 125, 0.9);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.curso-content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 250px);
+}
+
+.curso-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.curso-info {
+    margin-bottom: 1rem;
+    color: var(--text-muted);
+}
+
+.curso-info strong {
+    color: var(--text-primary);
+}
+
+.curso-description {
+    flex-grow: 1;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.curso-actions {
+    margin-top: auto;
+}
+
+.btn-curso {
+    border-radius: 25px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-curso:hover {
+    transform: translateY(-2px);
+}
+
+.admin-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.admin-actions .btn {
+    flex: 1;
+    font-size: 0.85rem;
+}
+
+.no-courses {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--form-section-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    margin: 2rem 0;
+}
+
+.no-courses i {
+    font-size: 4rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.no-courses h3, .no-courses p {
+    color: var(--text-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .cursos-header h2 {
+        font-size: 2.2rem;
+    }
+    
+    .curso-image-container {
+        height: 220px;
+    }
+    
+    .curso-content {
+        height: calc(100% - 220px);
+    }
+}
+
+@media (max-width: 992px) {
+    .cursos-header h2 {
+        font-size: 2rem;
+    }
+    
+    .curso-image-container {
+        height: 200px;
+    }
+    
+    .curso-content {
+        height: calc(100% - 200px);
+        padding: 1.25rem;
+    }
+    
+    .curso-title {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .cursos-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    .cursos-header h2 {
+        font-size: 1.8rem;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .curso-image-container {
+        height: 180px;
+    }
+    
+    .curso-content {
+        height: calc(100% - 180px);
+        padding: 1rem;
+    }
+    
+    .admin-actions {
+        flex-direction: column;
+    }
+    
+    .admin-actions .btn {
+        width: 100%;
+        margin-bottom: 0.25rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .cursos-header h2 {
+        font-size: 1.6rem;
+    }
+    
+    .curso-image-container {
+        height: 160px;
+    }
+    
+    .curso-content {
+        height: calc(100% - 160px);
+        padding: 0.75rem;
+    }
+    
+    .curso-title {
+        font-size: 1.1rem;
+    }
+    
+    .curso-info,
+    .curso-description {
+        font-size: 0.9rem;
+    }
+    
+    .btn-curso {
+        width: 100%;
+        padding: 0.5rem;
+    }
+    
+    .finished-badge {
+        top: 5px;
+        right: 5px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+    }
+    
+    .no-courses {
+        padding: 2rem 1rem;
+    }
+    
+    .no-courses i {
+        font-size: 3rem;
+    }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container mt-4">
+    <div class="cursos-header">
         <h2>Nuestros Cursos</h2>
         {% if user.is_authenticated and user.is_superuser %}
-            <a href="{% url 'crear-curso' %}" class="btn btn-primary">Agregar Curso</a>
+            <div class="mb-3">
+                <a href="{% url 'crear-curso' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus-circle"></i> Agregar Curso
+                </a>
+            </div>
         {% endif %}
     </div>
     
     {% if cursos %}
-        <div class="row">
+        <div class="row g-4">
             {% for curso in cursos %}
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card h-100 curso-card shadow-sm {% if curso.ya_paso %}border-secondary{% endif %}">
-                    {% if curso.ya_paso %}
-                        <div class="position-relative">
-                            {% if curso.imagen %}
-                                <img src="{{ curso.imagen.url }}" class="card-img-top" style="height: 200px; object-fit: cover; opacity: 0.6;" alt="{{ curso.titulo }}">
-                            {% else %}
-                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px; opacity: 0.6;">
-                                    <span class="text-muted">Sin imagen</span>
-                                </div>
-                            {% endif %}
-                            <div class="position-absolute top-0 end-0 p-2">
-                                <span class="badge bg-secondary">
-                                    <i class="fas fa-clock"></i> Finalizado
-                                </span>
-                            </div>
-                        </div>
-                    {% else %}
-                        {% if curso.imagen %}
-                            <img src="{{ curso.imagen.url }}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ curso.titulo }}">
-                        {% else %}
-                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                                <span class="text-muted">Sin imagen</span>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card curso-card {% if curso.ya_paso %}finalizado{% endif %}">
+                    <div class="curso-image-container">
+                        {% if curso.ya_paso %}
+                            <div class="finished-badge">
+                                <i class="fas fa-clock"></i> Finalizado
                             </div>
                         {% endif %}
-                    {% endif %}
-                    <div class="card-body d-flex flex-column {% if curso.ya_paso %}text-muted{% endif %}">
-                        <h5 class="card-title text-truncate" title="{{ curso.titulo }}">
-                            {{ curso.titulo }}
-                            {% if curso.ya_paso %}
-                                <small class="text-secondary">(Finalizado)</small>
-                            {% endif %}
-                        </h5>
-                        <p class="card-text">
-                            <strong>Día:</strong> {{ curso.dia_formateado }}<br>
-                            <strong>Hora:</strong> {{ curso.hora|time:"H:i" }}
-                        </p>
-                        <p class="card-text flex-grow-1 description-text">
-                            {{ curso.descripcion|truncatechars:120 }}
-                        </p>
                         
-                        <div class="mt-auto pt-2">
-                            <a href="{% url 'detalle-curso' curso.pk %}" class="btn {% if curso.ya_paso %}btn-secondary{% else %}btn-primary{% endif %} btn-sm mb-2 w-100">Ver Curso</a>
+                        {% if curso.imagen %}
+                            <img src="{{ curso.imagen }}" class="curso-image" alt="{{ curso.titulo }}">
+                        {% else %}
+                            <div class="curso-placeholder">
+                                <i class="fas fa-graduation-cap fa-3x"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="curso-content">
+                        <h5 class="curso-title">{{ curso.titulo }}</h5>
+                        
+                        <div class="curso-info">
+                            <div><strong>Día:</strong> {{ curso.dia_formateado }}</div>
+                            <div><strong>Hora:</strong> {{ curso.hora|time:"H:i" }}</div>
+                        </div>
+                        
+                        <div class="curso-description">
+                            {{ curso.descripcion }}
+                        </div>
+                        
+                        <div class="curso-actions">
+                            <a href="{% url 'detalle-curso' curso.pk %}" 
+                               class="btn {% if curso.ya_paso %}btn-secondary{% else %}btn-primary{% endif %} btn-curso w-100">
+                                <i class="fas fa-eye"></i> Ver Curso
+                            </a>
+                            
                             {% if user.is_authenticated and user.is_superuser %}
-                                <div class="d-flex gap-1">
-                                    <a href="{% url 'editar-curso' curso.pk %}" class="btn btn-warning btn-sm flex-fill">Editar</a>
-                                    <a href="{% url 'eliminar-curso' curso.pk %}" class="btn btn-danger btn-sm flex-fill">Eliminar</a>
+                                <div class="admin-actions">
+                                    <a href="{% url 'editar-curso' curso.pk %}" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-edit"></i> <span class="d-none d-sm-inline">Editar</span>
+                                    </a>
+                                    <a href="{% url 'eliminar-curso' curso.pk %}" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash"></i> <span class="d-none d-sm-inline">Eliminar</span>
+                                    </a>
                                 </div>
                             {% endif %}
                         </div>
@@ -97,9 +349,10 @@
             {% endfor %}
         </div>
     {% else %}
-        <div class="alert alert-info">
+        <div class="no-courses">
+            <i class="fas fa-graduation-cap"></i>
             <h4>No hay cursos disponibles</h4>
-            <p>Actualmente no tenemos cursos programados.</p>
+            <p class="mb-0">Actualmente no hay cursos programados. ¡Vuelve pronto para ver nuestras próximas ofertas!</p>
         </div>
     {% endif %}
 </div>
