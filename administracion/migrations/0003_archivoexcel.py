@@ -2,7 +2,6 @@
 
 import django.db.models.deletion
 import django.utils.timezone
-import utils.binary_excel_fields
 from django.db import migrations, models
 
 
@@ -20,7 +19,7 @@ class Migration(migrations.Migration):
                 ('nombre_archivo', models.CharField(help_text='Nombre original del archivo', max_length=255)),
                 ('tipo_archivo', models.CharField(choices=[('individual', 'Archivo Individual'), ('historial', 'Historial Maestro')], default='individual', max_length=20)),
                 ('descripcion', models.TextField(blank=True, help_text='Descripción del contenido del archivo')),
-                ('archivo_excel', utils.binary_excel_fields.BinaryExcelField(blank=True, help_text='Archivo Excel almacenado en base64', null=True)),
+                ('archivo_excel', models.FileField(blank=True, help_text='Archivo Excel almacenado', null=True, upload_to='excel/')),
                 ('fecha_creacion', models.DateTimeField(default=django.utils.timezone.now)),
                 ('fecha_periodo_inicio', models.DateField(blank=True, help_text='Fecha de inicio del período archivado', null=True)),
                 ('fecha_periodo_fin', models.DateField(blank=True, help_text='Fecha de fin del período archivado', null=True)),
