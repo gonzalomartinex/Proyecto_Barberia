@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'servicios',
     'administracion',
     'productos',
-    'BarberiaApp',
+    'BarberiaApp.apps.BarberiaappConfig',
     'cursos',
 
 ]

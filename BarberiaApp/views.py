@@ -68,13 +68,20 @@ def editar_carrusel(request):
             image_id = request.POST.get('delete')
             try:
                 image = CarouselImage.objects.get(id=image_id)
-                image.imagen.delete()  # Eliminar archivo físico
+                image_name = image.imagen.name if image.imagen else "imagen"
+                
+                # Al eliminar el objeto, la señal automáticamente eliminará la imagen de Cloudinary
                 image.delete()
+                
                 # Reordenar imágenes restantes
                 for i, img in enumerate(CarouselImage.objects.all(), 1):
                     img.orden = i
                     img.save()
-                messages.success(request, 'Imagen eliminada correctamente.')
+                    
+                messages.success(
+                    request, 
+                    f'Imagen "{image_name}" eliminada correctamente del carrusel y de Cloudinary.'
+                )
             except CarouselImage.DoesNotExist:
                 messages.error(request, 'La imagen no existe.')
                 
