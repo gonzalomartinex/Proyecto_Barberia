@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'whitenoise.runserver_nostatic',  # Para servir archivos estáticos en producción
+    'cloudinary_storage',  # Debe ir antes de staticfiles
+    'cloudinary',
     'rest_framework',
     'rest_framework_simplejwt',
     'usuarios',
@@ -224,8 +226,54 @@ IMAGE_OPTIMIZATION = {
     }
 }
 
+# Configuración de Cloudinary
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+# Configuración de Cloudinary
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
+
+# Configurar cloudinary
+cloudinary.config(
+    cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
+    api_key=CLOUDINARY_STORAGE['API_KEY'],
+    api_secret=CLOUDINARY_STORAGE['API_SECRET'],
+)
+
+# Configuración de STORAGES para Django 4.2+
+if all([CLOUDINARY_STORAGE['CLOUD_NAME'], CLOUDINARY_STORAGE['API_KEY'], CLOUDINARY_STORAGE['API_SECRET']]):
+    # Usar Cloudinary como storage por defecto para archivos media
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+    
+    print("✅ Cloudinary configurado como storage backend")
+    print(f"✅ Cloud Name: {CLOUDINARY_STORAGE['CLOUD_NAME']}")
+else:
+    # Fallback a almacenamiento local si Cloudinary no está configurado
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+    print("⚠️ Cloudinary no configurado, usando almacenamiento local")
+
 print("✅ Sistema de imágenes optimizadas configurado")
 print(f"✅ Directorio media: {MEDIA_ROOT}")
 print(f"✅ URL media: {MEDIA_URL}")
 print("✅ Conversión automática a WebP habilitada")
+
 LOGOUT_REDIRECT_URL = '/'
