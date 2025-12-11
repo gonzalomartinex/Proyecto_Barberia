@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'usuarios',
     'turnos',
-    'servicios',
+    'servicios.apps.ServiciosConfig',
     'administracion',
     'productos',
     'BarberiaApp.apps.BarberiaappConfig',

@@ -5,10 +5,35 @@
   <div class="p-5 rounded shadow" 
        style="max-width: 420px; width: 100%; background: var(--card-bg); border: 1px solid var(--border-color);">
     <h2 class="mb-4 text-center text-danger">Eliminar Servicio</h2>
-    <p class="mb-4 text-center" style="color: var(--text-primary);">
-      ¿Estás seguro que deseas eliminar el servicio 
-      <span class="fw-bold" style="color: var(--text-primary);">"{{ object.nombre }}"</span>?
-    </p>
+    <div class="mb-4 text-center">
+      <p style="color: var(--text-primary);">
+        ¿Estás seguro que deseas eliminar el servicio 
+        <span class="fw-bold" style="color: var(--text-primary);">"{{ object.nombre }}"</span>?
+      </p>
+      
+      {% if object.imagen %}
+        <div class="mt-3 p-3 rounded" style="background: #fff3cd; border: 1px solid #ffeaa7;">
+          <div class="d-flex align-items-center justify-content-center mb-2">
+            <i class="fas fa-cloud text-warning me-2"></i>
+            <small class="text-warning fw-bold">Imagen en Cloudinary</small>
+          </div>
+          <div class="mb-2">
+            <img src="{{ object.imagen.url }}" alt="{{ object.nombre }}" 
+                 class="img-thumbnail" style="max-width: 80px; max-height: 80px;">
+          </div>
+          <small class="text-muted">
+            ⚠️ La imagen del servicio también será eliminada automáticamente de Cloudinary
+          </small>
+        </div>
+      {% else %}
+        <div class="mt-3 p-2 rounded" style="background: #d1ecf1; border: 1px solid #bee5eb;">
+          <small class="text-info">
+            <i class="fas fa-info-circle me-1"></i>
+            Este servicio no tiene imagen asociada
+          </small>
+        </div>
+      {% endif %}
+    </div>
     <form method="post" class="d-flex flex-column gap-3">
       {% csrf_token %}
       <div class="d-flex gap-2 justify-content-center">
