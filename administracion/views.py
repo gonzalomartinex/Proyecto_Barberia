@@ -482,34 +482,139 @@ def listar_archivos_excel(request):
 @user_passes_test(lambda u: u.is_superuser)
 def descargar_archivo_excel(request, nombre_archivo):
     """Vista para descargar un archivo Excel específico desde la base de datos o archivos locales"""
-    from django.http import Http404
+    from django.http import Http404, HttpResponse
     from administracion.models import ArchivoExcel
+    import logging
     
-    # Primero intentar desde la base de datos
+    logger = logging.getLogger(__name__)
+    
     try:
-        archivo_bd = ArchivoExcel.objects.get(nombre_archivo=nombre_archivo)
-        if archivo_bd.has_archivo_excel():
-            return archivo_bd.descargar_como_response()
-    except ArchivoExcel.DoesNotExist:
-        pass
-    
-    # Si no está en BD, intentar desde archivos locales (fallback)
-    import os
-    from django.http import FileResponse
-    from django.conf import settings
-    
-    archivo_path = os.path.join(settings.MEDIA_ROOT, 'archivos_turnos', nombre_archivo)
-    
-    if os.path.exists(archivo_path) and nombre_archivo.endswith('.xlsx'):
-        # Retornar el archivo local como descarga
-        response = FileResponse(
-            open(archivo_path, 'rb'),
-            as_attachment=True,
-        filename=nombre_archivo,
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-    
-    return response
+        # Primero intentar desde la base de datos
+        try:
+            archivo_bd = ArchivoExcel.objects.get(nombre_archivo=nombre_archivo)
+            logger.info(f"Archivo encontrado en BD: {nombre_archivo}")
+            
+            # Diagnóstico detallado del archivo encontrado
+            tiene_archivo = archivo_bd.has_archivo_excel()
+            archivo_excel_exists = hasattr(archivo_bd, 'archivo_excel') and archivo_bd.archivo_excel
+            archivo_excel_length = len(archivo_bd.archivo_excel) if archivo_excel_exists else 0
+            
+            logger.info(f"Diagnóstico archivo {nombre_archivo}:")
+            logger.info(f"  - has_archivo_excel(): {tiene_archivo}")
+            logger.info(f"  - archivo_excel exists: {archivo_excel_exists}")
+            logger.info(f"  - archivo_excel length: {archivo_excel_length}")
+            
+            if tiene_archivo:
+                logger.info(f"Archivo tiene contenido válido, generando descarga...")
+                return archivo_bd.descargar_como_response()
+            else:
+                # Archivo sin contenido - informar detalladamente
+                logger.error(f"Archivo {nombre_archivo} está en BD pero sin contenido válido")
+                return HttpResponse(
+                    f"<h1>🚨 Error - Archivo Corrupto o Vacío</h1>"
+                    f"<p><strong>Archivo:</strong> <code>{nombre_archivo}</code></p>"
+                    f"<p><strong>Estado:</strong> El archivo existe en la base de datos pero no tiene contenido válido.</p>"
+                    f"<p><strong>Detalles técnicos:</strong></p>"
+                    f"<ul>"
+                    f"<li>has_archivo_excel(): {tiene_archivo}</li>"
+                    f"<li>Longitud del contenido: {archivo_excel_length} caracteres</li>"
+                    f"<li>Archivo creado: {archivo_bd.fecha_creacion}</li>"
+                    f"</ul>"
+                    f"<p><strong>🔧 Posibles soluciones:</strong></p>"
+                    f"<ul>"
+                    f"<li>Este archivo puede haberse creado pero no se guardó correctamente</li>"
+                    f"<li>Recrear el archivo desde los turnos archivados</li>"
+                    f"<li>Contactar al administrador para revisar el proceso de archivado</li>"
+                    f"</ul>"
+                    f"<p><a href='/administracion/turnos/archivos/' class='btn btn-primary'>← Volver a Lista de Archivos</a></p>",
+                    status=422,  # Unprocessable Entity
+                    content_type='text/html'
+                )
+                
+        except ArchivoExcel.DoesNotExist:
+            logger.info(f"Archivo no encontrado en BD: {nombre_archivo}")
+            
+            # Buscar archivos similares para ayudar con debug
+            archivos_similares = ArchivoExcel.objects.filter(
+                nombre_archivo__icontains=nombre_archivo[:10]
+            ).values_list('nombre_archivo', flat=True)[:3]
+            
+            return HttpResponse(
+                f"<h1>❌ Archivo No Encontrado</h1>"
+                f"<p><strong>Archivo solicitado:</strong> <code>{nombre_archivo}</code></p>"
+                f"<p>Este archivo no existe en la base de datos.</p>"
+                f"<p><strong>Archivos similares encontrados:</strong></p>"
+                f"<ul>{''.join([f'<li>{arch}</li>' for arch in archivos_similares])}</ul>"
+                f"<p><a href='/administracion/turnos/archivos/' class='btn btn-primary'>← Volver a Lista de Archivos</a></p>",
+                status=404,
+                content_type='text/html'
+            )
+        
+        # Si no está en BD, intentar desde archivos locales (fallback)
+        import os
+        from django.http import FileResponse
+        from django.conf import settings
+        
+        archivo_path = os.path.join(settings.MEDIA_ROOT, 'archivos_turnos', nombre_archivo)
+        logger.info(f"Intentando archivo local: {archivo_path}")
+        
+        if os.path.exists(archivo_path) and nombre_archivo.endswith('.xlsx'):
+            logger.info(f"Archivo local encontrado, enviando descarga...")
+            
+            # Retornar el archivo local como descarga
+            response = FileResponse(
+                open(archivo_path, 'rb'),
+                as_attachment=True,
+                filename=nombre_archivo,
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            return response
+        else:
+            logger.warning(f"Archivo local no existe: {archivo_path}")
+        
+        # Si no se encuentra en ningún lugar
+        logger.error(f"Archivo no encontrado en ningún lugar: {nombre_archivo}")
+        
+    except Exception as e:
+        logger.error(f"Error descargando archivo {nombre_archivo}: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Información de debug para producción
+        try:
+            archivos_bd = ArchivoExcel.objects.count()
+            primer_archivo = ArchivoExcel.objects.first()
+            primer_nombre = primer_archivo.nombre_archivo if primer_archivo else "Ninguno"
+            
+            # Información adicional sobre archivos problemáticos
+            archivos_vacios = ArchivoExcel.objects.filter(
+                archivo_excel__isnull=True
+            ).count()
+            
+        except Exception as debug_error:
+            archivos_bd = f"Error: {debug_error}"
+            primer_nombre = "Error obteniendo"
+            archivos_vacios = "Error contando"
+        
+        # Respuesta de error controlada con más información
+        return HttpResponse(
+            f"<h1>💥 Error 500 - Descarga de Archivo</h1>"
+            f"<p><strong>Archivo solicitado:</strong> <code>{nombre_archivo}</code></p>"
+            f"<p><strong>Error técnico:</strong> {e}</p>"
+            f"<p><strong>🔍 Información de Debug:</strong></p>"
+            f"<ul>"
+            f"<li>Total archivos en BD: {archivos_bd}</li>"
+            f"<li>Primer archivo disponible: {primer_nombre}</li>"
+            f"<li>Archivos sin contenido: {archivos_vacios}</li>"
+            f"</ul>"
+            f"<p><a href='/administracion/turnos/archivos/' class='btn btn-primary'>← Volver a Lista de Archivos</a></p>"
+            f"<hr>"
+            f"<p><small>🛠️ Si este archivo aparece en la lista pero no se puede descargar, "
+            f"indica un problema de sincronización o archivo corrupto. "
+            f"El administrador puede necesitar recrear el archivo.</small></p>",
+            status=500,
+            content_type='text/html'
+        )
 
 @user_passes_test(lambda u: u.is_superuser)
 def obtener_datos_turno_admin(request, turno_id):

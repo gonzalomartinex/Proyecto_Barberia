@@ -33,9 +33,9 @@ services:
       - key: DJANGO_SUPERUSER_TELEFONO
         value: 1234567890
       - key: CLOUDINARY_CLOUD_NAME
-        value: ""
+        value: dfkhuibwf
       - key: CLOUDINARY_API_KEY
-        value: ""
+        value: 857993365988948
       - key: CLOUDINARY_API_SECRET
-        value: ""
+        value: ccEnjqy6Kj4UYri9U2fsl4gdDfI
     databaseUser: barberia_user

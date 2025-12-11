@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import user_passes_test, login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import JsonResponse
 from .models import Curso, InscripcionCurso
@@ -43,39 +43,7 @@ def detalle_curso(request, pk):
     
     return render(request, 'detalle_curso.html', context)
 
-@user_passes_test(lambda u: u.is_superuser)
-def crear_curso(request):
-    if request.method == 'POST':
-        form = CursoForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Curso creado correctamente.')
-            return redirect('cursos-list')
-    else:
-        form = CursoForm()
-    return render(request, 'curso_form.html', {'form': form, 'titulo': 'Crear Curso'})
 
-@user_passes_test(lambda u: u.is_superuser)
-def editar_curso(request, pk):
-    curso = get_object_or_404(Curso, pk=pk)
-    if request.method == 'POST':
-        form = CursoForm(request.POST, request.FILES, instance=curso)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Curso editado correctamente.')
-            return redirect('cursos-list')
-    else:
-        form = CursoForm(instance=curso)
-    return render(request, 'curso_form.html', {'form': form, 'titulo': 'Editar Curso', 'curso': curso})
-
-@user_passes_test(lambda u: u.is_superuser)
-def eliminar_curso(request, pk):
-    curso = get_object_or_404(Curso, pk=pk)
-    if request.method == 'POST':
-        curso.delete()
-        messages.success(request, 'Curso eliminado correctamente.')
-        return redirect('cursos-list')
-    return render(request, 'curso_confirm_delete.html', {'curso': curso})
 
 @login_required
 def inscribirse_curso(request, pk):
@@ -144,3 +112,56 @@ def desinscribirse_curso(request, pk):
         return JsonResponse({
             'error': f'Error al desinscribirse: {str(e)}'
         }, status=500)
+
+@user_passes_test(lambda u: u.is_superuser)
+def crear_curso(request):
+    if request.method == 'POST':
+        form = CursoForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Curso creado correctamente.')
+            return redirect('cursos-list')
+    else:
+        form = CursoForm()
+    return render(request, 'curso_form.html', {'form': form, 'titulo': 'Crear Curso'})
+
+@user_passes_test(lambda u: u.is_superuser)
+def editar_curso(request, pk):
+    curso = get_object_or_404(Curso, pk=pk)
+    if request.method == 'POST':
+        form = CursoForm(request.POST, request.FILES, instance=curso)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Curso editado correctamente.')
+            return redirect('cursos-list')
+    else:
+        form = CursoForm(instance=curso)
+    return render(request, 'curso_form.html', {'form': form, 'titulo': 'Editar Curso', 'curso': curso})
+
+@user_passes_test(lambda u: u.is_superuser)
+def eliminar_curso(request, pk):
+    curso = get_object_or_404(Curso, pk=pk)
+    if request.method == 'POST':
+        curso.delete()
+        messages.success(request, 'Curso eliminado correctamente.')
+        return redirect('cursos-list')
+    return render(request, 'curso_confirm_delete.html', {'curso': curso})
+
+@user_passes_test(lambda u: u.is_superuser)
+def administracion_cursos(request):
+    """Vista para administrar cursos - solo para superusuarios"""
+    cursos = Curso.objects.all().order_by('-dia', '-hora')
+    
+    # Añadir información extra para cada curso
+    for curso in cursos:
+        curso.ya_paso = curso.curso_pasado()
+        curso.inscriptos_count = curso.total_inscriptos()
+    
+    context = {
+        'cursos': cursos,
+        'total_cursos': cursos.count()
+    }
+    
+    return render(request, 'administracion_cursos.html', context)
+
+

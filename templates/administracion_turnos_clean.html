@@ -1,12 +1,209 @@
 {% extends 'base.html' %}
 {% block title %}Administración de Turnos | Cortes Con Historia{% endblock %}
 
-{% block extra_head %}
-<style>
-.admin-turnos-header {
-    margin-bottom: 2rem;
-}
+{% block content %}
+<div class="container-fluid">
+    <div class="admin-turnos-header">
+        <h1 class="text-center mb-4">
+            <i class="bi bi-calendar-check text-primary"></i>
+            Administración de Turnos
+        </h1>
+    </div>
 
+    <!-- Filtros -->
+    <div class="card filter-card mb-4">
+        <div class="card-body">
+            <form id="filtro-turnos" class="row g-3" method="get">
+                <div class="col-md-3">
+                    <label class="form-label">Barbero</label>
+                    <select class="form-select" name="barbero" id="filtro-barbero">
+                        <option value="">Todos</option>
+                        {% for b in barberos %}
+                        <option value="{{ b.id }}" {% if request.GET.barbero|default:'' == b.id|stringformat:'s' %}selected{% endif %}>
+                            {{ b.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Día</label>
+                    <input type="date" class="form-control" name="dia" id="filtro-dia" value="{{ request.GET.dia|default:'' }}">
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Estado</label>
+                    <select class="form-select" name="estado" id="filtro-estado">
+                        <option value="" {% if not request.GET.estado %}selected{% endif %}>Todos</option>
+                        <option value="disponible" {% if request.GET.estado == 'disponible' %}selected{% endif %}>Disponible</option>
+                        <option value="ocupado" {% if request.GET.estado == 'ocupado' %}selected{% endif %}>Ocupado</option>
+                        <option value="cancelado" {% if request.GET.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                        <option value="completado" {% if request.GET.estado == 'completado' %}selected{% endif %}>Completado</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="action-buttons mb-4">
+        <div class="btn-group-responsive">
+            <a href="{% url 'admin-panel' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarTurnos">
+                <i class="bi bi-plus-circle"></i> Crear Turnos
+            </button>
+            <a href="{% url 'archivar-turnos' %}" class="btn btn-warning">
+                <i class="bi bi-archive"></i> Archivar Antiguos
+            </a>
+        </div>
+        
+        <div class="text-muted">
+            Total: <strong>{{ turnos|length }}</strong> turnos
+        </div>
+    </div>
+
+    <!-- Tabla de Turnos -->
+    <div class="turnos-table-container">
+        <div class="table-responsive table-responsive-custom">
+            {% if turnos %}
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Barbero</th>
+                            <th>Cliente</th>
+                            <th>Servicio</th>
+                            <th>Estado</th>
+                            <th>Precio</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for turno in turnos %}
+                        <tr>
+                            <td>{{ turno.fecha|date:"d/m/Y" }}</td>
+                            <td>{{ turno.hora|time:"H:i" }}</td>
+                            <td>{{ turno.barbero.nombre }}</td>
+                            <td>
+                                {% if turno.cliente %}
+                                    {{ turno.cliente.get_full_name }}
+                                {% else %}
+                                    <span class="text-muted">Sin asignar</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if turno.servicio %}
+                                    {{ turno.servicio.nombre }}
+                                {% else %}
+                                    <span class="text-muted">No especificado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if turno.estado == 'disponible' %}bg-success
+                                    {% elif turno.estado == 'ocupado' %}bg-primary
+                                    {% elif turno.estado == 'cancelado' %}bg-secondary
+                                    {% elif turno.estado == 'completado' %}bg-dark
+                                    {% else %}bg-warning{% endif %}">
+                                    {{ turno.get_estado_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if turno.precio_final %}
+                                    ${{ turno.precio_final }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button class="btn btn-outline-primary btn-sm" onclick="editarTurno({{ turno.id }})" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="eliminarTurno({{ turno.id }})" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="text-muted mt-3">No se encontraron turnos</h5>
+                    <p class="text-muted">Prueba ajustando los filtros o crea nuevos turnos.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal para agregar turnos -->
+<div class="modal fade" id="modalAgregarTurnos" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Nuevos Turnos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-crear-turnos" method="post" action="{% url 'crear-turnos-bulk' %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Barbero</label>
+                            <select class="form-select" name="barbero" required>
+                                <option value="">Selecciona un barbero</option>
+                                {% for barbero in barberos %}
+                                <option value="{{ barbero.id }}">{{ barbero.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Fecha</label>
+                            <input type="date" class="form-control" name="fecha" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Hora Inicio</label>
+                            <input type="time" class="form-control" name="hora_inicio" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Hora Fin</label>
+                            <input type="time" class="form-control" name="hora_fin" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Duración por turno (minutos)</label>
+                        <select class="form-select" name="duracion">
+                            <option value="30">30 minutos</option>
+                            <option value="45">45 minutos</option>
+                            <option value="60" selected>60 minutos</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="form-crear-turnos" class="btn btn-primary">Crear Turnos</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
 .admin-turnos-header h1 {
     font-size: 2.2rem;
     font-weight: bold;
@@ -26,7 +223,6 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
-    margin-bottom: 2rem;
 }
 
 .btn-group-responsive {
@@ -49,231 +245,9 @@
 .modal-content {
     border-radius: 15px;
     border: none;
-    box-shadow: 0 10px 30px var(--card-shadow);
-    background: var(--card-bg);
-    color: var(--text-primary);
 }
 
-.modal-header {
-    background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
-    color: #222;
-    border-radius: 15px 15px 0 0;
-    border-bottom: none;
-}
-
-.barbero-casilla {
-    border-radius: 20px;
-    border: 2px solid var(--border-color);
-    transition: all 0.3s ease;
-    background: var(--card-bg);
-    color: var(--text-primary);
-}
-
-.barbero-casilla.active {
-    background: #ffd700;
-    border-color: #ffd700;
-    color: #222;
-}
-
-.barbero-casilla:hover {
-    border-color: #ffd700;
-    transform: translateY(-2px);
-}
-
-/* Estilos para modo oscuro */
-.table {
-    background: var(--card-bg);
-    color: var(--text-primary);
-}
-
-.table th {
-    background: var(--secondary-bg);
-    color: var(--text-primary);
-    border-color: var(--border-color);
-}
-
-.table td {
-    background: var(--card-bg);
-    color: var(--text-primary);
-    border-color: var(--border-color);
-}
-
-.table-striped > tbody > tr:nth-of-type(odd) > td {
-    background: var(--form-section-bg);
-}
-
-.form-control, .form-select {
-    background: var(--form-bg);
-    color: var(--text-primary);
-    border-color: var(--border-color);
-}
-
-.form-control:focus, .form-select:focus {
-    background: var(--form-bg);
-    color: var(--text-primary);
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
-}
-
-.form-label {
-    color: var(--text-primary);
-}
-
-.text-muted {
-    color: var(--text-muted) !important;
-}
-
-/* Estilos para botones de estado */
-.btn-completado {
-    background-color: #145a32 !important;
-    color: #ffffff !important;
-    border-color: #145a32 !important;
-}
-
-.btn-completado:hover,
-.btn-completado:focus,
-.btn-completado:active {
-    background-color: #1e7e42 !important;
-    color: #ffffff !important;
-    border-color: #1e7e42 !important;
-}
-
-/* Mejorar contraste en modo oscuro */
-[data-theme="dark"] .btn-completado {
-    background-color: #28a745 !important;
-    color: #ffffff !important;
-    border-color: #28a745 !important;
-}
-
-[data-theme="dark"] .btn-completado:hover,
-[data-theme="dark"] .btn-completado:focus,
-[data-theme="dark"] .btn-completado:active {
-    background-color: #34ce57 !important;
-    color: #ffffff !important;
-    border-color: #34ce57 !important;
-}
-
-/* ================================================================
-   SOLUCIÓN DEFINITIVA PARA MODO OSCURO DE LA TABLA
-   ================================================================ */
-
-/* Redefinir variables de Bootstrap para modo oscuro */
-[data-theme="dark"] .table {
-    --bs-table-color: #e1e1e1 !important;
-    --bs-table-bg: #1e1e1e !important;
-    --bs-table-border-color: #373b3e !important;
-    --bs-table-striped-bg: #2c2c2c !important;
-    --bs-table-striped-color: #e1e1e1 !important;
-    --bs-table-active-bg: #373737 !important;
-    --bs-table-active-color: #e1e1e1 !important;
-    --bs-table-hover-bg: #323232 !important;
-    --bs-table-hover-color: #e1e1e1 !important;
-    
-    /* Forzar colores directamente también */
-    background-color: #1e1e1e !important;
-    color: #e1e1e1 !important;
-    border-color: #373b3e !important;
-}
-
-/* Forzar modo oscuro en thead */
-[data-theme="dark"] .table thead th {
-    --bs-table-bg: #2d2d2d !important;
-    --bs-table-color: #ffffff !important;
-    --bs-table-border-color: #444444 !important;
-    background-color: #2d2d2d !important;
-    color: #ffffff !important;
-    border-color: #444444 !important;
-}
-
-/* Forzar modo oscuro en tbody */
-[data-theme="dark"] .table tbody tr,
-[data-theme="dark"] .table tbody td {
-    --bs-table-bg: #1e1e1e !important;
-    --bs-table-color: #e1e1e1 !important;
-    --bs-table-border-color: #373b3e !important;
-    background-color: #1e1e1e !important;
-    color: #e1e1e1 !important;
-    border-color: #373b3e !important;
-}
-
-/* Filas alternadas en modo oscuro */
-[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > td {
-    --bs-table-striped-bg: #2c2c2c !important;
-    background-color: #2c2c2c !important;
-}
-
-/* Hover en modo oscuro */
-[data-theme="dark"] .table-hover > tbody > tr:hover > td {
-    --bs-table-hover-bg: #323232 !important;
-    background-color: #323232 !important;
-}
-
-/* Estilos para el menú desplegable de estados */
-.estado-menu {
-    background: var(--card-bg) !important;
-    border: 1px solid var(--border-color) !important;
-    color: var(--text-primary);
-}
-
-.estado-menu .dropdown-item {
-    color: var(--text-primary);
-    background: transparent;
-    border: none;
-    padding: 0.5rem 1rem;
-    width: 100%;
-    text-align: left;
-    display: block;
-}
-
-.estado-menu .dropdown-item:hover {
-    background: var(--secondary-bg) !important;
-    color: var(--text-primary) !important;
-}
-
-.estado-menu .dropdown-item.text-success {
-    color: #28a745 !important;
-}
-
-.estado-menu .dropdown-item.text-warning {
-    color: #ffc107 !important;
-}
-
-.estado-menu .dropdown-item.text-danger {
-    color: #dc3545 !important;
-}
-
-.btn-completado-menu {
-    background-color: #145a32 !important;
-    color: #ffffff !important;
-}
-
-[data-theme="dark"] .btn-completado-menu {
-    background-color: #28a745 !important;
-    color: #ffffff !important;
-}
-
-.btn-completado-menu:hover {
-    background-color: #1e7e42 !important;
-    color: #ffffff !important;
-}
-
-[data-theme="dark"] .btn-completado-menu:hover {
-    background-color: #34ce57 !important;
-    color: #ffffff !important;
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-    .admin-turnos-header h1 {
-        font-size: 2rem;
-    }
-}
-
-@media (max-width: 992px) {
-    .admin-turnos-header h1 {
-        font-size: 1.8rem;
-    }
-    
+@media (max-width: 768px) {
     .action-buttons {
         flex-direction: column;
         align-items: stretch;
@@ -283,858 +257,30 @@
         justify-content: center;
     }
     
-    .col-md-3 {
-        margin-bottom: 1rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .container {
-        padding-left: 15px;
-        padding-right: 15px;
-    }
-    
     .admin-turnos-header h1 {
-        font-size: 1.6rem;
-        text-align: center;
+        font-size: 1.8rem;
     }
-    
-    .filter-card .card-body {
-        padding: 1rem;
-    }
-    
-    .action-buttons {
-        margin-bottom: 1.5rem;
-    }
-    
-    .btn-group-responsive {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .btn-group-responsive .btn {
-        margin-bottom: 0.5rem;
-    }
-    
-    .input-group {
-        flex-direction: column;
-    }
-    
-    .input-group .form-control,
-    .input-group .input-group-text {
-        border-radius: 5px !important;
-        margin-bottom: 0.25rem;
-    }
-    
-    .input-group .input-group-text {
-        text-align: center;
-        padding: 0.375rem 0.75rem;
-    }
-    
-    .modal-dialog {
-        margin: 1rem;
-    }
-    
-    .barberos-casillas {
-        flex-direction: column;
-    }
-    
-    .barbero-casilla {
-        width: 100%;
-        margin-bottom: 0.5rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .admin-turnos-header {
-        margin-bottom: 1.5rem;
-    }
-    
-    .admin-turnos-header h1 {
-        font-size: 1.4rem;
-    }
-    
-    .filter-card .card-body {
-        padding: 0.75rem;
-    }
-    
-    .col-md-3 {
-        padding-left: 5px;
-        padding-right: 5px;
-    }
-    
-    .form-label {
-        font-size: 0.9rem;
-        margin-bottom: 0.25rem;
-    }
-    
-    .form-control,
-    .form-select {
-        font-size: 0.9rem;
-        padding: 0.5rem;
-    }
-    
-    .btn {
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
-    }
-    
-    .modal-body {
-        padding: 1rem;
-    }
-    
-    .barberos-casillas {
-        gap: 0.5rem;
-    }
-    
-    .table-responsive-custom {
-        font-size: 0.85rem;
-    }
-    
-    .table td,
-    .table th {
-        padding: 0.5rem 0.25rem;
-    }
-}
-
-/* Tabla responsive personalizada */
-@media (max-width: 768px) {
-    .table-responsive-custom table {
-        font-size: 0.8rem;
-    }
-    
-    .table-responsive-custom .btn {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.7rem;
-    }
-    
-    .table-responsive-custom .badge {
-        font-size: 0.7rem;
-    }
-}
-
-/* Estilos para mejorar la usabilidad en móvil */
-.form-control:focus,
-.form-select:focus {
-    border-color: #ffd700;
-    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-    border: none;
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
-    transform: translateY(-2px);
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    border: none;
-}
-
-.btn-success:hover {
-    background: linear-gradient(135deg, #218838 0%, #1ea896 100%);
-    transform: translateY(-2px);
-}
-
-.btn-warning {
-    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
-    border: none;
-    color: #000;
-}
-
-.btn-warning:hover {
-    background: linear-gradient(135deg, #e0a800 0%, #d39e00 100%);
-    transform: translateY(-2px);
-    color: #000;
 }
 </style>
-{% endblock %}
 
-{% block content %}
-<div class="container-fluid">
-    <div class="admin-turnos-header">
-        <h1><i class="fas fa-calendar-alt me-2"></i>Administración de Turnos</h1>
-    </div>
-    <div class="card filter-card mb-4">
-        <div class="card-body">
-            <h5 class="card-title mb-3"><i class="fas fa-filter me-2"></i>Filtros de búsqueda</h5>
-            <form id="filtro-turnos" class="row g-3" method="get">
-                <div class="col-12 col-md-6 col-lg-3">
-                    <label class="form-label">Barbero</label>
-                    <select class="form-select" name="barbero" id="filtro-barbero">
-                        <option value="">Todos</option>
-                        {% for b in barberos %}
-                        <option value="{{ b.id }}" {% if request.GET.barbero|default:'' == b.id|stringformat:'s' %}selected{% endif %}>{{ b.nombre }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-12 col-md-6 col-lg-3">
-                    <label class="form-label">Día</label>
-                    <input type="date" class="form-control" name="dia" id="filtro-dia" value="{{ request.GET.dia|default:'' }}">
-                </div>
-                <div class="col-12 col-md-6 col-lg-3">
-                    <label class="form-label">Rango horario</label>
-                    <div class="input-group">
-                        <input type="time" class="form-control" name="hora_inicio" id="filtro-hora-inicio" value="{{ request.GET.hora_inicio|default:'' }}">
-                        <span class="input-group-text">a</span>
-                        <input type="time" class="form-control" name="hora_fin" id="filtro-hora-fin" value="{{ request.GET.hora_fin|default:'' }}">
-                    </div>
-                </div>
-                <div class="col-12 col-md-6 col-lg-3">
-                    <label class="form-label">Disponibilidad</label>
-                    <select class="form-select" name="estado" id="filtro-estado">
-                        <option value="" {% if not request.GET.estado %}selected{% endif %}>Todos</option>
-                        <option value="disponible" {% if request.GET.estado == 'disponible' %}selected{% endif %}>Disponible</option>
-                        <option value="ocupado" {% if request.GET.estado == 'ocupado' %}selected{% endif %}>Ocupado</option>
-                        <option value="cancelado" {% if request.GET.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
-                        <option value="completado" {% if request.GET.estado == 'completado' %}selected{% endif %}>Completado</option>
-                        <option value="expirado" {% if request.GET.estado == 'expirado' %}selected{% endif %}>Expirado</option>
-                    </select>
-                </div>
-                <div class="col-12 text-center">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search me-2"></i>Filtrar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="action-buttons">
-        <div class="btn-group-responsive">
-            <a href="{% url 'admin-panel' %}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>Volver a Gestión Admin
-            </a>
-            <a href="{% url 'archivar-turnos' %}" class="btn btn-warning">
-                <i class="fas fa-archive me-2"></i>Archivar Turnos Antiguos
-            </a>
-        </div>
-        <div>
-            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarTurnos">
-                <i class="fas fa-plus-circle me-2"></i>Agregar Turnos
-            </button>
-        </div>
-    </div>
-    <!-- Modal Agregar Turnos -->
-    <div class="modal fade" id="modalAgregarTurnos" tabindex="-1" aria-labelledby="modalAgregarTurnosLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <form id="form-agregar-turnos" method="post" action="{% url 'agregar-turnos' %}">
-            {% csrf_token %}
-            <div class="modal-header">
-              <h5 class="modal-title" id="modalAgregarTurnosLabel">Agregar Turnos</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label">Barberos</label>
-                <div class="d-flex flex-wrap gap-2" id="barberos-casillas">
-                  {% for b in barberos %}
-                  <button type="button" class="btn btn-outline-primary barbero-casilla" data-id="{{ b.id }}">{{ b.nombre }}</button>
-                  <input type="checkbox" name="barberos" value="{{ b.id }}" class="d-none barbero-checkbox">
-                  {% endfor %}
-                </div>
-                <small style="color: var(--text-muted);">Selecciona uno o varios barberos</small>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Día</label>
-                <input type="date" class="form-control" name="dia" id="dia-turno" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Hora de inicio</label>
-                <div class="input-group">
-                  <input type="time" class="form-control" name="hora_inicio" id="hora-inicio" required>
-                </div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Duración de cada turno (minutos)</label>
-                <input type="number" class="form-control" name="duracion" id="duracion-turno" min="1" value="45" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Cantidad de turnos</label>
-                <div class="input-group" style="max-width: 200px;">
-                  <button type="button" class="btn btn-outline-secondary" id="btn-menos-turnos">-</button>
-                  <input type="number" class="form-control text-center" name="cantidad_turnos" id="cantidad-turnos-input" value="1" min="1" readonly required>
-                  <button type="button" class="btn btn-outline-secondary" id="btn-mas-turnos">+</button>
-                </div>
-                <div id="mensaje-limite-turnos" class="text-danger mt-1" style="display:none;"></div>
-                <small style="color: var(--text-muted);">El máximo depende de la duración y la hora de inicio</small>
-              </div>
-              <div class="mb-3">
-                <div id="hora-fin-calculada" class="fw-bold mb-2"></div>
-                <div id="preview-turnos" class="d-flex flex-wrap gap-2"></div>
-              </div>
-              <div class="mb-3">
-                <div id="cantidad-turnos" class="fw-bold"></div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-primary" id="btn-crear-turnos">
-                <span class="btn-text">Crear Turnos</span>
-                <span class="btn-loading d-none">
-                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Creando...
-                </span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-    <div id="agenda-turnos">
-      <div class="table-responsive table-responsive-custom">
-        <table class="table table-bordered align-middle">
-          <thead>
-            <tr>
-              <th>Día</th>
-              <th>Hora</th>
-              <th>Barbero</th>
-              <th>Servicio</th>
-              <th>Estado</th>
-              <th>Cliente</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for turno in turnos %}
-            <tr class="turno-row">
-              <td class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-                <span>{{ turno.fecha_hora|date:"d/m/Y" }}</span>
-                <span class="small" style="color: var(--text-muted);">{{ turno.fecha_hora|date:"l"|capfirst }}</span>
-              </td>
-              <td>{{ turno.fecha_hora|time:"H:i" }}</td>
-              <td>{{ turno.barbero.nombre }}</td>
-              <td>{{ turno.servicio.nombre|default:"Sin servicio" }}</td>
-              <td class="position-relative">
-                <button type="button" class="btn btn-sm w-100 text-start estado-btn {% if turno.estado == 'disponible' %}btn-success{% elif turno.estado == 'ocupado' %}btn-warning{% elif turno.estado == 'completado' %}btn-completado{% elif turno.estado == 'cancelado' %}btn-danger{% elif turno.estado == 'expirado' %}btn-secondary{% endif %}" data-turno-id="{{ turno.id }}" data-estado="{{ turno.estado }}" {% if turno.estado == 'ocupado' %}style="color: #000 !important;"{% endif %}>
-                  {% if turno.estado == 'disponible' %}Disponible{% elif turno.estado == 'ocupado' %}Ocupado{% elif turno.estado == 'completado' %}Completado{% elif turno.estado == 'cancelado' %}Cancelado{% else %}Expirado{% endif %}
-                </button>
-                <div class="estado-menu position-absolute border rounded shadow p-2" style="display:none; min-width:150px; right:0; z-index:10; background: var(--card-bg);">
-                  <form method="post" action="{% url 'cambiar-estado-turno-admin' %}" class="mb-0" id="form-estado-{{ turno.id }}">
-                    {% csrf_token %}
-                    <input type="hidden" name="turno_id" value="{{ turno.id }}">
-                    <button type="submit" name="estado" value="disponible" class="dropdown-item text-success">Disponible</button>
-                    <button type="submit" name="estado" value="ocupado" class="dropdown-item text-warning">Ocupado</button>
-                    <button type="submit" name="estado" value="completado" class="dropdown-item text-white btn-completado-menu">Completado</button>
-                    <button type="submit" name="estado" value="cancelado" class="dropdown-item text-danger">Cancelado</button>
-                    <button type="submit" name="estado" value="expirado" class="dropdown-item" style="color: var(--text-muted);">Expirado</button>
-                  </form>
-                </div>
-              </td>
-              <td>{% if turno.cliente %}{{ turno.cliente.nombre }} {{ turno.cliente.apellido }}{% else %}-{% endif %}</td>
-              <td class="text-center">
-                <button type="button" class="btn btn-outline-primary btn-sm" onclick="editarTurno({{ turno.id }})" title="Editar turno">
-                  <i class="bi bi-pencil"></i>
-                </button>
-              </td>
-            </tr>
-            {% empty %}
-            <tr class="turno-row"><td colspan="7" class="text-center">No hay turnos para este día.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Modal para editar turno -->
-    <div class="modal fade" id="modalEditarTurno" tabindex="-1" aria-labelledby="modalEditarTurnoLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalEditarTurnoLabel">Editar Turno</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <form id="formEditarTurno" method="post">
-            {% csrf_token %}
-            <div class="modal-body">
-              <input type="hidden" id="edit-turno-id" name="turno_id">
-              
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label for="edit-fecha" class="form-label">Fecha</label>
-                    <input type="date" class="form-control" id="edit-fecha" name="fecha" required>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label for="edit-hora" class="form-label">Hora</label>
-                    <input type="time" class="form-control" id="edit-hora" name="hora" required>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label for="edit-barbero" class="form-label">Barbero</label>
-                    <select class="form-select" id="edit-barbero" name="barbero" required>
-                      {% for barbero in barberos %}
-                      <option value="{{ barbero.id }}">{{ barbero.nombre }}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label for="edit-servicio" class="form-label">Servicio</label>
-                    <select class="form-select" id="edit-servicio" name="servicio">
-                      <option value="">Sin servicio</option>
-                      {% for servicio in servicios %}
-                      <option value="{{ servicio.id }}" data-precio="{{ servicio.precio }}">{{ servicio.nombre }} - ${{ servicio.precio }}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label for="edit-estado" class="form-label">Estado</label>
-                    <select class="form-select" id="edit-estado" name="estado" required>
-                      <option value="disponible">Disponible</option>
-                      <option value="ocupado">Ocupado</option>
-                      <option value="completado">Completado</option>
-                      <option value="cancelado">Cancelado</option>
-                      <option value="expirado">Expirado</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label for="edit-precio-final" class="form-label">Precio Final</label>
-                    <div class="input-group">
-                      <span class="input-group-text">$</span>
-                      <input type="number" step="0.01" class="form-control" id="edit-precio-final" name="precio_final" placeholder="0.00">
-                    </div>
-                    <small style="color: var(--text-muted);">Deja vacío para usar precio del servicio</small>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="mb-3">
-                <label for="edit-cliente" class="form-label">Cliente (Email)</label>
-                <input type="email" class="form-control" id="edit-cliente" name="cliente_email" placeholder="Deja vacío si no tiene cliente">
-                <small style="color: var(--text-muted);">Busca usuario por email. Deja vacío para turnos disponibles.</small>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-{% endblock %}
-{% block extra_js %}
-{{ block.super }}
 <script>
-// Función para obtener el token CSRF
-function getCSRFToken() {
-  return document.querySelector('[name=csrfmiddlewaretoken]').value;
-}
-
-// Función principal para cambiar estado via AJAX desde menú desplegable
-function cambiarEstadoAjax(turnoId, nuevoEstado) {
-  fetch('/administracion/turnos/cambiar-estado/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'X-CSRFToken': getCSRFToken(),
-      'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: `turno_id=${turnoId}&estado=${nuevoEstado}`
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      // Actualizar el botón principal con el nuevo estado
-      const botonEstado = document.querySelector(`[data-turno-id="${turnoId}"]`);
-      if (botonEstado) {
-        // Actualizar clases CSS del botón
-        botonEstado.className = `btn btn-sm w-100 text-start estado-btn`;
-        
-        // Agregar clase específica según el nuevo estado
-        if (nuevoEstado === 'disponible') {
-          botonEstado.classList.add('btn-success');
-          botonEstado.textContent = 'Disponible';
-        } else if (nuevoEstado === 'ocupado') {
-          botonEstado.classList.add('btn-warning');
-          botonEstado.style.color = '#000 !important';
-          botonEstado.textContent = 'Ocupado';
-        } else if (nuevoEstado === 'completado') {
-          botonEstado.classList.add('btn-completado');
-          botonEstado.textContent = 'Completado';
-        } else if (nuevoEstado === 'cancelado') {
-          botonEstado.classList.add('btn-danger');
-          botonEstado.textContent = 'Cancelado';
-        } else if (nuevoEstado === 'expirado') {
-          botonEstado.classList.add('btn-secondary');
-          botonEstado.textContent = 'Expirado';
-        }
-        
-        // Actualizar el atributo data-estado
-        botonEstado.setAttribute('data-estado', nuevoEstado);
-        
-        // Cerrar el menú desplegable
-        const menu = botonEstado.nextElementSibling;
-        if (menu) {
-          menu.style.display = 'none';
-        }
-        
-        // Mostrar notificación de éxito
-        mostrarNotificacion(`Estado cambiado a ${nuevoEstado}`, 'success');
-      }
-    } else {
-      mostrarNotificacion('Error al cambiar estado: ' + (data.message || 'Error desconocido'), 'danger');
-    }
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    mostrarNotificacion('Error al cambiar estado', 'danger');
-  });
-}
-
-// Función para mostrar notificaciones temporales
-function mostrarNotificacion(mensaje, tipo) {
-  // Crear elemento de notificación
-  const notif = document.createElement('div');
-  notif.className = `alert alert-${tipo} alert-dismissible`;
-  notif.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    min-width: 300px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    animation: slideIn 0.3s ease-out;
-  `;
-  
-  notif.innerHTML = `
-    ${mensaje}
-    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
-  `;
-  
-  document.body.appendChild(notif);
-  
-  // Auto-eliminar después de 3 segundos
-  setTimeout(() => {
-    if (notif.parentElement) {
-      notif.remove();
-    }
-  }, 3000);
-}
-
-// Interceptar TODOS los formularios de cambio de estado
-document.addEventListener('DOMContentLoaded', function() {
-  
-  // Interceptar submit de formularios de estado
-  document.addEventListener('submit', function(e) {
-    // Solo interceptar formularios que tengan id que empiece con 'form-estado-'
-    if (e.target && e.target.id && e.target.id.startsWith('form-estado-')) {
-      e.preventDefault(); // PREVENIR el submit tradicional
-      
-      const form = e.target;
-      const turnoId = form.querySelector('input[name="turno_id"]').value;
-      const submitButton = document.activeElement; // El botón que se clickeó
-      const nuevoEstado = submitButton.value;
-      
-      console.log('🚫 Submit interceptado, usando AJAX:', { turnoId, nuevoEstado });
-      
-      // Usar AJAX en lugar del submit tradicional
-      cambiarEstadoAjax(turnoId, nuevoEstado);
-    }
-  });
-  
-  console.log('✅ Sistema AJAX para cambio de estado cargado (interceptor de formularios)');
-});
-
-document.querySelectorAll('.estado-btn').forEach(btn => {
-  btn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    // Cerrar otros menús
-    document.querySelectorAll('.estado-menu').forEach(m => m.style.display = 'none');
-    // Abrir el menú de este botón
-    const menu = btn.parentElement.querySelector('.estado-menu');
-    if (menu) menu.style.display = 'block';
-  });
-});
-document.querySelectorAll('.estado-menu form').forEach(form => {
-  form.addEventListener('click', function(e) {
-    e.stopPropagation();
-  });
-});
-document.addEventListener('click', function() {
-  document.querySelectorAll('.estado-menu').forEach(m => m.style.display = 'none');
-});
-
-// Selección visual y lógica de barberos en el modal de agregar turnos
-const barberoBtns = document.querySelectorAll('#barberos-casillas .barbero-casilla');
-const barberoCheckboxes = document.querySelectorAll('#barberos-casillas .barbero-checkbox');
-barberoBtns.forEach((btn, idx) => {
-  btn.addEventListener('click', function() {
-    const checkbox = barberoCheckboxes[idx];
-    checkbox.checked = !checkbox.checked;
-    btn.classList.toggle('active', checkbox.checked);
-    btn.classList.toggle('btn-primary', checkbox.checked);
-    btn.classList.toggle('btn-outline-primary', !checkbox.checked);
-  });
-});
-
-// Lógica para sumar/restar cantidad de turnos y actualizar preview y hora fin
-const inputCantidad = document.getElementById('cantidad-turnos-input');
-const btnMas = document.getElementById('btn-mas-turnos');
-const btnMenos = document.getElementById('btn-menos-turnos');
-const inputHora = document.getElementById('hora-inicio');
-const inputDuracion = document.getElementById('duracion-turno');
-const previewTurnos = document.getElementById('preview-turnos');
-const horaFinCalculada = document.getElementById('hora-fin-calculada');
-const mensajeLimite = document.getElementById('mensaje-limite-turnos');
-
-function pad(n) { return n < 10 ? '0' + n : n; }
-
-function actualizarPreviewTurnos() {
-  const cantidad = parseInt(inputCantidad.value) || 1;
-  const horaInicio = inputHora.value;
-  const duracion = parseInt(inputDuracion.value) || 45;
-  previewTurnos.innerHTML = '';
-  horaFinCalculada.innerHTML = '';
-  mensajeLimite.style.display = 'none';
-  if (!horaInicio) return;
-  let [h, m] = horaInicio.split(':').map(Number);
-  let turnos = [];
-  let limite = false;
-  let endH = h, endM = m;
-  for (let i = 0; i < cantidad; i++) {
-    // Calcular hora de fin de este turno
-    let finH = endH, finM = endM + duracion;
-    while (finM >= 60) { finH++; finM -= 60; }
-    // Si la hora de fin de este turno supera 23:59, no permitir agregarlo
-    if (finH > 23 || (finH === 23 && finM > 59)) {
-      limite = true;
-      break;
-    }
-    // Agregar hora de inicio del turno
-    let horaStr = pad(endH) + ':' + pad(endM);
-    turnos.push(horaStr);
-    // Preparar para el siguiente turno
-    endM += duracion;
-    while (endM >= 60) { endH++; endM -= 60; }
-  }
-  // Mostrar preview
-  previewTurnos.innerHTML = turnos.map(t => `<span class='badge bg-primary'>${t}</span>`).join(' ');
-  // Calcular y mostrar hora de fin real
-  let finH = h, finM = m;
-  for (let i = 0; i < turnos.length; i++) {
-    finM += duracion;
-    while (finM >= 60) { finH++; finM -= 60; }
-  }
-  let finStr = (turnos.length === 0) ? '' : pad(finH) + ':' + pad(finM);
-  if (turnos.length > 0) {
-    horaFinCalculada.innerHTML = 'Hora de fin: <span class="text-success">' + finStr + '</span>';
-  }
-  // Bloquear suma si se supera el límite
-  if (limite) {
-    btnMas.disabled = true;
-    mensajeLimite.style.display = 'block';
-    mensajeLimite.textContent = 'No se pueden agregar más turnos: la hora de fin máxima es 23:59.';
-  } else {
-    btnMas.disabled = false;
-    mensajeLimite.style.display = 'none';
-  }
-  // Ajustar el input si el usuario puso un valor manualmente fuera de rango
-  inputCantidad.value = turnos.length;
-}
-
-[inputCantidad, inputHora, inputDuracion].forEach(el => {
-  el.addEventListener('input', actualizarPreviewTurnos);
-  el.addEventListener('change', actualizarPreviewTurnos);
-});
-btnMas.addEventListener('click', function() {
-  let val = parseInt(inputCantidad.value) || 1;
-  inputCantidad.value = val + 1;
-  actualizarPreviewTurnos();
-});
-btnMenos.addEventListener('click', function() {
-  let val = parseInt(inputCantidad.value) || 1;
-  if (val > 1) inputCantidad.value = val - 1;
-  actualizarPreviewTurnos();
-});
-// Inicializar preview al abrir modal
-if (inputCantidad && inputHora && inputDuracion) {
-  setTimeout(actualizarPreviewTurnos, 300);
-}
-
-// Prevenir dobles clics en el formulario de crear turnos
-const formAgregarTurnos = document.getElementById('form-agregar-turnos');
-const btnCrearTurnos = document.getElementById('btn-crear-turnos');
-let formularioEnviado = false;
-let ultimoEnvio = 0;
-
-if (formAgregarTurnos && btnCrearTurnos) {
-  formAgregarTurnos.addEventListener('submit', function(e) {
-    const ahora = Date.now();
-    
-    // Prevenir envío múltiple
-    if (formularioEnviado || (ahora - ultimoEnvio < 2000)) {
-      e.preventDefault();
-      return false;
-    }
-    
-    // Marcar como enviado
-    formularioEnviado = true;
-    ultimoEnvio = ahora;
-    
-    // Cambiar apariencia del botón
-    btnCrearTurnos.disabled = true;
-    btnCrearTurnos.querySelector('.btn-text').classList.add('d-none');
-    btnCrearTurnos.querySelector('.btn-loading').classList.remove('d-none');
-    
-    // Resetear después de un tiempo (por si hay error)
-    setTimeout(() => {
-      resetearBotonCrear();
-    }, 10000);
-  });
-  
-  function resetearBotonCrear() {
-    formularioEnviado = false;
-    btnCrearTurnos.disabled = false;
-    btnCrearTurnos.querySelector('.btn-text').classList.remove('d-none');
-    btnCrearTurnos.querySelector('.btn-loading').classList.add('d-none');
-  }
-  
-  // Resetear cuando se cierre el modal
-  const modal = document.getElementById('modalAgregarTurnos');
-  if (modal) {
-    modal.addEventListener('hidden.bs.modal', function() {
-      resetearBotonCrear();
-    });
-  }
-}
-
-// Función para actualizar precio de turno
-function actualizarPrecio(turnoId, nuevoPrecio) {
-  if (!nuevoPrecio || nuevoPrecio < 0) {
-    alert('Por favor ingresa un precio válido');
-    return;
-  }
-  
-  const formData = new FormData();
-  formData.append('turno_id', turnoId);
-  formData.append('precio', nuevoPrecio);
-  formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-  
-  fetch('{% url "actualizar-precio-turno" %}', {
-    method: 'POST',
-    body: formData
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      // Mostrar mensaje de éxito temporal
-      const input = document.querySelector(`input[data-turno-id="${turnoId}"]`);
-      const originalBorder = input.style.border;
-      input.style.border = '2px solid #28a745';
-      
-      setTimeout(() => {
-        input.style.border = originalBorder;
-      }, 2000);
-    } else {
-      alert('Error al actualizar precio: ' + data.message);
-    }
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    alert('Error al actualizar precio');
-  });
-}
-
-// Función para abrir modal de edición
 function editarTurno(turnoId) {
-  // Hacer fetch para obtener datos del turno
-  fetch(`/administracion/turno/${turnoId}/datos/`)
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        const turno = data.turno;
-        
-        // Llenar el formulario con los datos del turno
-        document.getElementById('edit-turno-id').value = turno.id;
-        document.getElementById('edit-fecha').value = turno.fecha;
-        document.getElementById('edit-hora').value = turno.hora;
-        document.getElementById('edit-barbero').value = turno.barbero_id;
-        document.getElementById('edit-servicio').value = turno.servicio_id || '';
-        document.getElementById('edit-estado').value = turno.estado;
-        document.getElementById('edit-precio-final').value = turno.precio_final || '';
-        document.getElementById('edit-cliente').value = turno.cliente_email || '';
-        
-        // Abrir modal
-        new bootstrap.Modal(document.getElementById('modalEditarTurno')).show();
-      } else {
-        alert('Error al cargar datos del turno: ' + data.message);
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('Error al cargar datos del turno');
-    });
+    // Implementar lógica de edición
+    console.log('Editar turno:', turnoId);
 }
 
-// Manejar envío del formulario de edición
-document.getElementById('formEditarTurno').addEventListener('submit', function(e) {
-  e.preventDefault();
-  
-  const formData = new FormData(this);
-  
-  fetch('/administracion/turno/editar/', {
-    method: 'POST',
-    body: formData
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      // Cerrar modal
-      bootstrap.Modal.getInstance(document.getElementById('modalEditarTurno')).hide();
-      
-      // Recargar página para mostrar cambios
-      location.reload();
-    } else {
-      alert('Error al guardar cambios: ' + data.message);
+function eliminarTurno(turnoId) {
+    if (confirm('¿Estás seguro de que deseas eliminar este turno?')) {
+        // Implementar lógica de eliminación
+        console.log('Eliminar turno:', turnoId);
     }
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    alert('Error al guardar cambios');
-  });
-});
+}
 
-// Auto-llenar precio cuando se selecciona servicio
-document.getElementById('edit-servicio').addEventListener('change', function() {
-  const selectedOption = this.options[this.selectedIndex];
-  const precio = selectedOption.getAttribute('data-precio');
-  
-  if (precio && !document.getElementById('edit-precio-final').value) {
-    document.getElementById('edit-precio-final').value = precio;
-  }
+// Auto-submit form on filter change
+document.querySelectorAll('#filtro-turnos select, #filtro-turnos input').forEach(element => {
+    element.addEventListener('change', function() {
+        document.getElementById('filtro-turnos').submit();
+    });
 });
-
-// Agregar estilos para la animación de notificaciones
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
-`;
-document.head.appendChild(style);
 </script>
-</div>
 {% endblock %}
