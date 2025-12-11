@@ -111,9 +111,11 @@ class ArchivoExcel(models.Model):
         """
         import os
         from pathlib import Path
-        # Función temporal para deploy
+        # Función para almacenar archivos Excel como base64
         def store_excel_file(data, filename):
-            return filename
+            """Convierte datos binarios de archivo Excel a base64 para almacenamiento en BD"""
+            import base64
+            return base64.b64encode(data).decode('utf-8')
         
         ruta = Path(ruta_archivo)
         
@@ -180,15 +182,32 @@ class ArchivoExcel(models.Model):
             # Si es un string, tratar como base64
             archivo_data = str(self.archivo_excel).strip()
             
+            # Verificar si parece ser solo un nombre de archivo (error común)
+            if archivo_data.endswith('.xlsx') and '/' not in archivo_data and len(archivo_data) < 100:
+                # Esto parece ser solo un nombre de archivo, no base64
+                raise ValueError(f"El campo contiene solo el nombre del archivo ({archivo_data}) en lugar del contenido base64")
+            
             # Remover prefijo data: si existe
             if archivo_data.startswith('data:'):
                 archivo_data = archivo_data.split(',', 1)[1]
             
-            # Decodificar base64
-            return base64.b64decode(archivo_data)
+            # Verificar que parece ser base64 válido
+            if len(archivo_data) < 100:
+                raise ValueError(f"Contenido demasiado pequeño para ser un archivo Excel válido: {len(archivo_data)} caracteres")
             
-        except Exception:
-            return None
+            # Decodificar base64
+            decoded_data = base64.b64decode(archivo_data)
+            
+            # Verificar que los primeros bytes sean de un archivo Excel
+            if not decoded_data.startswith(b'PK\x03\x04') and not decoded_data.startswith(b'PK\x05\x06'):
+                raise ValueError("Los datos decodificados no parecen ser un archivo Excel válido")
+            
+            return decoded_data
+            
+        except base64.binascii.Error as e:
+            raise ValueError(f"Error decodificando base64: {e}")
+        except Exception as e:
+            raise ValueError(f"Error procesando archivo: {e}")
 
 class BackupBaseDatos(models.Model):
     """

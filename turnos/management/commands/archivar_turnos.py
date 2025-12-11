@@ -9,9 +9,11 @@ from django.conf import settings
 from pathlib import Path
 from administracion.models import ArchivoExcel
 
-# Función temporal para deploy - reemplazar utils
+# Función para almacenar archivos Excel como base64
 def store_excel_file(data, filename):
-    return filename
+    """Convierte datos binarios de archivo Excel a base64 para almacenamiento en BD"""
+    import base64
+    return base64.b64encode(data).decode('utf-8')
 
 class Command(BaseCommand):
     help = 'Archiva turnos expirados en Excel y los elimina de la base de datos'
