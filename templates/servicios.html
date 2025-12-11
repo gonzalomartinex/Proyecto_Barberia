@@ -232,7 +232,7 @@
             <div class="card service-card h-100">
                 {% if servicio.imagen %}
                 <div class="service-image-container">
-                    <img src="{{ servicio.imagen }}" class="service-image" alt="{{ servicio.nombre }}">
+                    <img src="{{ servicio.imagen.url }}" class="service-image" alt="{{ servicio.nombre }}">
                 </div>
                 {% else %}
                 <div class="service-image-container bg-light d-flex align-items-center justify-content-center">

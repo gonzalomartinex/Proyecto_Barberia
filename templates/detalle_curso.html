@@ -308,7 +308,7 @@
         <div class="col-12 col-lg-10 col-xl-8">
             <div class="card course-card">
                 {% if curso.imagen %}
-                    <img src="{{ curso.imagen }}" class="course-image" alt="{{ curso.titulo }}">
+                    <img src="{{ curso.imagen.url }}" class="course-image" alt="{{ curso.titulo }}">
                 {% else %}
                     <div class="course-placeholder">
                         <i class="fas fa-graduation-cap fa-5x" style="color: var(--text-muted);"></i>

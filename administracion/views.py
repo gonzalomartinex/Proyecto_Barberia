@@ -327,66 +327,157 @@ def archivar_turnos_vista(request):
 def listar_archivos_excel(request):
     """Vista para listar todos los archivos Excel de turnos archivados desde la base de datos"""
     from administracion.models import ArchivoExcel
+    import logging
     
-    # Obtener archivos desde la base de datos
-    archivos_bd = ArchivoExcel.objects.all().order_by('-fecha_creacion')
+    logger = logging.getLogger(__name__)
     
-    # Convertir a formato compatible con la plantilla
-    archivos_info = []
+    try:
+        # Obtener archivos desde la base de datos con manejo de errores
+        archivos_bd = ArchivoExcel.objects.all().order_by('-fecha_creacion')
+        
+        # Convertir a formato compatible con la plantilla
+        archivos_info = []
+        
+        for archivo in archivos_bd:
+            try:
+                # Obtener valores con manejo de errores individual
+                archivo_data = {
+                    'id': archivo.id,
+                    'nombre': archivo.nombre_archivo,
+                    'fecha_creacion': archivo.fecha_creacion,
+                }
+                
+                # Campos que podrían fallar - manejar individualmente
+                try:
+                    archivo_data['tamaño'] = archivo.tamaño_bytes
+                except Exception as e:
+                    archivo_data['tamaño'] = 0
+                    logger.warning(f"Error obteniendo tamaño_bytes para {archivo.nombre_archivo}: {e}")
+                
+                try:
+                    archivo_data['tamaño_mb'] = archivo.get_tamaño_mb()
+                except Exception as e:
+                    archivo_data['tamaño_mb'] = 0.0
+                    logger.warning(f"Error obteniendo tamaño_mb para {archivo.nombre_archivo}: {e}")
+                
+                try:
+                    archivo_data['tipo'] = archivo.get_tipo_archivo_display()
+                except Exception as e:
+                    archivo_data['tipo'] = 'Desconocido'
+                    logger.warning(f"Error obteniendo tipo para {archivo.nombre_archivo}: {e}")
+                
+                try:
+                    archivo_data['descripcion'] = archivo.descripcion or archivo.get_descripcion_completa()
+                except Exception as e:
+                    archivo_data['descripcion'] = archivo.descripcion or 'Sin descripción'
+                    logger.warning(f"Error obteniendo descripción para {archivo.nombre_archivo}: {e}")
+                
+                try:
+                    archivo_data['cantidad_turnos'] = archivo.cantidad_turnos
+                except Exception as e:
+                    archivo_data['cantidad_turnos'] = 0
+                    logger.warning(f"Error obteniendo cantidad_turnos para {archivo.nombre_archivo}: {e}")
+                
+                # Campos opcionales
+                archivo_data.update({
+                    'periodo_inicio': getattr(archivo, 'fecha_periodo_inicio', None),
+                    'periodo_fin': getattr(archivo, 'fecha_periodo_fin', None),
+                    'version': getattr(archivo, 'version', '1.0'),
+                })
+                
+                try:
+                    archivo_data['tiene_archivo'] = archivo.has_archivo_excel()
+                except Exception as e:
+                    archivo_data['tiene_archivo'] = False
+                    logger.warning(f"Error verificando archivo para {archivo.nombre_archivo}: {e}")
+                
+                archivos_info.append(archivo_data)
+                
+            except Exception as e:
+                logger.error(f"Error procesando archivo {archivo.id}: {e}")
+                # Crear entrada básica con error
+                archivos_info.append({
+                    'id': archivo.id,
+                    'nombre': f"ERROR: {getattr(archivo, 'nombre_archivo', 'archivo_sin_nombre')}",
+                    'fecha_creacion': getattr(archivo, 'fecha_creacion', None),
+                    'tamaño': 0,
+                    'tamaño_mb': 0.0,
+                    'tipo': 'Error',
+                    'descripcion': f'Error procesando archivo: {e}',
+                    'cantidad_turnos': 0,
+                    'periodo_inicio': None,
+                    'periodo_fin': None,
+                    'version': 'N/A',
+                    'tiene_archivo': False,
+                })
     
-    for archivo in archivos_bd:
-        archivos_info.append({
-            'id': archivo.id,
-            'nombre': archivo.nombre_archivo,
-            'fecha_creacion': archivo.fecha_creacion,
-            'tamaño': archivo.tamaño_bytes,
-            'tamaño_mb': archivo.get_tamaño_mb(),
-            'tipo': archivo.get_tipo_archivo_display(),
-            'descripcion': archivo.descripcion or archivo.get_descripcion_completa(),
-            'cantidad_turnos': archivo.cantidad_turnos,
-            'periodo_inicio': archivo.fecha_periodo_inicio,
-            'periodo_fin': archivo.fecha_periodo_fin,
-            'version': archivo.version,
-            'tiene_archivo': archivo.has_archivo_excel(),
-        })
+    except Exception as e:
+        logger.error(f"Error general obteniendo archivos: {e}")
+        archivos_info = []
     
     # También obtener archivos locales si existen (para compatibilidad durante la transición)
     import os
     from datetime import datetime
     from django.conf import settings
     
-    archivos_dir = os.path.join(settings.MEDIA_ROOT, 'archivos_turnos')
     archivos_locales = []
     
-    if os.path.exists(archivos_dir):
-        archivos = [f for f in os.listdir(archivos_dir) if f.endswith('.xlsx')]
+    try:
+        archivos_dir = os.path.join(settings.MEDIA_ROOT, 'archivos_turnos')
         
-        for archivo in archivos:
-            # Verificar si ya está en BD
-            if not ArchivoExcel.objects.filter(nombre_archivo=archivo).exists():
-                ruta_completa = os.path.join(archivos_dir, archivo)
-                stat = os.stat(ruta_completa)
-                fecha_creacion = datetime.fromtimestamp(stat.st_ctime)
+        if os.path.exists(archivos_dir):
+            try:
+                archivos = [f for f in os.listdir(archivos_dir) if f.endswith('.xlsx')]
                 
-                archivos_locales.append({
-                    'nombre': archivo,
-                    'ruta_relativa': f'archivos_turnos/{archivo}',
-                    'fecha_creacion': fecha_creacion,
-                    'tamaño': stat.st_size,
-                    'tamaño_mb': round(stat.st_size / (1024 * 1024), 2),
-                    'tipo': 'Historial Maestro' if 'historial' in archivo.lower() else 'Archivo Individual',
-                    'descripcion': 'Archivo local (no migrado a BD)',
-                    'es_local': True,
-                })
+                for archivo in archivos:
+                    try:
+                        # Verificar si ya está en BD
+                        if not ArchivoExcel.objects.filter(nombre_archivo=archivo).exists():
+                            ruta_completa = os.path.join(archivos_dir, archivo)
+                            
+                            if os.path.exists(ruta_completa):
+                                stat = os.stat(ruta_completa)
+                                fecha_creacion = datetime.fromtimestamp(stat.st_ctime)
+                                
+                                archivos_locales.append({
+                                    'nombre': archivo,
+                                    'ruta_relativa': f'archivos_turnos/{archivo}',
+                                    'fecha_creacion': fecha_creacion,
+                                    'tamaño': stat.st_size,
+                                    'tamaño_mb': round(stat.st_size / (1024 * 1024), 2),
+                                    'tipo': 'Historial Maestro' if 'historial' in archivo.lower() else 'Archivo Individual',
+                                    'descripcion': 'Archivo local (no migrado a BD)',
+                                    'es_local': True,
+                                })
+                    except Exception as e:
+                        logger.warning(f"Error procesando archivo local {archivo}: {e}")
+                        
+            except Exception as e:
+                logger.warning(f"Error leyendo directorio {archivos_dir}: {e}")
+        
+    except Exception as e:
+        logger.warning(f"Error obteniendo archivos locales: {e}")
+        archivos_locales = []
     
-    context = {
-        'archivos': archivos_info,
-        'archivos_locales': archivos_locales,
-        'total_archivos': len(archivos_info),
-        'total_locales': len(archivos_locales),
-    }
+    try:
+        context = {
+            'archivos': archivos_info,
+            'archivos_locales': archivos_locales,
+            'total_archivos': len(archivos_info),
+            'total_locales': len(archivos_locales),
+        }
+        
+        return render(request, 'listar_archivos_excel.html', context)
     
-    return render(request, 'listar_archivos_excel.html', context)
+    except Exception as e:
+        logger.error(f"Error renderizando template: {e}")
+        from django.http import HttpResponse
+        return HttpResponse(
+            f"<h1>Error 500</h1>"
+            f"<p>Error cargando archivos Excel: {e}</p>"
+            f"<p><a href='/admin-panel/'>Volver al Panel Admin</a></p>",
+            status=500
+        )
 
 @user_passes_test(lambda u: u.is_superuser)
 def descargar_archivo_excel(request, nombre_archivo):

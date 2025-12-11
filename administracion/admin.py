@@ -45,9 +45,13 @@ class BackupBaseDatosAdmin(admin.ModelAdmin):
     get_estado_display.short_description = "Estado"
     
     def get_acciones(self, obj):
+        # Construir URL relativa directa
+        download_url = f'descargar/{obj.pk}/'
+        
         return format_html(
-            '<a class="button" href="descargar/{}/">Descargar</a>',
-            obj.pk
+            '<a class="button" href="{}" target="_blank">'
+            '<i class="fas fa-download"></i> Descargar</a>',
+            download_url
         )
     get_acciones.short_description = "Acciones"
     
@@ -181,22 +185,16 @@ class BackupBaseDatosAdmin(admin.ModelAdmin):
         """Vista para descargar un backup"""
         try:
             backup = BackupBaseDatos.objects.get(id=backup_id)
-            
-            # Obtener el contenido del archivo decodificado
-            file_bytes = backup.get_archivo_backup_bytes()
-            if not file_bytes:
-                messages.error(request, 'El backup no contiene datos válidos')
-                return HttpResponseRedirect('../')
-            
-            # Crear respuesta con el archivo real
-            response = HttpResponse(file_bytes, content_type='application/zip')
-            filename = backup.get_nombre_archivo()
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
-            
-            return response
+            return backup.descargar_como_response()
             
         except BackupBaseDatos.DoesNotExist:
-            messages.error(request, 'Backup no encontrado')
+            messages.error(request, f'No existe Backup de Base de Datos con ID "{backup_id}". ¿Quizá fue eliminado/a?')
+            return HttpResponseRedirect('../')
+        except ValueError as e:
+            messages.error(request, f'Error descargando backup: {str(e)}')
+            return HttpResponseRedirect('../')
+        except Exception as e:
+            messages.error(request, f'Error inesperado descargando backup: {str(e)}')
             return HttpResponseRedirect('../')
         except Exception as e:
             messages.error(request, f'Error descargando backup: {str(e)}')
@@ -245,6 +243,8 @@ class BackupBaseDatosAdmin(admin.ModelAdmin):
             'model_name': self.model._meta.model_name,
         }
         return render(request, 'admin/administracion/restaurar_backup.html', context)
+
+
 
 
 @admin.register(ArchivoExcel)

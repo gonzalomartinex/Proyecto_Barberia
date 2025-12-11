@@ -306,7 +306,7 @@
                         {% endif %}
                         
                         {% if curso.imagen %}
-                            <img src="{{ curso.imagen }}" class="curso-image" alt="{{ curso.titulo }}">
+                            <img src="{{ curso.imagen.url }}" class="curso-image" alt="{{ curso.titulo }}">
                         {% else %}
                             <div class="curso-placeholder">
                                 <i class="fas fa-graduation-cap fa-3x"></i>
@@ -342,6 +342,7 @@
                                     </a>
                                 </div>
                             {% endif %}
+
                         </div>
                     </div>
                 </div>

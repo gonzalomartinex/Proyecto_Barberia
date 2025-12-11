@@ -157,7 +157,7 @@
         <div class="card h-100 producto-card" style="position: relative;">
             <div class="ratio ratio-4x3" style="overflow:hidden;">
                 {% if producto.imagen %}
-                <img src="{{ producto.imagen }}" 
+                <img src="{{ producto.imagen.url }}" 
                      class="card-img-top object-fit-cover" 
                      alt="{{ producto.nombre }}" 
                      style="width:100%;height:100%;object-fit:cover;object-position:center;"

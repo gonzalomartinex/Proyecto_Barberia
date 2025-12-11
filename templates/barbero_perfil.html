@@ -403,11 +403,11 @@
                             <div class="trabajo-card card h-100">
                                 <div class="position-relative" style="overflow:hidden;cursor:pointer;">
                                     {% if user.is_authenticated and user.is_staff %}
-                                    <div onclick="openImageModal({{ trabajo.id }}, '{{ trabajo.imagen|escapejs }}')">
-                                        <img src="{{ trabajo.imagen }}" class="trabajo-image" alt="Trabajo de {{ barbero.nombre }}" loading="lazy">
+                                    <div onclick="openImageModal({{ trabajo.id }}, '{{ trabajo.imagen.url|escapejs }}')">
+                                        <img src="{{ trabajo.imagen.url }}" class="trabajo-image" alt="Trabajo de {{ barbero.nombre }}" loading="lazy">
                                     </div>
                                     {% else %}
-                                    <img src="{{ trabajo.imagen }}" class="trabajo-image" alt="Trabajo de {{ barbero.nombre }}" loading="lazy">
+                                    <img src="{{ trabajo.imagen.url }}" class="trabajo-image" alt="Trabajo de {{ barbero.nombre }}" loading="lazy">
                                     {% endif %}
                                 </div>
                             </div>

@@ -42,7 +42,7 @@ class ArchivoExcel(models.Model):
     descripcion = models.TextField(blank=True, help_text="Descripción del contenido del archivo")
     
     # Archivo Excel almacenado como base64
-    archivo_excel = BinaryExcelField(help_text="Archivo Excel almacenado en base64")
+    archivo_excel = models.TextField(help_text="Archivo Excel almacenado en base64")
     
     # Metadatos
     fecha_creacion = models.DateTimeField(default=timezone.now)
@@ -140,18 +140,55 @@ class ArchivoExcel(models.Model):
         """
         Retorna una respuesta HTTP para descargar este archivo
         """
-        # Función temporal para deploy
         from django.http import HttpResponse
-        def create_excel_response(filename, data):
-            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
-            return response
         
         if not self.archivo_excel:
             raise ValueError("No hay archivo para descargar")
         
-        return create_excel_response(self.archivo_excel, self.nombre_archivo)
+        try:
+            # Obtener bytes usando el método helper
+            file_bytes = self.get_archivo_excel_bytes()
+            if not file_bytes:
+                raise ValueError("No se pudieron obtener los datos del archivo")
+            
+            # Crear respuesta HTTP
+            response = HttpResponse(
+                file_bytes, 
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = f'attachment; filename="{self.nombre_archivo}"'
+            
+            return response
+            
+        except Exception as e:
+            raise ValueError(f"Error creando respuesta de descarga: {str(e)}")
 
+    def has_archivo_excel(self):
+        """
+        Verifica si el archivo Excel está presente y no está vacío
+        """
+        return bool(self.archivo_excel)
+
+    def get_archivo_excel_bytes(self):
+        """
+        Retorna los bytes del archivo Excel decodificando desde base64
+        """
+        if not self.archivo_excel:
+            return None
+        
+        try:
+            # Si es un string, tratar como base64
+            archivo_data = str(self.archivo_excel).strip()
+            
+            # Remover prefijo data: si existe
+            if archivo_data.startswith('data:'):
+                archivo_data = archivo_data.split(',', 1)[1]
+            
+            # Decodificar base64
+            return base64.b64decode(archivo_data)
+            
+        except Exception:
+            return None
 
 class BackupBaseDatos(models.Model):
     """
@@ -175,7 +212,7 @@ class BackupBaseDatos(models.Model):
     descripcion = models.TextField(blank=True, help_text="Descripción del backup")
     
     # Archivo de backup almacenado como base64
-    archivo_backup = BinaryFileField(blank=True, null=True, help_text="Archivo de backup almacenado en base64")
+    archivo_backup = models.TextField(blank=True, null=True, help_text="Archivo de backup almacenado en base64")
     
     # Metadatos
     fecha_creacion = models.DateTimeField(default=timezone.now)
@@ -222,6 +259,26 @@ class BackupBaseDatos(models.Model):
         extension = self.get_extension_archivo()
         nombre_limpio = "".join(c for c in self.nombre if c.isalnum() or c in (' ', '-', '_')).rstrip()
         return f"{nombre_limpio}_{timestamp}{extension}"
+
+    def get_archivo_backup_bytes(self):
+        """
+        Retorna los bytes del archivo de backup decodificando desde base64
+        """
+        if not self.archivo_backup:
+            return None
+        
+        try:
+            backup_data = str(self.archivo_backup).strip()
+            
+            # Remover prefijo data: si existe
+            if backup_data.startswith('data:'):
+                backup_data = backup_data.split(',', 1)[1]
+            
+            # Decodificar base64
+            return base64.b64decode(backup_data)
+            
+        except Exception:
+            return None
     
     def save(self, *args, **kwargs):
         """Override save para calcular metadatos automáticamente"""
@@ -247,13 +304,10 @@ class BackupBaseDatos(models.Model):
             raise ValueError("No hay archivo de backup para descargar")
         
         try:
-            # Remover prefijo data: si existe
-            backup_data = self.archivo_backup
-            if backup_data.startswith('data:'):
-                backup_data = backup_data.split(',', 1)[1]
-            
-            # Decodificar base64
-            file_bytes = base64.b64decode(backup_data)
+            # Obtener bytes usando el método helper
+            file_bytes = self.get_archivo_backup_bytes()
+            if not file_bytes:
+                raise ValueError("No se pudieron obtener los datos del archivo")
             
             # Determinar content type
             if self.tipo_backup == self.TIPO_JSON:
