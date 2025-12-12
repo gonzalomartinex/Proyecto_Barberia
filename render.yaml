@@ -19,7 +19,7 @@ services:
       - key: DEBUG
         value: False
       - key: ALLOWED_HOSTS
-        value: .render.com
+        value: .render.com,cortesconhistoria.com.ar,www.cortesconhistoria.com.ar
       - key: DJANGO_SUPERUSER_EMAIL
         value: admin@barberia.com
       - key: DJANGO_SUPERUSER_PASSWORD
