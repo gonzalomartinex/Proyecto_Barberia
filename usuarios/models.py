@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete, pre_save
 from django.dispatch import receiver
 from utils.cloudinary_cleanup import eliminar_imagen_cloudinary
 
@@ -135,3 +135,27 @@ def delete_trabajo_barbero_from_cloudinary(sender, instance, **kwargs):
     """Elimina la imagen de trabajo del barbero de Cloudinary antes de eliminar el registro"""
     if instance.imagen:
         eliminar_imagen_cloudinary(instance.imagen)
+
+@receiver(pre_save, sender=Barbero)
+def delete_old_barbero_image_on_change(sender, instance, **kwargs):
+    """Elimina la imagen anterior del barbero de Cloudinary cuando se cambia o se elimina"""
+    if instance.pk:  # Solo para actualizaciones, no para creaciones nuevas
+        try:
+            old_barbero = Barbero.objects.get(pk=instance.pk)
+            # Si había imagen anterior y ahora es diferente o está vacía
+            if old_barbero.foto and (not instance.foto or old_barbero.foto != instance.foto):
+                eliminar_imagen_cloudinary(old_barbero.foto)
+        except Barbero.DoesNotExist:
+            pass
+
+@receiver(pre_save, sender=TrabajoBarbero)
+def delete_old_trabajo_image_on_change(sender, instance, **kwargs):
+    """Elimina la imagen anterior del trabajo de barbero de Cloudinary cuando se cambia"""
+    if instance.pk:  # Solo para actualizaciones, no para creaciones nuevas
+        try:
+            old_trabajo = TrabajoBarbero.objects.get(pk=instance.pk)
+            # Si había imagen anterior y ahora es diferente
+            if old_trabajo.imagen and old_trabajo.imagen != instance.imagen:
+                eliminar_imagen_cloudinary(old_trabajo.imagen)
+        except TrabajoBarbero.DoesNotExist:
+            pass
