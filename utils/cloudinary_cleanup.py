@@ -1,13 +1,7 @@
 """
-Señales para limpiar automáticamente imágenes de Cloudinary cuando se eliminan objetos
+Utilidades para limpiar automáticamente imágenes de Cloudinary
 """
 
-from django.db.models.signals import pre_delete, post_delete
-from django.dispatch import receiver
-from BarberiaApp.models import CarouselImage
-from servicios.models import Servicio
-from usuarios.models import Barbero
-from cursos.models import Curso
 import cloudinary.uploader
 import logging
 
@@ -75,108 +69,100 @@ def delete_from_cloudinary(public_id):
         logger.error(f"❌ Error eliminando de Cloudinary {public_id}: {e}")
         return False
 
-@receiver(pre_delete, sender=CarouselImage)
-def delete_carousel_image_from_cloudinary(sender, instance, **kwargs):
-    """
-    Elimina la imagen del carrusel de Cloudinary antes de eliminar el registro
-    """
-    if instance.imagen:
-        public_id = extract_public_id_from_url(instance.imagen.url)
-        if public_id:
-            success = delete_from_cloudinary(public_id)
-            if success:
-                logger.info(f"🎠 Imagen de carrusel eliminada de Cloudinary: {instance.imagen.name}")
-            else:
-                logger.warning(f"⚠️ No se pudo eliminar imagen de carrusel de Cloudinary: {instance.imagen.name}")
+# Funciones utilitarias - las señales están definidas en cada modelo respectivo
 
-@receiver(pre_delete, sender=Servicio)
-def delete_servicio_image_from_cloudinary(sender, instance, **kwargs):
+def obtener_imagenes_cloudinary(folder_prefix=""):
     """
-    Elimina la imagen del servicio de Cloudinary antes de eliminar el registro
-    """
-    if hasattr(instance, 'imagen') and instance.imagen:
-        public_id = extract_public_id_from_url(instance.imagen.url)
-        if public_id:
-            success = delete_from_cloudinary(public_id)
-            if success:
-                logger.info(f"🔧 Imagen de servicio eliminada de Cloudinary: {instance.nombre}")
-            else:
-                logger.warning(f"⚠️ No se pudo eliminar imagen de servicio de Cloudinary: {instance.nombre}")
-
-@receiver(pre_delete, sender=Barbero)
-def delete_barbero_image_from_cloudinary(sender, instance, **kwargs):
-    """
-    Elimina la imagen del barbero de Cloudinary antes de eliminar el registro
-    """
-    if hasattr(instance, 'imagen') and instance.imagen:
-        public_id = extract_public_id_from_url(instance.imagen.url)
-        if public_id:
-            success = delete_from_cloudinary(public_id)
-            if success:
-                logger.info(f"✂️ Imagen de barbero eliminada de Cloudinary: {instance.nombre}")
-            else:
-                logger.warning(f"⚠️ No se pudo eliminar imagen de barbero de Cloudinary: {instance.nombre}")
-
-@receiver(pre_delete, sender=Curso)
-def delete_curso_image_from_cloudinary(sender, instance, **kwargs):
-    """
-    Elimina la imagen del curso de Cloudinary antes de eliminar el registro
-    """
-    if hasattr(instance, 'imagen') and instance.imagen:
-        public_id = extract_public_id_from_url(instance.imagen.url)
-        if public_id:
-            success = delete_from_cloudinary(public_id)
-            if success:
-                logger.info(f"📚 Imagen de curso eliminada de Cloudinary: {instance.titulo}")
-            else:
-                logger.warning(f"⚠️ No se pudo eliminar imagen de curso de Cloudinary: {instance.titulo}")
-
-# Función para limpiar imágenes huérfanas manualmente
-def cleanup_orphaned_cloudinary_images():
-    """
-    Función utilitaria para limpiar imágenes huérfanas en Cloudinary
-    (que ya no tienen registros asociados en la base de datos)
+    Obtiene una lista de todas las imágenes en Cloudinary
     
-    Esta función se puede llamar manualmente o desde un comando de gestión
+    Args:
+        folder_prefix (str): Prefijo de carpeta para filtrar (ej: "productos/")
+    
+    Returns:
+        list: Lista de nombres de archivos/paths de imágenes
     """
     try:
-        # Obtener todas las imágenes de Cloudinary
-        cloudinary_resources = cloudinary.api.resources(type="upload", max_results=500)
+        import cloudinary.api
         
-        all_image_urls = set()
+        imagenes = []
+        next_cursor = None
         
-        # Recopilar todas las URLs de imágenes actualmente en uso
-        for carousel_img in CarouselImage.objects.all():
-            if carousel_img.imagen:
-                all_image_urls.add(str(carousel_img.imagen.url))
+        while True:
+            if folder_prefix:
+                result = cloudinary.api.resources(
+                    type="upload",
+                    prefix=folder_prefix,
+                    max_results=100,
+                    next_cursor=next_cursor
+                )
+            else:
+                result = cloudinary.api.resources(
+                    type="upload",
+                    max_results=100,
+                    next_cursor=next_cursor
+                )
+            
+            for resource in result.get('resources', []):
+                imagenes.append(resource['public_id'])
+            
+            next_cursor = result.get('next_cursor')
+            if not next_cursor:
+                break
         
-        for servicio in Servicio.objects.all():
-            if hasattr(servicio, 'imagen') and servicio.imagen:
-                all_image_urls.add(str(servicio.imagen.url))
-        
-        for barbero in Barbero.objects.all():
-            if hasattr(barbero, 'imagen') and barbero.imagen:
-                all_image_urls.add(str(barbero.imagen.url))
-        
-        for curso in Curso.objects.all():
-            if hasattr(curso, 'imagen') and curso.imagen:
-                all_image_urls.add(str(curso.imagen.url))
-        
-        # Buscar imágenes huérfanas
-        orphaned_count = 0
-        for resource in cloudinary_resources.get('resources', []):
-            resource_url = resource['secure_url']
-            if resource_url not in all_image_urls:
-                # Esta imagen no está siendo usada
-                public_id = resource['public_id']
-                success = delete_from_cloudinary(public_id)
-                if success:
-                    orphaned_count += 1
-                    logger.info(f"🧹 Imagen huérfana eliminada: {public_id}")
-        
-        logger.info(f"🎉 Limpieza completada. {orphaned_count} imágenes huérfanas eliminadas.")
-        return orphaned_count
+        return imagenes
         
     except Exception as e:
-        logger.error(f"❌ Error en limpieza de imágenes huérfanas: {e}")
-        return 0
+        logger.error(f"Error al obtener imágenes de Cloudinary: {str(e)}")
+        return []
+
+def existe_imagen_cloudinary(public_id):
+    """
+    Verifica si una imagen existe en Cloudinary
+    
+    Args:
+        public_id (str): El public_id de la imagen en Cloudinary
+    
+    Returns:
+        bool: True si existe, False si no existe
+    """
+    try:
+        import cloudinary.api
+        cloudinary.api.resource(public_id)
+        return True
+    except cloudinary.api.NotFound:
+        return False
+    except Exception as e:
+        logger.error(f"Error al verificar imagen en Cloudinary: {str(e)}")
+        return False
+
+def eliminar_imagen_cloudinary(image_field):
+    """
+    Elimina una imagen de Cloudinary usando el campo de imagen de Django
+    
+    Args:
+        image_field: Campo ImageField/FileField de Django
+    
+    Returns:
+        bool: True si se eliminó exitosamente, False si hubo error
+    """
+    if not image_field:
+        return False
+        
+    try:
+        # Obtener la URL de la imagen
+        if hasattr(image_field, 'url'):
+            image_url = image_field.url
+        else:
+            image_url = str(image_field)
+        
+        # Extraer el public_id
+        public_id = extract_public_id_from_url(image_url)
+        if public_id:
+            return delete_from_cloudinary(public_id)
+        else:
+            logger.warning(f"No se pudo extraer public_id de: {image_url}")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Error al eliminar imagen de Cloudinary: {str(e)}")
+        return False

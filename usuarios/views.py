@@ -210,9 +210,23 @@ def eliminar_trabajo_barbero(request, trabajo_id):
     trabajo = get_object_or_404(TrabajoBarbero, pk=trabajo_id)
     if not request.user.is_staff:
         return HttpResponseForbidden()
+    
     barbero_id = trabajo.barbero.id
+    barbero_nombre = trabajo.barbero.nombre
+    tiene_imagen = bool(trabajo.imagen)
+    
+    # La señal pre_delete se encarga automáticamente de eliminar de Cloudinary
     trabajo.delete()
-    messages.success(request, 'Imagen eliminada correctamente.')
+    
+    if tiene_imagen:
+        messages.success(
+            request, 
+            f'Trabajo de {barbero_nombre} eliminado correctamente. '
+            f'La imagen también fue eliminada automáticamente de Cloudinary.'
+        )
+    else:
+        messages.success(request, f'Trabajo de {barbero_nombre} eliminado correctamente.')
+    
     return redirect('barbero-perfil', pk=barbero_id)
 
 @login_required
@@ -249,10 +263,27 @@ def eliminar_barbero(request, pk):
     if not request.user.is_staff:
         return HttpResponseForbidden()
     barbero = get_object_or_404(Barbero, pk=pk)
+    
     if request.method == 'POST':
+        barbero_nombre = barbero.nombre
+        tiene_foto = bool(barbero.foto)
+        cantidad_trabajos = barbero.trabajos.filter(imagen__isnull=False).count()
+        
+        # La señal pre_delete se encarga automáticamente de eliminar todo de Cloudinary
         barbero.delete()
-        messages.success(request, 'Barbero eliminado correctamente.')
+        
+        # Mensaje informativo detallado
+        mensaje_partes = [f'Barbero "{barbero_nombre}" eliminado correctamente.']
+        
+        if tiene_foto:
+            mensaje_partes.append('Su foto de perfil fue eliminada automáticamente de Cloudinary.')
+        
+        if cantidad_trabajos > 0:
+            mensaje_partes.append(f'Sus {cantidad_trabajos} trabajos también fueron eliminados automáticamente de Cloudinary.')
+        
+        messages.success(request, ' '.join(mensaje_partes))
         return redirect('barberos-list')
+    
     return render(request, 'eliminar_barbero.html', {'barbero': barbero})
 
 @login_required

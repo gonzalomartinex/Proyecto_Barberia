@@ -5,6 +5,7 @@ from django.views.generic import CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
 import json
 from rest_framework import generics, permissions
 from django import forms
@@ -58,6 +59,32 @@ class ProductoDeleteView(DeleteView):
     model = Producto
     template_name = 'producto_confirm_delete.html'
     success_url = reverse_lazy('producto-lista')
+    
+    def delete(self, request, *args, **kwargs):
+        """
+        Elimina el producto y proporciona mensaje informativo sobre Cloudinary
+        """
+        producto = self.get_object()
+        producto_nombre = producto.nombre
+        tiene_imagen = bool(producto.imagen)
+        
+        # La eliminación automática la maneja la señal pre_delete
+        response = super().delete(request, *args, **kwargs)
+        
+        # Mensaje informativo
+        if tiene_imagen:
+            messages.success(
+                request, 
+                f'Producto "{producto_nombre}" eliminado correctamente. '
+                f'Su imagen también fue eliminada automáticamente de Cloudinary.'
+            )
+        else:
+            messages.success(
+                request, 
+                f'Producto "{producto_nombre}" eliminado correctamente.'
+            )
+        
+        return response
 
 def ProductoListView(request):
     productos = Producto.objects.all()

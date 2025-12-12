@@ -7,9 +7,43 @@
       <div class="card-body">
         <h3 class="mb-4 text-center text-danger">Eliminar barbero</h3>
         <p class="text-center">¿Estás seguro que deseas eliminar a <strong>{{ barbero.nombre }}</strong>? Esta acción no se puede deshacer.</p>
-          <div class="text-center mb-3">
-            <img src="{{ barbero.get_foto_url }}" class="img-fluid rounded" style="max-height:120px;">
-          </div>
+        
+        <div class="text-center mb-3">
+          <img src="{{ barbero.get_foto_url }}" class="img-fluid rounded" style="max-height:120px;">
+        </div>
+        
+        <!-- Información sobre eliminación de Cloudinary -->
+        <div class="alert alert-warning">
+          <h6 class="mb-2"><i class="fas fa-cloud text-warning me-2"></i>Eliminación en Cloudinary</h6>
+          
+          {% if barbero.foto %}
+            <div class="mb-2">
+              <small><i class="fas fa-user-circle me-1"></i> Su foto de perfil será eliminada automáticamente</small>
+            </div>
+          {% endif %}
+          
+          {% if barbero.trabajos.all %}
+            <div class="mb-2">
+              <small><i class="fas fa-images me-1"></i> Sus {{ barbero.trabajos.count }} trabajo{{ barbero.trabajos.count|pluralize }} será{{ barbero.trabajos.count|pluralize:"n" }} eliminado{{ barbero.trabajos.count|pluralize }} automáticamente</small>
+            </div>
+            
+            <!-- Mostrar preview de algunos trabajos -->
+            <div class="d-flex flex-wrap gap-1 justify-content-center mt-2">
+              {% for trabajo in barbero.trabajos.all|slice:":4" %}
+                {% if trabajo.imagen %}
+                  <img src="{{ trabajo.imagen.url }}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
+                {% endif %}
+              {% endfor %}
+              {% if barbero.trabajos.count > 4 %}
+                <span class="badge bg-secondary align-self-center">+{{ barbero.trabajos.count|add:"-4" }}</span>
+              {% endif %}
+            </div>
+          {% endif %}
+          
+          {% if not barbero.foto and not barbero.trabajos.all %}
+            <small class="text-muted"><i class="fas fa-info-circle me-1"></i>Este barbero no tiene imágenes en Cloudinary</small>
+          {% endif %}
+        </div>
         <form method="post">
           {% csrf_token %}
           <button type="submit" class="btn btn-danger w-100">Eliminar definitivamente</button>

@@ -55,11 +55,11 @@ INSTALLED_APPS = [
     'cloudinary',
     'rest_framework',
     'rest_framework_simplejwt',
-    'usuarios',
+    'usuarios.apps.UsuariosConfig',
     'turnos',
     'servicios.apps.ServiciosConfig',
     'administracion',
-    'productos',
+    'productos.apps.ProductosConfig',
     'BarberiaApp.apps.BarberiaappConfig',
     'cursos',
 
