@@ -124,17 +124,24 @@
         padding: 1.5rem;
     }
     
+    /* Hacer que los inputs de teléfono tengan distribución en fila flexible */
     .input-group {
-        flex-direction: column;
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0.5rem;
     }
     
-    .input-group .form-control {
+    .input-group .form-control:first-child {
+        flex: 0 0 100px !important;
+        max-width: 100px !important;
+        min-width: 100px !important;
         border-radius: 10px !important;
-        margin-bottom: 0.5rem;
     }
     
     .input-group .form-control:last-child {
-        margin-bottom: 0;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        border-radius: 10px !important;
     }
 }
 
@@ -159,6 +166,17 @@
     .warning-note {
         padding: 0.75rem;
         font-size: 0.9rem;
+    }
+    
+    /* Asegurar distribución correcta en pantallas muy pequeñas */
+    .input-group {
+        gap: 0.4rem;
+    }
+    
+    .input-group .form-control:first-child {
+        flex: 0 0 85px !important;
+        max-width: 85px !important;
+        min-width: 85px !important;
     }
 }
 </style>
@@ -220,7 +238,7 @@
                                 </label>
                                 <div class="input-group">
                                     <input type="text" name="codigo_pais" id="id_codigo_pais" 
-                                           class="form-control" style="max-width: 80px; min-width: 60px;" 
+                                           class="form-control" 
                                            value="{{ form.codigo_pais.value|default:'+54' }}" placeholder="+54">
                                     <input type="text" name="telefono_numero" id="id_telefono_numero" 
                                            class="form-control" placeholder="3519998888" autocomplete="off">
