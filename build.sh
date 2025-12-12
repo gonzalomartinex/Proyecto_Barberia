@@ -10,14 +10,16 @@ pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
 
 # Migrar imágenes existentes a Cloudinary (solo una vez después de configurar Cloudinary)
-echo "🔄 Migrando imágenes existentes a Cloudinary..."
-python manage.py migrar_imagenes_cloudinary
+# DESHABILITADO: No migrar imágenes automáticamente en deploy
+# echo "🔄 Migrando imágenes existentes a Cloudinary..."
+# python manage.py migrar_imagenes_cloudinary
 
 # Recopilar archivos estáticos
 python manage.py collectstatic --no-input
 
 # Copiar archivos media a static para que WhiteNoise los sirva
-python manage.py copy_media_to_static
+# DESHABILITADO: No copiar media automáticamente en deploy
+# python manage.py copy_media_to_static
 
 # Ejecutar migraciones
 python manage.py migrate
