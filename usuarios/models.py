@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
+from utils.cloudinary_cleanup import eliminar_imagen_cloudinary
 
 # Campos temporales para deploy - reemplazar utils
 class PerfilBinaryImageField(models.ImageField):
@@ -120,3 +123,15 @@ class RedSocial(models.Model):
     orden = models.PositiveIntegerField(default=0)
     def __str__(self):
         return self.nombre or self.url
+
+@receiver(pre_delete, sender=Barbero)
+def delete_barbero_image_from_cloudinary(sender, instance, **kwargs):
+    """Elimina la imagen del barbero de Cloudinary antes de eliminar el registro"""
+    if instance.foto:
+        eliminar_imagen_cloudinary(instance.foto)
+
+@receiver(pre_delete, sender=TrabajoBarbero)
+def delete_trabajo_barbero_from_cloudinary(sender, instance, **kwargs):
+    """Elimina la imagen de trabajo del barbero de Cloudinary antes de eliminar el registro"""
+    if instance.imagen:
+        eliminar_imagen_cloudinary(instance.imagen)
