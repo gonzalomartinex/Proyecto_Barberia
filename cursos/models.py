@@ -2,6 +2,9 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.db.models.signals import pre_delete, pre_save
+from django.dispatch import receiver
+from utils.cloudinary_cleanup import eliminar_imagen_cloudinary
 
 # Campos temporales para deploy - reemplazar utils
 class CursoBinaryImageField(models.ImageField):
@@ -80,3 +83,21 @@ class InscripcionCurso(models.Model):
         
     def __str__(self):
         return f"{self.usuario.nombre} - {self.curso.titulo}"
+
+@receiver(pre_delete, sender=Curso)
+def delete_curso_image_from_cloudinary(sender, instance, **kwargs):
+    """Elimina la imagen del curso de Cloudinary antes de eliminar el registro"""
+    if instance.imagen:
+        eliminar_imagen_cloudinary(instance.imagen)
+
+@receiver(pre_save, sender=Curso)
+def delete_old_curso_image_on_change(sender, instance, **kwargs):
+    """Elimina la imagen anterior del curso de Cloudinary cuando se cambia o se elimina"""
+    if instance.pk:  # Solo para actualizaciones, no para creaciones nuevas
+        try:
+            old_curso = Curso.objects.get(pk=instance.pk)
+            # Si había imagen anterior y ahora es diferente o está vacía
+            if old_curso.imagen and (not instance.imagen or old_curso.imagen != instance.imagen):
+                eliminar_imagen_cloudinary(old_curso.imagen)
+        except Curso.DoesNotExist:
+            pass
